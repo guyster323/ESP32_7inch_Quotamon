@@ -28,7 +28,7 @@ orca-integration/windows/obj/
 companion/
 requirements-companion.txt
 requirements-build.txt
-README.txt
+/README.txt
 docs/research-sources/
 docs/assets/
 docs/*-2026-10-14.json
