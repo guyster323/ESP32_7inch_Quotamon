@@ -1,0 +1,19 @@
+Quotamon · Windows 포터블 BLE 중계
+
+1. ZIP 전체를 PC의 유지할 폴더에 풀고 Quotamon.exe를 실행하세요.
+   node.exe, bridge.cjs, web, assets 폴더는 실행 파일과 함께 유지하세요.
+2. 기존 Orca를 켜세요. Orca를 개조하거나 계정을 다시 로그인할 필요가 없습니다.
+3. 열리는 설정 페이지에서 표시할 계정과 별칭·요금제를 선택해 저장하세요.
+4. Quotamon 펌웨어를 올린 기기에서 BLE 연결 시작을 누르고 PC에서 검색하세요.
+5. 양쪽의 같은 6자리 번호를 확인하고 각각 승인하세요.
+6. Windows 자동 실행은 설정 → 중계 프로그램에서 켤 수 있습니다.
+   켠 다음 폴더를 옮겼다면 새 위치에서 자동 실행을 다시 켜세요.
+
+설정 페이지를 닫아도 트레이에서 중계가 계속 실행됩니다.
+트레이 아이콘을 두 번 누르면 설정을 다시 열고, 종료 메뉴로 중계를 끝냅니다.
+Orca 종료 또는 연결 상실 시 기기의 값은 삭제됩니다.
+사용량 원천이 오래되거나 없으면 오래된 정보 또는 확인 불가로 표시합니다.
+설정 파일: %APPDATA%\Quotamon\settings.json (계정 인증정보 저장 안 함)
+Windows Bluetooth LE가 필요합니다. Wi-Fi / 별도 Node / .NET 설치는 필요 없습니다.
+이 빌드는 개발 프리뷰입니다. 실제 보드의 BLE 페어링·왕복은 아직 검증 전입니다.
+펌웨어 업로드 절차: https://github.com/guyster323/ESP32_7inch_Quotamon/blob/main/docs/UPLOAD.md

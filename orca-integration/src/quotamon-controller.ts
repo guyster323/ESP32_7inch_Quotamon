@@ -15,6 +15,7 @@ export interface AccountSource {
   getSnapshot(): unknown
   refreshIfStale(): Promise<void>
   onChanged(listener: () => void): () => void
+  isAvailable?(): boolean
   copilot?(): Promise<DisplayAccount>
 }
 export interface ControllerState {
@@ -25,7 +26,7 @@ export interface ControllerState {
   accounts: DisplayAccount[]
   error: string | null
 }
-// Lives in Orca main; rendering and account credentials remain owned by Orca.
+// Shared by the portable bridge and optional Orca source integration.
 export class QuotamonController extends EventEmitter {
   private config: Config
   private connected = false
@@ -66,8 +67,9 @@ export class QuotamonController extends EventEmitter {
     host.on('event', (event: unknown) => {
       void this.onEvent(event).catch(() => this.fail('BLE event rejected'))
     })
-    host.on('fault', () => this.fail('BLE resource stopped'))
+    host.on('fault', () => this.fail('Bluetooth 중계 연결 대기'))
     this.unsubscribe = source.onChanged(() => {
+      if (source.isAvailable?.() === false) this.lastRefresh = 0
       this.updateSource()
       this.dirty = true
       this.publish()
@@ -88,6 +90,7 @@ export class QuotamonController extends EventEmitter {
     }
   }
   private accounts(): DisplayAccount[] {
+    if (this.source.isAvailable?.() === false) return []
     const a = [...this.cachedSource]
     if (this.cachedCopilot) a.push(this.cachedCopilot)
     return makeSnapshot(a, this.config, Date.now() / 1000, true).accounts
@@ -98,6 +101,7 @@ export class QuotamonController extends EventEmitter {
       if (this.fault === 'Orca 사용량 정보 대기 중') this.fault = null
     } catch {
       this.cachedSource = []
+      this.cachedCopilot = undefined
       this.fault = 'Orca 사용량 정보 대기 중'
     }
   }
@@ -127,6 +131,7 @@ export class QuotamonController extends EventEmitter {
     this.lastAttempt = Date.now()
     try {
       await this.host.request('connect', { address }, 95000)
+      if (this.stopped) return
       this.config = { ...this.config, address }
       this.persist(this.config)
       this.publish()
@@ -171,10 +176,23 @@ export class QuotamonController extends EventEmitter {
     this.lastRefresh = Date.now()
     this.refreshPending = (async () => {
       await this.source.refreshIfStale()
+      if (this.stopped) return
       this.updateSource()
+      if (this.source.isAvailable?.() === false) {
+        this.cachedCopilot = undefined
+        this.dirty = true
+        this.publish()
+        return
+      }
       if (this.source.copilot) {
         try {
-          this.cachedCopilot = await this.source.copilot()
+          const copilot = await this.source.copilot()
+          if (this.stopped) return
+          if (this.source.isAvailable?.() === false) {
+            this.cachedCopilot = undefined
+            return
+          }
+          this.cachedCopilot = copilot
         } catch {
           if (this.cachedCopilot)
             this.cachedCopilot = {
@@ -232,7 +250,11 @@ export class QuotamonController extends EventEmitter {
       this.publish()
       void this.refresh().catch(() => {})
     } else if (event.type === 'disconnected') {
-      this.fail('Orca 연결 대기')
+      this.fail(
+        this.source.isAvailable?.() === false
+          ? 'Orca 연결 대기'
+          : '디스플레이 연결 대기'
+      )
     } else if (
       event.type === 'notification' &&
       typeof event.frame === 'string' &&
@@ -276,6 +298,18 @@ export class QuotamonController extends EventEmitter {
   private async tick(): Promise<void> {
     if (this.stopped) return
     const now = Date.now()
+    if (this.source.isAvailable?.() === false) {
+      if (this.connected && !this.connecting) {
+        this.connected = false
+        this.receive.reset()
+        this.ack?.reject(Error('Orca 연결 대기'))
+        this.ack = undefined
+        await this.host.request('disconnect')
+        this.fault = 'Orca 연결 대기'
+        this.publish()
+      }
+      return
+    }
     if (!this.connected) {
       if (
         this.config.address &&
@@ -356,7 +390,7 @@ export class QuotamonController extends EventEmitter {
     this.stopped = true
     clearInterval(this.timer)
     this.unsubscribe()
-    this.ack?.reject(Error('Orca stopped'))
+    this.ack?.reject(Error('중계 종료'))
     this.host.dispose()
   }
 }

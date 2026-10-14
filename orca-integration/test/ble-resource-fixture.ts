@@ -4,8 +4,34 @@ const emit = (value: unknown): void => {
   process.stdout.write(JSON.stringify(value) + '\n')
 }
 const rx = new Reassembler()
+let pendingConnect: string | undefined
+const completeConnection = (id: string): void => {
+  emit({ type: 'connected', value_size: 244, address: '12345' })
+  emit({ type: 'result', id, ok: true })
+}
 createInterface({ input: process.stdin }).on('line', (line) => {
   const request = JSON.parse(line)
+  if (request.command === 'scan')
+    emit({
+      type: 'device',
+      address: '12345',
+      name: 'Quotamon · Preview',
+      rssi: -52
+    })
+  if (
+    request.command === 'connect' &&
+    process.env.BLE_FIXTURE_PAIRING === '1'
+  ) {
+    pendingConnect = request.id
+    emit({ type: 'pairing', pin: '632814' })
+    return
+  }
+  if (request.command === 'confirm' && pendingConnect) {
+    const id = pendingConnect
+    pendingConnect = undefined
+    if (request.accept === true) completeConnection(id)
+    else emit({ type: 'result', id, ok: false, code: 'pairing-rejected' })
+  }
   if (request.command === 'connect')
     emit({ type: 'connected', value_size: 244, address: request.address })
   if (request.command === 'disconnect') emit({ type: 'disconnected' })

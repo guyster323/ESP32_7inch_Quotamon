@@ -2,7 +2,7 @@
 
 **AI subscription quotas on one 7-inch desk display.**
 
-[한국어](README.md) · [Architecture](docs/ARCHITECTURE.md) · [Orca integration](docs/ORCA_INTEGRATION.md)
+[한국어](README.md) · [Portable setup](docs/PORTABLE_BRIDGE.md) · [Architecture](docs/ARCHITECTURE.md)
 
 ![Native LVGL mock dashboard](visuals/native/09-five-providers.png)
 
@@ -10,11 +10,11 @@ This is a real LVGL/RGB565 render with illustrative data, not a photograph of a 
 
 Quotamon targets the **Waveshare ESP32-S3-Touch-LCD-7 Rev1.2**, with five account cards per page, touch details, multiple quota pools, configurable fields, Korean/Latin fonts, and six pixel-art states for Codex, Cursor, Copilot, Claude, and Grok. The percentage text changes from white to dark across the fill boundary, inspired by [F108pro Usage Monitor](https://github.com/guyster323/F108pro_Usage_monitor).
 
-The product architecture is **Orca-integrated BLE central → standalone ESP32 BLE peripheral**. No separate PC companion or tray collector is included. Authentication stays with Orca and the providers; only sanitized quota fields cross BLE. ESP32 renders independently, but a running Orca PC is still required to supply subscription data. This does not offer PC-free cloud sign-in.
+The product architecture is **unmodified Orca → portable Windows BLE bridge → standalone ESP32**. Extract the package and run Quotamon.exe; Node and .NET are included. The tray opens a local settings page for accounts, pairing and display preferences. Authentication stays with Orca and providers; only sanitized display fields cross BLE. ESP32 renders independently, but a nearby PC running Orca and the bridge supplies subscription data.
 
 ## Development preview
 
-Stock Orca does **not** contain the BLE sender. This repository provides a source integration patch, main-process modules, settings/onboarding pane and a bundled Windows BLE resource. The patch was checked against Orca commit `3f81541188b435aabc822aaf36c6f23a70e1a783` (1.4.214). A complete patched Orca build and physical BLE pairing are not yet validated.
+Stock Orca does not contain the BLE sender; the portable bridge supplies it without changing Orca. Live checks against Orca 1.4.224 read three Codex accounts and Cursor, plus the existing Copilot SDK account. Product UI tests cover account editing, numeric pairing approval, settings, reload, narrow layouts and clearing on source loss. Launcher crash cleanup was verified. Physical firmware upload and BLE pairing remain unverified. The older source-integration patch is optional developer material.
 
 Native UI/pointer tests, C++/TypeScript fragmentation and privacy tests pass. The Windows resource compiles and detects BLE central support on the development PC. Firmware builds with ESP-IDF 5.5.3 and fits the 8 MB factory partition layout (about 6.36 MB). See [verification](docs/VERIFICATION.md) for precise boundaries.
 
@@ -33,6 +33,6 @@ build\native\quotamon_protocol_test.exe
 build\native\espmonitor_sim.exe
 ```
 
-The simulator is a development tool. Follow [Orca integration](docs/ORCA_INTEGRATION.md) and [firmware upload](docs/UPLOAD.md) for hardware setup. USB is used for flashing/power/logs; Wi-Fi and classic Bluetooth SPP are not used.
+The simulator is a development tool. Download the `Quotamon-Portable-win-x64-preview` artifact from a successful [Windows Actions build](https://github.com/guyster323/ESP32_7inch_Quotamon/actions/workflows/build.yml), extract its inner ZIP and run Quotamon.exe. Enable Windows login startup in settings. Follow [portable setup](docs/PORTABLE_BRIDGE.md) and [firmware upload](docs/UPLOAD.md) for hardware setup. USB is used for flashing/power/logs; Wi-Fi and classic Bluetooth SPP are not used.
 
 MIT project code. F108pro artwork/glyph shapes, Noto fonts, Orca patch context, Waveshare port and runtime dependencies retain their respective [notices](THIRD_PARTY_NOTICES.md). The new lavender Copilot pilot robot is original, unofficial artwork.

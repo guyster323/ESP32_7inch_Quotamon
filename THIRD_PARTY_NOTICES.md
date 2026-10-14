@@ -14,7 +14,9 @@ Noto Sans KR Medium: SIL OFL 1.1, [full notice](native/generated/NotoSansKR-OFL.
 | Waveshare RGB port | bc51a84b30c0cea018fee6e0d7427ec10102060e | Source retains CC0-1.0 SPDX; repository Apache text in firmware/vendor/WAVESHARE-LICENSE |
 | Orca patch context | 3f81541188b435aabc822aaf36c6f23a70e1a783 | MIT, © 2026 Lovecast Inc.; orca-integration/ORCA-LICENSE |
 | .NET 10 / Windows SDK projection | Build-selected SDK packages | Upstream runtime/package notices; retain in distributions |
+| Bundled Node | Build-selected installed runtime (22+) | Node MIT and included third-party notices; exact version/license bundled with portable ZIP |
+| esbuild | 0.25.11 | MIT; build tool only, not embedded as a runtime dependency |
 | Optional Copilot SDK / CLI | User's existing installation | Upstream GitHub licensing; not redistributed here |
 | Pillow / fonttools / lv_font_conv | Asset build and verification tools | Upstream licenses; not embedded runtime code |
 
-Orca integration reuses the internal account snapshot contract and existing UI/process primitives. No provider authentication readers are copied. Generated files retain attribution and downloaded packages retain their licenses. Separate Python collector experiments are outside the published product source.
+The portable bridge uses Orca's existing CLI/local account snapshot contract without modifying its application. The optional internal patch reuses Orca UI/process primitives. No provider authentication readers are copied. Generated files retain attribution and portable packages include Node/.NET/F108 notices. Older Python collector experiments remain outside the published product source.

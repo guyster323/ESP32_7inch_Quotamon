@@ -24,6 +24,8 @@ firmware/sdkconfig.*
 !firmware/sdkconfig.defaults
 orca-integration/windows/bin/
 orca-integration/windows/obj/
+portable/bin/
+portable/obj/
 # Earlier local companion experiments and private device/account research.
 companion/
 requirements-companion.txt

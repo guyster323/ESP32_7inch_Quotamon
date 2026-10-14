@@ -9,7 +9,7 @@
 [![Transport](https://img.shields.io/badge/Orca-BLE-a78bfa)](orca-integration)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-[English](README.en.md) · [설치·연결](docs/ORCA_INTEGRATION.md) · [업로드](docs/UPLOAD.md) · [구조](docs/ARCHITECTURE.md)
+[English](README.en.md) · [포터블 실행·연결](docs/PORTABLE_BRIDGE.md) · [업로드](docs/UPLOAD.md) · [구조](docs/ARCHITECTURE.md)
 
 <img src="visuals/native/09-five-providers.png" width="800" alt="Codex, Cursor, Copilot, Claude, Grok의 픽셀 캐릭터와 잔여량 막대">
 
@@ -22,8 +22,8 @@
 - 한 화면에 계정 5개. 더 많으면 페이지를 넘기고, 카드를 누르면 모든 한도를 펼칩니다.
 - 캐릭터와 색으로 상태를 읽습니다. 잔여 20% 이하는 주의, 10% 이하는 긴급, 확인 불가는 `?`로 구분합니다.
 - 채워진 막대에는 흰 글자, 빈 부분에는 어두운 글자. [F108pro Usage Monitor](https://github.com/guyster323/F108pro_Usage_monitor)의 픽셀 자산과 퍼센트 표현을 이어갑니다.
-- **Orca에 통합된 BLE 송신 기능 → ESP32 디스플레이.** 별도 PC 수집기나 트레이 앱은 제품 구성에 포함하지 않습니다.
-- Orca 설정에서 계정 선택·별칭·요금제·표시 순서·갱신 주기를 관리합니다. 화면에서도 표시 항목과 계정을 조정할 수 있습니다.
+- **기존 Orca → 설치 없는 포터블 BLE 중계 → ESP32 디스플레이.** Orca를 개조하거나 Node/.NET을 따로 설치하지 않습니다.
+- 중계의 트레이 설정에서 계정 선택·별칭·요금제·표시 순서·갱신 주기를 관리합니다. 화면에서도 표시 항목과 계정을 조정할 수 있습니다.
 - Orca 종료·연결 해제 시 값을 지웁니다. 연결이 살아 있어도 오래된 원천 데이터는 최신 수치로 바꾸지 않습니다.
 
 ## 픽셀 크루
@@ -42,11 +42,22 @@
 | BLE 분할 전송·CRC·ACK·정보 필터링·설정 충돌 처리 | C++/TypeScript 테스트 검증 |
 | Windows BLE 모듈 | 컴파일 및 실제 PC의 BLE central 지원 확인 |
 | ESP32 펌웨어 | ESP-IDF 5.5.3 빌드 통과, 8 MB 앱 영역의 약 76.4% 사용 |
-| Orca 설정 패널 | 실제 UI 부품과 모의 API로 온보딩·페어링·설정 조작 검사 |
-| Orca 통합 | 소스 패치와 모듈 제공, 기준 커밋에 패치 적용 확인 |
-| 전체 Orca 앱 빌드 및 실제 ESP32 BLE 왕복 | 아직 검증 전 |
+| 포터블 설정 화면 | 실제 제품 UI로 계정·페어링·설정·모바일 폭·오프라인 조작 검사; BLE 원천은 모의 |
+| 실행 중인 Orca 1.4.224 | 수정 없이 Codex 3계정 + Cursor 읽기 확인; 기존 Copilot CLI까지 5계정 조회 성공 |
+| Windows 트레이 실행기 | 빌드·중계 시작·종료 시 자식 프로세스 정리 검사 통과 |
+| 실제 ESP32 업로드 및 BLE 왕복 | 아직 검증 전 |
 
-**일반 배포판 Orca에는 이 프로젝트의 BLE 송신 기능이 없습니다.** 현재는 통합 패치를 적용한 Orca 소스 빌드가 필요합니다. 설치된 Orca 실행 파일을 덮어쓰거나 계정 인증정보를 ESP32에 복사하는 방식은 사용하지 않습니다.
+**Orca 원본을 그대로 사용합니다.** 기존 CLI로 사용량 캐시를 읽고, 포터블 중계가 BLE 전송을 담당합니다. 기존 Orca 내부 통합 패치는 선택적인 개발 자료이며 실행에 필요하지 않습니다. 인증정보는 PC 안에 유지합니다.
+
+## 압축을 풀고, 실행하세요
+
+1. [Actions](https://github.com/guyster323/ESP32_7inch_Quotamon/actions/workflows/build.yml)의 성공한 Windows 빌드에서 `Quotamon-Portable-win-x64-preview` 아티팩트를 받습니다. [아티팩트 다운로드에는 GitHub 로그인이 필요합니다.](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/download-workflow-artifacts)
+2. 안의 `Quotamon-Portable-win-x64.zip` 전체를 유지할 폴더에 풀고 **Quotamon.exe**를 실행합니다.
+3. 기존 Orca를 켜고, 열리는 설정 화면에서 표시할 계정을 체크해 저장합니다.
+4. 펌웨어를 올린 기기에서 **BLE 연결 시작**을 누른 뒤, PC에서 검색하고 양쪽 번호를 승인합니다.
+5. 자동 실행은 **설정 → 중계 프로그램 → Windows 로그인 시 실행**에서 켭니다. 창을 닫아도 트레이에서 동작합니다.
+
+포터블 폴더 전체를 함께 유지하세요. 로그인 정보 재입력이나 Orca 재빌드는 필요하지 않습니다. [자세한 실행·복구 안내](docs/PORTABLE_BRIDGE.md)를 확인하세요.
 
 ## 어떤 잔여량을 받을 수 있나요?
 
@@ -67,12 +78,12 @@ Copilot의 세션 사용량과 월간 포함량은 다른 값입니다. `Session
 ```mermaid
 flowchart LR
     A[Orca에 로그인된 계정] --> B[Orca 사용량 캐시]
-    B --> C[Orca 내부 Quotamon 통합]
+    B -->|기존 CLI · 로컬 갱신 요청| C[포터블 Quotamon 중계]
     C <-->|암호화된 BLE GATT| D[ESP32-S3 · LVGL]
     D --> E[800×480 터치 화면]
 ```
 
-ESP32는 UI와 BLE 수신을 자체 실행합니다. Wi-Fi, 웹 로그인, 별도 PC 앱은 필요하지 않습니다. **구독 데이터를 공급하려면 Orca가 실행 중인 PC는 필요합니다.** PC 없는 클라우드 직접 조회 제품을 의미하는 ‘스탠드얼론’은 아닙니다.
+ESP32는 UI와 BLE 수신을 자체 실행합니다. Wi-Fi나 기기에서의 웹 로그인은 필요하지 않습니다. **구독 데이터를 공급하려면 Orca와 포터블 중계가 실행 중인 PC는 필요합니다.** PC 없는 클라우드 직접 조회 제품을 의미하는 ‘스탠드얼론’은 아닙니다.
 
 기본 전송 60초, heartbeat 10초, 무응답 35초 후 값 삭제. 원천 조회는 Orca의 캐시·재조회 제한을 따르며 BLE 전송 주기와 분리합니다. 페어링은 양쪽의 6자리 숫자 비교와 명시적 승인을 거칩니다.
 
@@ -86,11 +97,12 @@ ESP32는 UI와 BLE 수신을 자체 실행합니다. Wi-Fi, 웹 로그인, 별�
 
 ## 개발 시작
 
-<details><summary>Orca 설정 패널 미리보기 (분리 렌더, 모의 API)</summary>
+<details><summary>포터블 중계 설정 화면 (실제 제품 UI, 모의 원천·BLE)</summary>
 
-![Orca 설정 패널 모의 화면](visuals/orca/01-onboarding-mock.png)
+![포터블 대시보드](visuals/portable/01-dashboard-mock.png)
+![포터블 계정 선택](visuals/portable/02-accounts-mock.png)
 
-실제 설정 컴포넌트와 Orca UI 부품을 사용했으며 전체 Electron 앱이나 실제 Bluetooth를 시험한 화면은 아닙니다.
+실제 포터블 설정 UI를 사용한 개발 예시입니다. 이 이미지의 수치는 모의 데이터입니다. 별도로 실행 중인 Orca의 5계정 조회와 PC BLE 지원을 검사했으며 실제 기기 페어링은 검증 전입니다.
 
 </details>
 
@@ -111,7 +123,7 @@ build\native\espmonitor_sim.exe
 # 모의 화면을 직접 확인하는 개발 시뮬레이터
 ```
 
-실제 연결을 준비하려면 [Orca 통합 빌드](docs/ORCA_INTEGRATION.md), [펌웨어·BOOT/RESET 업로드 절차](docs/UPLOAD.md)를 순서대로 따르세요. [검증 범위](docs/VERIFICATION.md)와 [BLE 프로토콜](docs/BLE_PROTOCOL.md)도 제공합니다.
+실제 연결을 준비하려면 [포터블 중계 실행](docs/PORTABLE_BRIDGE.md), [펌웨어·BOOT/RESET 업로드 절차](docs/UPLOAD.md)를 따르세요. [검증 범위](docs/VERIFICATION.md)와 [BLE 프로토콜](docs/BLE_PROTOCOL.md)도 제공합니다.
 
 ## 저장소 안내
 
@@ -119,7 +131,8 @@ build\native\espmonitor_sim.exe
 |---|---|
 | `firmware/` | Waveshare RGB/GT911 포트 + ESP-IDF NimBLE 수신기 |
 | `native/` | 보드와 공유하는 LVGL UI, 폰트·스프라이트, Windows 시뮬레이터 |
-| `orca-integration/` | 계정 정규화·연결 제어·설정 패널·Orca 소스 패치 |
+| `portable/` | Windows 트레이 실행기와 로컬 설정 UI |
+| `orca-integration/` | 공유 중계 core·Orca 무수정 조회·BLE 제어; 선택적 내부 통합 패치 |
 | `protocol/` | 보드 BLE 프레임 디코더 |
 | `assets/` | 5개 캐릭터와 원본·생성 기록·라이선스 |
 | `docs/` | 연결·업로드·설계·조사·검증 문서 |

@@ -23,6 +23,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -34,6 +37,17 @@ jobs:
       - run: python tools/verify_native_visuals.py
       - run: dotnet publish orca-integration/windows/Quotamon.Ble.csproj -c Release -o dist/orca-resource
       - run: dist\orca-resource\Quotamon.Ble.exe --probe
+      - run: npm ci --prefix orca-integration
+      - run: npm test --prefix orca-integration
+      - run: powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_portable.ps1
+      - run: powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify_portable_launcher.ps1
+      - run: python -m pip install playwright==1.63.0
+      - run: python -m playwright install chromium
+      - run: python tools/verify_portable_ui.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Quotamon-Portable-win-x64-preview
+          path: dist/Quotamon-Portable-win-x64.zip
       - uses: actions/upload-artifact@v4
         with:
           name: native-lvgl-preview

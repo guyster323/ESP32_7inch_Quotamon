@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Quotamon · 설정</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" id="brand" href="#overview"
+        >Q<span>Quotamon<small>구독을 한눈에.</small></span></a
+      >
+      <nav aria-label="페이지">
+        <button data-page="overview" class="active">대시보드</button
+        ><button data-page="accounts">계정 선택</button
+        ><button data-page="device">디스플레이 연결</button
+        ><button data-page="settings">설정</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <span class="dot" id="source-dot"></span
+        ><span id="source-label">Orca 확인 중</span
+        ><small>인증정보는 PC에 유지됩니다.</small>
+      </div>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <span class="eyebrow">YOUR DESK, IN SYNC</span>
+          <h1 id="page-title">구독의 여유를 확인하세요.</h1>
+          <p id="page-subtitle">Orca에 연결된 계정을 책상 위 화면으로.</p>
+        </div>
+        <button id="refresh" class="secondary">사용량 새로고침</button>
+      </header>
+      <div id="notice" class="notice" role="status" hidden></div>
+      <section id="overview" class="page">
+        <div class="connection-strip">
+          <div>
+            <span class="dot" id="connection-dot"></span
+            ><strong id="connection-label">디스플레이 연결 대기</strong>
+            <p id="connection-note">
+              처음이라면 계정을 고르고 디스플레이를 연결하세요.
+            </p>
+          </div>
+          <button data-go="device" class="secondary">연결하기 →</button>
+        </div>
+        <div id="cards" class="cards"></div>
+        <div id="empty" class="empty" hidden>
+          <strong>Orca를 켜면 계정이 나타납니다.</strong>
+          <p>기존 Orca의 로그인과 사용량 설정을 그대로 사용합니다.</p>
+        </div>
+        <div class="start-panel">
+          <div>
+            <span class="eyebrow">첫 연결은 세 단계</span>
+            <h2>선택하고, 연결하고, 확인하세요.</h2>
+          </div>
+          <ol>
+            <li>
+              <b>01</b
+              ><span>계정 선택<small>표시할 계정만 체크하세요.</small></span>
+            </li>
+            <li>
+              <b>02</b
+              ><span
+                >디스플레이 찾기<small
+                  >기기에서 BLE 연결 시작을 누르세요.</small
+                ></span
+              >
+            </li>
+            <li>
+              <b>03</b
+              ><span
+                >번호 확인<small>양쪽의 6자리 번호를 승인하세요.</small></span
+              >
+            </li>
+          </ol>
+        </div>
+      </section>
+      <section id="accounts" class="page" hidden>
+        <div class="section-heading">
+          <div>
+            <h2>어떤 계정을 표시할까요?</h2>
+            <p>선택·이름·요금제·순서는 디스플레이에 함께 적용됩니다.</p>
+          </div>
+          <button id="reload-accounts" class="secondary">최신 설정 읽기</button>
+        </div>
+        <div id="account-list"></div>
+        <p class="hint">
+          조회할 수 없는 서비스는 기존 Orca에서 로그인하세요. Copilot은 이 PC의
+          기존 CLI 계정을 사용합니다.
+        </p>
+        <div class="save-bar">
+          <span id="account-dirty">표시할 계정을 선택하세요.</span
+          ><button class="primary" id="save-accounts">계정 설정 저장</button>
+        </div>
+      </section>
+      <section id="device" class="page" hidden>
+        <div class="device-layout">
+          <div class="panel">
+            <span class="eyebrow">BLE PAIRING</span>
+            <h2>책상 위 디스플레이와 연결</h2>
+            <p>
+              기기의 <strong>BLE 연결 시작</strong>을 누른 뒤 검색하세요. 처음
+              연결할 때는 양쪽의 같은 번호를 승인해야 합니다.
+            </p>
+            <button id="scan" class="primary">디스플레이 찾기</button>
+            <p id="scan-status" class="hint"></p>
+            <div id="devices"></div>
+          </div>
+          <div class="panel muted-panel">
+            <h3>연결 상태</h3>
+            <dl>
+              <dt>Orca</dt>
+              <dd id="device-source">확인 중</dd>
+              <dt>PC Bluetooth</dt>
+              <dd id="device-radio">확인 중</dd>
+              <dt>디스플레이</dt>
+              <dd id="device-link">연결 대기</dd>
+            </dl>
+            <button id="disconnect" class="secondary">자동 연결 해제</button>
+            <p class="hint">
+              페어링을 완전히 지우려면 기기와 Windows Bluetooth 설정에서도 기존
+              연결을 삭제하세요.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section id="settings" class="page" hidden>
+        <div class="settings-grid">
+          <div class="panel">
+            <span class="eyebrow">DISPLAY</span>
+            <h2>디스플레이 설정</h2>
+            <label class="field"
+              >전송 간격
+              <span
+                ><input id="poll" type="number" min="15" max="3600" step="1" />
+                초</span
+              ></label
+            ><label class="field"
+              >화면 밝기
+              <span
+                ><input
+                  id="brightness"
+                  type="number"
+                  min="10"
+                  max="100"
+                  step="1"
+                />
+                %</span
+              ></label
+            >
+            <fieldset>
+              <legend>표시할 정보</legend>
+              <label
+                ><input id="show-reset" type="checkbox" /> 리셋까지 남은
+                시간</label
+              ><label
+                ><input id="show-updated" type="checkbox" /> 마지막 수집
+                시각</label
+              ><label
+                ><input id="show-credits" type="checkbox" /> 크레딧·금액
+                <small>원천이 제공하는 경우</small></label
+              ><label
+                ><input id="show-session" type="checkbox" /> 세션 사용량
+                <small>원천이 제공하는 경우</small></label
+              >
+            </fieldset>
+            <p class="hint">
+              PC 연결이 끊기면 값은 삭제됩니다. 오래된 사용량은 별도 표시됩니다.
+            </p>
+            <button id="cancel-display" class="secondary">
+              취소 · 최신 설정 읽기
+            </button>
+            <button id="save-display" class="primary">
+              디스플레이 설정 저장
+            </button>
+          </div>
+          <div class="panel">
+            <span class="eyebrow">ON THIS PC</span>
+            <h2>중계 프로그램</h2>
+            <label class="check-row"
+              ><input id="startup" type="checkbox" /><span
+                >Windows 로그인 시 실행<small
+                  >트레이에서 조용히 시작합니다.</small
+                ></span
+              ></label
+            ><label class="check-row"
+              ><input id="copilot" type="checkbox" /><span
+                >Copilot CLI 사용량 읽기<small
+                  >기존 로그인 계정만 사용합니다.</small
+                ></span
+              ></label
+            ><button id="save-preferences" class="secondary">
+              PC 설정 저장
+            </button>
+            <div class="privacy-note">
+              <strong>Orca는 그대로 둡니다.</strong>
+              <p>
+                Orca 설치 파일이나 로그인 설정을 바꾸지 않습니다. 디스플레이에는
+                선택한 계정의 표시 정보만 전달합니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <footer>
+        <span>Quotamon · Orca 무수정 BLE 중계</span
+        ><span id="last-poll">연결 확인 중</span>
+      </footer>
+    </main>
+    <dialog id="pair-dialog">
+      <span class="eyebrow">번호가 일치하나요?</span>
+      <h2>양쪽 화면의 번호를 확인하세요.</h2>
+      <div id="pin" class="pin"></div>
+      <p>
+        디스플레이에서도 같은 번호를 승인하세요.<br />요청하지 않은 연결이면
+        거절하세요.
+      </p>
+      <div class="dialog-actions">
+        <button id="reject-pin" class="secondary">거절</button
+        ><button id="accept-pin" class="primary">같은 번호 · 승인</button>
+      </div>
+    </dialog>
+  </body>
+</html>

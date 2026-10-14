@@ -1,0 +1,17 @@
+{
+  "built_utc": "2026-10-14T15:06:23.3903233Z",
+  "status": "portable-built-live-checked-hardware-pending",
+  "version": "0.2.0",
+  "node_version": "v24.19.0",
+  "windows": "win-x64",
+  "archive": "Quotamon-Portable-win-x64.zip",
+  "archive_bytes": 86972779,
+  "archive_sha256": "5f0dfec96651ae0e411cd5f19e44c2d5776b3b37880cc5600666f2e236532fd5",
+  "orca_modified": false,
+  "live_accounts_checked": 5,
+  "source_tests_passed": 8,
+  "ui_mock_test_passed": true,
+  "launcher_restart_and_crash_cleanup_passed": true,
+  "hardware_transfer_verified": false,
+  "scope": "Local developer preview; CI artifact hashes and bundled runtime versions may differ."
+}

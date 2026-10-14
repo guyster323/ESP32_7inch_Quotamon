@@ -23,9 +23,9 @@ Waveshare `bc51a84b30c0cea018fee6e0d7427ec10102060e`, F108pro `ddab71ab58e353a0b
 
 ## Orca를 그대로 얻어 쓰는 범위
 
-[공식 usage tracking 문서](https://www.onorca.dev/docs/agents/usage-tracking)와 소스의 `runtime-account-controller.ts`를 검토했습니다. account snapshot, 변경 구독, stale-aware refresh가 있지만 쿼터 BLE 출력은 없습니다. **기존 수집을 재사용하고 BLE 출력만 Orca에 통합**하는 방식이 필요합니다.
+[공식 usage tracking 문서](https://www.onorca.dev/docs/agents/usage-tracking)와 소스의 `runtime-account-controller.ts`를 검토했습니다. account snapshot, 변경 구독, stale-aware refresh가 있지만 쿼터 BLE 출력은 없습니다. **Orca를 수정하지 않고 CLI/로컬 캐시를 읽고, 포터블 중계가 BLE를 송신**합니다. 개발 PC의 설치본 1.4.224에서 실제 Codex 3계정/Cursor 읽기와 로컬 갱신 요청을 확인했습니다. 초기 내부 통합 패치는 선택적인 개발 자료로 유지합니다.
 
-LAN 경로는 단순 HTTP JSON이 아니라 runtime RPC, paired-device 권한과 E2EE를 사용합니다. 보드에 Orca owner token을 복사하지 않습니다. 기존 background polling은 창 상태에 영향을 받으므로 통합 모듈은 연결 동안 stale-aware subscriber refresh를 요청합니다. 실제 HTTP 조회는 Orca의 캐시·Retry-After 정책이 결정합니다.
+LAN 경로는 단순 HTTP JSON이 아니라 runtime RPC, paired-device 권한과 E2EE를 사용합니다. 보드에 Orca owner token을 복사하지 않습니다. 기존 background polling은 창 상태에 영향을 받으므로 중계가 15분 간격으로 PC 내부의 owner-local cache refresh를 요청합니다. 로컬 token은 해당 요청의 메모리에서만 쓰고 BLE/설정/UI에 내보내지 않습니다. 실제 provider 조회는 Orca의 캐시·Retry-After 정책이 결정합니다.
 
 현재 소스가 관리 다중 계정으로 내보내는 대상은 Codex/Claude입니다. Cursor/Grok은 현재 계정 사용량이고 Copilot은 기본 Orca rate-limit provider에 없습니다.
 

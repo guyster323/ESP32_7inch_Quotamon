@@ -6,7 +6,7 @@ using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Devices.Enumeration;
 using Windows.Security.Cryptography;
 
-// Private stdin/stdout resource owned by Orca. No HTTP server, provider authentication, or quota scraping.
+// Private stdin/stdout BLE resource. No provider authentication or quota scraping.
 internal static class Program {
     static readonly Guid Service = Guid.Parse("7155e001-9df0-4b75-9d9b-796d6f6e6974");
     static readonly Guid Snapshot = Guid.Parse("7155e002-9df0-4b75-9d9b-796d6f6e6974");
@@ -23,7 +23,7 @@ internal static class Program {
     static string? pendingPin;
     static readonly HashSet<ulong> Discovered = [];
     static void Emit(object value) { lock(OutputLock) { Console.WriteLine(JsonSerializer.Serialize(value)); Console.Out.Flush(); } }
-    static async Task Main(string[] args) {
+    public static async Task Main(string[] args) {
         if(args.Contains("--probe")) { await Probe(); return; }
         Emit(new {type="ready",protocol=1});
         var tasks=new List<Task>();

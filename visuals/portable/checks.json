@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "actual_product_ui": true,
+  "mock_source": true,
+  "mock_ble": true,
+  "hardware_verified": false,
+  "checks": [
+    "five-provider assets",
+    "selection and aliases survive polling",
+    "settings save",
+    "numeric pairing approval/rejection while connect pending",
+    "page refresh keeps local UI access",
+    "760/430px no overflow",
+    "Orca loss removes cards",
+    "no browser/CSP errors"
+  ]
+}
