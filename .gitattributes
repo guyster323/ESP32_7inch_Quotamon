@@ -1,0 +1,17 @@
+* text=auto
+*.c text eol=lf
+*.h text eol=lf
+*.cpp text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.patch text eol=lf -whitespace
+*.cmd text eol=crlf
+*.png binary
+# Preserve upstream notices and generator output verbatim.
+native/generated/* -whitespace
+firmware/vendor/* -whitespace
+firmware/lv_conf.h -whitespace

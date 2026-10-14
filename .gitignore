@@ -12,6 +12,7 @@ references/
 docs/environment-snapshot.json
 docs/verification/
 visuals/native/*.ppm
+visuals/native/14-source-snapshot.*
 auth.json
 *.token
 .env
@@ -19,6 +20,8 @@ auth.json
 firmware/managed_components/
 firmware/sdkconfig
 firmware/sdkconfig.old
+firmware/sdkconfig.*
+!firmware/sdkconfig.defaults
 orca-integration/windows/bin/
 orca-integration/windows/obj/
 # Earlier local companion experiments and private device/account research.
@@ -36,3 +39,18 @@ docs/repository-review.json
 docs/community-findings.json
 visuals/espmonitor-ui-concept.html
 assets/copilot/copilot-master.png
+docs/ui-design-spec.json
+docs/codex-ui-brief.txt
+docs/upload-guide.txt
+tests/test_companion.py
+tools/build_research_report.py
+tools/check_orca_paths.py
+tools/collect_public_research.py
+tools/companion_entry.py
+tools/inspect_environment.ps1
+tools/package_windows.ps1
+tools/probe_copilot_quota.mjs
+tools/record_native_ui.py
+tools/save_reference_assets.py
+tools/verify_companion_ui.py
+tools/verify_research_report.py

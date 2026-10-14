@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "resolution": [
+    800,
+    480
+  ],
+  "checks": [
+    "five fixed cards inside screen",
+    "home not scrollable",
+    "snapshot preserves card objects",
+    "pointer opens detail through meter",
+    "back pointer navigation",
+    "Copilot monthly detail",
+    "settings pointer navigation",
+    "cancel discards draft",
+    "save commits interval",
+    "display field toggles commit and restore",
+    "refresh intent",
+    "0/8/20/100 percent",
+    "unknown and unlimited",
+    "stale source",
+    "disconnect clears numeric display",
+    "offline home and detail have no numeric percentages",
+    "long Korean label ellipsizes"
+  ],
+  "hardware_tested": false,
+  "mock_data": true,
+  "visual_checks": [
+    "16 native screenshots at 800x480",
+    "embedded Korean glyph coverage without LVGL warnings",
+    "same percentage text rendered white on fill and dark on empty",
+    "no quota fills after disconnect"
+  ],
+  "lvgl_version": "8.4.0",
+  "lvgl_commit": "4495f428630cc1741bd8bfd977f080e8460e8e8d",
+  "reference_commit": "ddab71ab58e353a0b9d1a60274ae9a1a05b0d965"
+}

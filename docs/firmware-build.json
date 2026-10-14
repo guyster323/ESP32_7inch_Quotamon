@@ -1,0 +1,13 @@
+{
+  "status": "built-not-flashed",
+  "target": "ESP32-S3-Touch-LCD-7 Rev1.2",
+  "platformio_platform": "6.13.0",
+  "esp_idf": "5.5.3",
+  "flash_partition_bytes": 8323072,
+  "linked_program_bytes": 6358807,
+  "binary_bytes": 6359216,
+  "sha256": "5b45231c7158d111e2f90d79476598e27b280ebf0339d7cd9d23e8930d72b271",
+  "static_ram_report_bytes": 25272,
+  "runtime_psram_tested": false,
+  "hardware_pairing_tested": false
+}

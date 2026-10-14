@@ -1,0 +1,25 @@
+{
+  "generated_with": "Built-in image_gen; original design using F108pro sprite references",
+  "master": "assets/copilot/copilot-transparent.png",
+  "master_sha256": "508db82b776c4aa037920a07481731a037a045a0392adcbfeac9db6055e02644",
+  "style": "Original lavender pilot/goggles robot; no official mascot or logo",
+  "states": [
+    "idle",
+    "caution",
+    "critical",
+    "exhausted",
+    "offline",
+    "stale"
+  ],
+  "runtime_size": [
+    88,
+    108
+  ],
+  "source_grid": [
+    3,
+    2
+  ],
+  "pipeline": "Fixed cell -> source-alpha >=128 -> nearest sampling -> 48-color median palette -> RGB565 + alpha",
+  "license": "MIT project license; third-party reference artwork attributed separately",
+  "prompts": "assets/copilot/prompts.json"
+}

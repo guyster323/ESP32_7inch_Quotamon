@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "actual_component": true,
+  "actual_orca_ui_primitives": true,
+  "mock_api": true,
+  "electron_app_tested": false,
+  "hardware_tested": false,
+  "checks": [
+    "pairing confirmation while connect is pending",
+    "selection and alias",
+    "save/cancel",
+    "poll interval",
+    "React escapes alias HTML",
+    "760px no horizontal overflow"
+  ]
+}

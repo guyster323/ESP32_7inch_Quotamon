@@ -1,0 +1,20 @@
+﻿# Third-party notices
+
+Codex, Cursor, Claude and Grok sprites, numeric pixel glyph shapes and split-meter design originate from [F108pro Usage Monitor](https://github.com/guyster323/F108pro_Usage_monitor), commit ddab71ab58e353a0b9d1a60274ae9a1a05b0d965. Copyright © 2026 QuotaDeck contributors. MIT license including upstream compiler attribution is preserved in [assets/providers/F108pro-LICENSE.txt](assets/providers/F108pro-LICENSE.txt) and [native/generated/F108pro-LICENSE.txt](native/generated/F108pro-LICENSE.txt).
+
+The lavender Copilot pilot robot is original unofficial artwork. Source master, exact prompts and conversion record: [assets/copilot](assets/copilot). No official vendor mascot or logo is claimed.
+
+Noto Sans KR Medium: SIL OFL 1.1, [full notice](native/generated/NotoSansKR-OFL.txt). Embedded glyphs include modern Hangul, ASCII and Latin extended; other scripts require additional coverage.
+
+| Component | Version / revision | License / notice |
+|---|---|---|
+| LVGL | 8.4.0, 4495f428630cc1741bd8bfd977f080e8460e8e8d | MIT; retained by dependency bootstrap |
+| nlohmann/json | 3.12.0 | MIT; retained by dependency bootstrap |
+| ESP-IDF / NimBLE | ESP-IDF 5.5 series via PlatformIO 6.13.0 | Apache-2.0 and upstream component notices |
+| Waveshare RGB port | bc51a84b30c0cea018fee6e0d7427ec10102060e | Source retains CC0-1.0 SPDX; repository Apache text in firmware/vendor/WAVESHARE-LICENSE |
+| Orca patch context | 3f81541188b435aabc822aaf36c6f23a70e1a783 | MIT, © 2026 Lovecast Inc.; orca-integration/ORCA-LICENSE |
+| .NET 10 / Windows SDK projection | Build-selected SDK packages | Upstream runtime/package notices; retain in distributions |
+| Optional Copilot SDK / CLI | User's existing installation | Upstream GitHub licensing; not redistributed here |
+| Pillow / fonttools / lv_font_conv | Asset build and verification tools | Upstream licenses; not embedded runtime code |
+
+Orca integration reuses the internal account snapshot contract and existing UI/process primitives. No provider authentication readers are copied. Generated files retain attribution and downloaded packages retain their licenses. Separate Python collector experiments are outside the published product source.

@@ -1,0 +1,232 @@
+{
+  "source": "https://github.com/guyster323/F108pro_Usage_monitor",
+  "commit": "ddab71ab58e353a0b9d1a60274ae9a1a05b0d965",
+  "license": "MIT",
+  "format": "LVGL 8 RGB565 little-endian + alpha",
+  "sprites": [
+    {
+      "provider": "codex",
+      "state": "idle",
+      "source": "assets/providers/codex/idle_00.png",
+      "sha256": "9d1d8004b77e799aebf70f15b0a224af368369ae82b9f54ab0ba49e79c94cfb6",
+      "bytes": 28512
+    },
+    {
+      "provider": "codex",
+      "state": "caution",
+      "source": "assets/providers/codex/caution_00.png",
+      "sha256": "92be4dad4dc2efaa9182cdab912a37f047dfd9c1cc6d5912f373df0929e9d97b",
+      "bytes": 28512
+    },
+    {
+      "provider": "codex",
+      "state": "critical",
+      "source": "assets/providers/codex/critical_00.png",
+      "sha256": "a4e4e1041fa7a9e3c0be48fc28907dee2f25c10b3054c3e90c766972c4580cf1",
+      "bytes": 28512
+    },
+    {
+      "provider": "codex",
+      "state": "exhausted",
+      "source": "assets/providers/codex/exhausted_00.png",
+      "sha256": "459d9f589624f47a1d4bc3600878e614e67cf86c8cb9fcded73a0e7e975a8451",
+      "bytes": 28512
+    },
+    {
+      "provider": "codex",
+      "state": "offline",
+      "source": "assets/providers/codex/offline_00.png",
+      "sha256": "bcbb0cacaa20ad5176ee33c9b63994e5d5f94fc7760fdf6f3338c87bc671c87d",
+      "bytes": 28512
+    },
+    {
+      "provider": "codex",
+      "state": "stale",
+      "source": "assets/providers/codex/stale_00.png",
+      "sha256": "3feef64c034240498f8b0eb9348976db248fae2dd716220148f8a9aa07a918a9",
+      "bytes": 28512
+    },
+    {
+      "provider": "cursor",
+      "state": "idle",
+      "source": "assets/providers/cursor/idle_00.png",
+      "sha256": "73fc39497ef186443bcf141ca1e95411247f18c5286548e07a5266c82cf11d29",
+      "bytes": 28512
+    },
+    {
+      "provider": "cursor",
+      "state": "caution",
+      "source": "assets/providers/cursor/caution_00.png",
+      "sha256": "1158325df39d14343ac67cb1185210c5518de45680f4ca0b1fc812d077a59ad6",
+      "bytes": 28512
+    },
+    {
+      "provider": "cursor",
+      "state": "critical",
+      "source": "assets/providers/cursor/critical_00.png",
+      "sha256": "8dea7c5bc4a98bf889f68afc09d21a76caa11b0bdfe942096333f743305fee4b",
+      "bytes": 28512
+    },
+    {
+      "provider": "cursor",
+      "state": "exhausted",
+      "source": "assets/providers/cursor/exhausted_00.png",
+      "sha256": "bf1a8ded5924671b22795a0b39c43ef27da632f46466f47b087be667a30e6b66",
+      "bytes": 28512
+    },
+    {
+      "provider": "cursor",
+      "state": "offline",
+      "source": "assets/providers/cursor/offline_00.png",
+      "sha256": "11200cc692e16a6f3ed30170721df9ce98b4aff7df9b3db5a2404c96e28cf146",
+      "bytes": 28512
+    },
+    {
+      "provider": "cursor",
+      "state": "stale",
+      "source": "assets/providers/cursor/stale_00.png",
+      "sha256": "7f868f5c7f734f58ba952f451e980227d0fdbb82812359345ce461191c71f47a",
+      "bytes": 28512
+    },
+    {
+      "provider": "claude",
+      "state": "idle",
+      "source": "assets/providers/claude/idle_00.png",
+      "sha256": "22fc692ea97c44d9f56c074424dd42833d7d98cd38ef07bc9888ebeefa8ea396",
+      "bytes": 28512
+    },
+    {
+      "provider": "claude",
+      "state": "caution",
+      "source": "assets/providers/claude/caution_00.png",
+      "sha256": "75c202f94e9d927e52654ac14ece21035c0b6ae13ed8c1fb7803d8407d55a094",
+      "bytes": 28512
+    },
+    {
+      "provider": "claude",
+      "state": "critical",
+      "source": "assets/providers/claude/critical_00.png",
+      "sha256": "d33df16f00aa3f9b22739a09006c91bc8ae0516633bd7fea3db9d5c417afd398",
+      "bytes": 28512
+    },
+    {
+      "provider": "claude",
+      "state": "exhausted",
+      "source": "assets/providers/claude/exhausted_00.png",
+      "sha256": "18de95f0f77bdcd8ce3b5dc371086309caf68fad76783c92464b7e6966135677",
+      "bytes": 28512
+    },
+    {
+      "provider": "claude",
+      "state": "offline",
+      "source": "assets/providers/claude/offline_00.png",
+      "sha256": "03cf454b18929cf786d2c08c90aed46cacb3325404f85dbd5c44924596552c0c",
+      "bytes": 28512
+    },
+    {
+      "provider": "claude",
+      "state": "stale",
+      "source": "assets/providers/claude/stale_00.png",
+      "sha256": "4952f6ff2550e8c244e32ad82f510f5ebda6e70900e436e4ab99ce30298fccc2",
+      "bytes": 28512
+    },
+    {
+      "provider": "grok",
+      "state": "idle",
+      "source": "assets/providers/grok/idle_00.png",
+      "sha256": "4a65429b126b30c4bba2ac8e54c619f7cce0636b89c8b1a9a41411abeb2b9d4b",
+      "bytes": 28512
+    },
+    {
+      "provider": "grok",
+      "state": "caution",
+      "source": "assets/providers/grok/caution_00.png",
+      "sha256": "e763d2c3d17205c36ca383166bcec37bd51f3010da43dfaf9b4771d61fe976c5",
+      "bytes": 28512
+    },
+    {
+      "provider": "grok",
+      "state": "critical",
+      "source": "assets/providers/grok/critical_00.png",
+      "sha256": "038ee3ed1b26b0a7d01c79602c9b5fc39d6a37d6c000b5065f0959163411356d",
+      "bytes": 28512
+    },
+    {
+      "provider": "grok",
+      "state": "exhausted",
+      "source": "assets/providers/grok/exhausted_00.png",
+      "sha256": "af514fbd93cd83fc7dd6497582e1f717d4985409188b4f7ab74157f7121869f2",
+      "bytes": 28512
+    },
+    {
+      "provider": "grok",
+      "state": "offline",
+      "source": "assets/providers/grok/offline_00.png",
+      "sha256": "1955f128f8ff5823a2c0d9bcdd3ed0bccf935d1d9f9d2f328114463378b3bedb",
+      "bytes": 28512
+    },
+    {
+      "provider": "grok",
+      "state": "stale",
+      "source": "assets/providers/grok/stale_00.png",
+      "sha256": "76e7970fadf26c24a9c1564423b7e36a45d916a84fdffc062d71ebb691c94b3a",
+      "bytes": 28512
+    },
+    {
+      "provider": "copilot",
+      "state": "idle",
+      "source": "assets/providers/copilot/idle_00.png",
+      "sha256": "ef9793b156a2b7df111c492cfa8527eec2629131d8f9b6b3be30a8cdfb374378",
+      "bytes": 28512
+    },
+    {
+      "provider": "copilot",
+      "state": "caution",
+      "source": "assets/providers/copilot/caution_00.png",
+      "sha256": "74ca05b9a85b17f39c9beb120c08f954c4ad72df76b19e30a6d58d20034031a6",
+      "bytes": 28512
+    },
+    {
+      "provider": "copilot",
+      "state": "critical",
+      "source": "assets/providers/copilot/critical_00.png",
+      "sha256": "8ea78b0a9637709b495611873b44854bb7ae923c0aef40df05c630c852f37525",
+      "bytes": 28512
+    },
+    {
+      "provider": "copilot",
+      "state": "exhausted",
+      "source": "assets/providers/copilot/exhausted_00.png",
+      "sha256": "af7b5bcdd85759e0596820b600413285a30d925d11c06fda4ec888663ea6fa78",
+      "bytes": 28512
+    },
+    {
+      "provider": "copilot",
+      "state": "offline",
+      "source": "assets/providers/copilot/offline_00.png",
+      "sha256": "5f4d6537557354936f434bc994d99a6cde4293bb354ae9447bdb48e108587b95",
+      "bytes": 28512
+    },
+    {
+      "provider": "copilot",
+      "state": "stale",
+      "source": "assets/providers/copilot/stale_00.png",
+      "sha256": "a011b3e1d8f13dc6bd01d7bdc61c376cfa00cf3ccacc31f3e851e84248513141",
+      "bytes": 28512
+    }
+  ],
+  "korean_font": {
+    "name": "Noto Sans KR Medium (weight 500)",
+    "license": "SIL OFL 1.1",
+    "source": "https://github.com/google/fonts/tree/main/ofl/notosanskr",
+    "source_sha256": "194018e6b2b293a7964f037b25c0249ce1418bc9ab3c971060a03aa57861e252",
+    "sizes": [
+      14,
+      16,
+      20
+    ],
+    "symbols": "·−가각간값개갱결경계고공과관구국그급기긴까나남는니다대데도독된됨뒤드딩래량레로를름리마막만매먼면모무뮬미밝변별보본부분불비사삭산상새서선설성세셋소수순스습시신실아않어없에여연예오온와요용원월율은을음의이인일있자작잔장저적정제족존주준지집책천청초추취치침태택터템표프필하한할합해화확활회후",
+    "dynamic_account_name_glyphs": "All 11,172 modern Korean syllables, ASCII and Latin extended; unsupported scripts need additional font coverage"
+  },
+  "copilot": "Original imagegen lavender pilot robot; assets/copilot/provenance.json"
+}
