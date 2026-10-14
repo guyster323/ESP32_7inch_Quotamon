@@ -9,6 +9,29 @@ import {
   copilotQuota
 } from '../src/quota-snapshot.js'
 const now = 1800000000
+test('unavailable provider placeholders are not signed-in accounts', () => {
+  const raw = {
+    codex: { systemDefault: { hasAuth: true }, accounts: [] },
+    claude: { accounts: [], activeAccountId: null },
+    rateLimits: {
+      codex: { status: 'unavailable', session: null, weekly: null },
+      claude: { status: 'unavailable', session: null, weekly: null }
+    }
+  }
+  const accounts = fromOrca(raw, now)
+  assert.equal(accounts.length, 1)
+  assert.equal(accounts[0].provider, 'codex')
+  assert.equal(accounts[0].state, 'unknown')
+  // A configured account stays selectable while its usage source is unavailable.
+  const managed = fromOrca(
+    {
+      ...raw,
+      claude: { accounts: [{ id: 'signed-in-claude' }] }
+    },
+    now
+  )
+  assert.equal(managed.filter((a) => a.provider === 'claude').length, 1)
+})
 test('inactive accounts, privacy allowlist, unknown/unlimited and source expiry', () => {
   const raw = {
     authToken: 'SECRET',

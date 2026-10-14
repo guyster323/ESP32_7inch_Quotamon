@@ -209,7 +209,10 @@ export function fromOrca(
     )
     const base = object(accounts.systemDefault),
       quota = target.accountId ? undefined : rates[provider]
-    if (base.hasAuth === true || quota)
+    if (
+      base.hasAuth === true ||
+      (record(quota) && quota.status !== 'unavailable')
+    )
       result.push(
         normalize(
           provider,

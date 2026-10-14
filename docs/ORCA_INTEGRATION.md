@@ -7,6 +7,7 @@
 - Orca commit: `3f81541188b435aabc822aaf36c6f23a70e1a783`, package version 1.4.214.
 - `getAccountsSnapshot()`, `onAccountsChanged()`, `refreshAccountsForMobileSubscriber()`를 재사용합니다.
 - 소스 패치의 적용은 확인했습니다. 전체 Orca 빌드·실제 BLE 연결은 아직 확인하지 않았습니다. 다른 Orca 버전에서는 먼저 diff와 API를 검토해야 합니다.
+- 개발 PC에서 실행 중인 설치본 1.4.224의 기존 CLI로 Codex 3계정과 Cursor 쿼터를 실제로 읽었습니다. 기존 Copilot SDK까지 포함한 5계정 변환도 확인했습니다. [읽기 전용 진단](VERIFICATION.md#실행-중인-orca로-재확인)으로 재현할 수 있습니다. 데이터 읽기와 Quotamon 송신 기능의 설치 여부는 각각 확인해야 합니다.
 
 ## 빌드
 
