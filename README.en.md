@@ -1,38 +1,170 @@
+<div align="center">
+
 # Quotamon
 
-**AI subscription quotas on one 7-inch desk display.**
+**Your AI subscription quotas. A screen of their own.**
 
-[한국어](README.md) · [Portable setup](docs/PORTABLE_BRIDGE.md) · [Architecture](docs/ARCHITECTURE.md)
+Codex · Cursor · Copilot · Claude · Grok<br>
+A 7-inch desk display with pixel companions and quota bars.
 
-![Native LVGL mock dashboard](visuals/native/09-five-providers.png)
+[![Build](https://github.com/guyster323/ESP32_7inch_Quotamon/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/guyster323/ESP32_7inch_Quotamon/actions/workflows/build.yml)
+[![ESP32-S3](https://img.shields.io/badge/ESP32--S3-800%C3%97480-70e4bf?labelColor=111e2a)](firmware)
+[![LVGL](https://img.shields.io/badge/LVGL-8.4-65bbff?labelColor=111e2a)](native)
+[![BLE](https://img.shields.io/badge/Orca-BLE-bca3ff?labelColor=111e2a)](orca-integration)
+[![License](https://img.shields.io/badge/License-MIT-91a6b8?labelColor=111e2a)](LICENSE)
 
-This is a real LVGL/RGB565 render with illustrative data, not a photograph of a flashed device.
+[한국어](README.md) · [Quick start](#quick-start) · [Portable setup](docs/PORTABLE_BRIDGE.md) · [Firmware upload](docs/UPLOAD.md) · [Architecture](docs/ARCHITECTURE.md)
 
-Quotamon targets the **Waveshare ESP32-S3-Touch-LCD-7 Rev1.2**, with five account cards per page, touch details, multiple quota pools, configurable fields, Korean/Latin fonts, and six pixel-art states for Codex, Cursor, Copilot, Claude, and Grok. The percentage text changes from white to dark across the fill boundary, inspired by [F108pro Usage Monitor](https://github.com/guyster323/F108pro_Usage_monitor).
+<a href="assets/readme/quotamon-demo.mp4">
+  <img src="assets/readme/quotamon-demo.gif" width="1000" alt="Quotamon motion demo: three Codex accounts, Cursor and Copilot quotas, touch details, reset schedules and the latest refresh time">
+</a>
 
-The product architecture is **unmodified Orca → portable Windows BLE bridge → standalone ESP32**. Extract the package and run Quotamon.exe; Node and .NET are included. The tray opens a local settings page for accounts, pairing and display preferences. Authentication stays with Orca and providers; only sanitized display fields cross BLE. ESP32 renders independently, but a nearby PC running Orca and the bridge supplies subscription data.
+<sub>Three Codex accounts + Cursor + Copilot, matching the desk setup · 14-second loop · <a href="assets/readme/quotamon-demo.mp4">Play the video</a> · <a href="assets/readme/quotamon-display.png">Still image</a></sub>
 
-## Development preview
+</div>
 
-Stock Orca does not contain the BLE sender; the portable bridge supplies it without changing Orca. Live checks against Orca 1.4.224 read three Codex accounts and Cursor, plus the existing Copilot SDK account. Product UI tests cover account editing, numeric pairing approval, settings, reload, narrow layouts and clearing on source loss. Launcher crash cleanup was verified. Physical upload and image hashes passed after a verified full 16 MB factory backup. The user confirmed the Quotamon screen and basic touch after a complete power cycle. Windows native pairing passed numeric comparison on both devices. The updated helper finds saved pairings without advertisements, handles the observed Windows service-discovery error, and delivered five selected live accounts with board acknowledgments. The older source-integration patch is optional developer material.
+The screen uses **the actual LVGL code shared with the board**. Values are illustrative. The device bezel, highlights and transitions are presentation graphics; this is an illustrated demo rather than footage of the hardware.
 
-Native UI/pointer tests, C++/TypeScript fragmentation and privacy tests pass. The Windows resource compiles and detects BLE central support on the development PC. Firmware builds with ESP-IDF 5.5.3 and fits the 8 MB factory partition layout (about 6.36 MB). See [verification](docs/VERIFICATION.md) for precise boundaries.
+## Glance first. Touch for more.
 
-Codex and Claude support Orca-managed accounts. Cursor and Grok currently expose one active account through the reviewed Orca API. Cursor displays only the Cursor Models and Other Models budgets; the Monthly aggregate is excluded. Copilot uses an optional read-only quota RPC from an already installed Windows CLI; its SDK/AIC mapping is experimental. Missing data remains unknown; session usage is never treated as monthly quota. No universal 6,500-credit entitlement is assumed.
+| Five accounts at a glance | Know when quotas reset | Know how fresh the data is |
+|---|---|---|
+| Three Codex accounts alongside Cursor and Copilot. Page through up to 20 accounts. | Five-hour and weekly schedules together, with one shared reset for Cursor. | Display refresh and provider collection time are shown separately. |
 
-Default snapshot interval: 60 seconds. Heartbeat: 10 seconds. Values clear after disconnect or 35 seconds without traffic. Source freshness remains independent of BLE liveness. Pairing uses encrypted Secure Connections with numeric comparison and approval on both screens.
+| Pixel companions with a purpose | Details one touch away | Keep your existing Orca |
+|---|---|---|
+| Six states: normal, caution, critical, exhausted, offline and stale. | Open every quota pool, choose accounts and adjust display settings. | A portable Windows tray app supplies data over BLE. Node and .NET are included. |
 
-## Build
+Quota numbers appear white over the filled bar and dark over its empty portion. Remaining quotas at **20% or less** trigger caution; **10% or less** trigger a critical state. Unknown and unlimited values remain distinct.
+
+## On the current display
+
+```text
+Reset 5 2h 41m | W 5d 3h       Five-hour and weekly resets together
+Reset W 17d 0h                 One shared reset for both Cursor pools
+최근 갱신 14:34:00 | 첫 카드 수집 14:32:00
+```
+
+`5` means the five-hour window; `W` labels the weekly or shared Cursor reset. `d / h / m` mean days, hours and minutes. Long schedules use two lines and resize the card contents to avoid overlap. Cursor shows **Cursor Models** and **Other Models**, excluding the Monthly aggregate.
+
+| Touch to open account details | Long schedules wrap to two lines |
+|:---:|:---:|
+| [![Codex detail screen](visuals/native/02-codex-detail.png)](visuals/native/02-codex-detail.png) | [![Wrapped reset schedule](visuals/native/18-wrapped-reset.png)](visuals/native/18-wrapped-reset.png) |
+
+<details>
+<summary>More screens: settings, pairing and the PC companion</summary>
+
+| LCD preferences | Account selection on the PC |
+|:---:|:---:|
+| ![LCD settings](visuals/native/04-settings.png) | ![Portable account settings](visuals/portable/02-accounts-mock.png) |
+| Start BLE pairing | Compare the numbers |
+| ![BLE onboarding](visuals/native/15-ble-onboarding.png) | ![Numeric comparison](visuals/native/16-ble-confirmation.png) |
+
+These are mock examples rendered by the product UI. Physical upload, pairing, data transfer and display startup were checked separately; see the [verification record](docs/VERIFICATION.md).
+
+</details>
+
+## How it connects
+
+```mermaid
+flowchart LR
+    A[Existing Orca<br/>Accounts and usage cache] --> B[Quotamon portable<br/>Windows tray app]
+    B <-->|Encrypted BLE| C[ESP32-S3<br/>7-inch touch display]
+```
+
+ESP32 handles rendering and touch. A **nearby PC running Orca and the portable bridge** supplies subscription data. No Wi-Fi or on-device web login is required. Orca stays unmodified, and account credentials remain on the PC.
+
+Default snapshot interval: **60 seconds**. Heartbeat: **10 seconds**. A disconnect or **35 seconds** without valid traffic clears display data. Provider collection has its own schedule, so a healthy BLE link never makes old source data look fresh.
+
+## Quick start
+
+1. **Prepare the board.** The target is **Waveshare ESP32-S3-Touch-LCD-7 Rev1.2, 800×480**. Follow the [firmware upload guide](docs/UPLOAD.md).
+2. **Run the portable app.** Download `Quotamon-Portable-win-x64-preview` from a successful [Windows Actions build](https://github.com/guyster323/ESP32_7inch_Quotamon/actions/workflows/build.yml), extract the entire inner ZIP, and run **Quotamon.exe**. GitHub sign-in is required to download artifacts.
+3. **Choose your accounts.** Start your existing Orca, then save the account selection, aliases, plans and order in the settings page.
+4. **Connect over BLE.** Start pairing on the display, find it from the PC, and approve matching six-digit numbers on both screens. Saved devices reconnect automatically.
+
+Requires Windows 10 2004 or later / Windows 11, x64 and Bluetooth LE. Keep the portable folder intact. Enable Windows login startup in tray settings. If pairing fails before showing numbers, use the [Windows native pairing recovery steps](docs/PORTABLE_BRIDGE.md).
+
+## Meet the pixel crew
+
+| Codex | Cursor | Copilot | Claude | Grok |
+|:---:|:---:|:---:|:---:|:---:|
+| <img src="assets/providers/codex/idle_00.png" width="88" alt="Codex pixel companion"> | <img src="assets/providers/cursor/idle_00.png" width="88" alt="Cursor pixel companion"> | <img src="assets/providers/copilot/idle_00.png" width="88" alt="Copilot pixel companion"> | <img src="assets/providers/claude/idle_00.png" width="88" alt="Claude pixel companion"> | <img src="assets/providers/grok/idle_00.png" width="88" alt="Grok pixel companion"> |
+
+| Provider | Source data | Account coverage |
+|---|---|---|
+| Codex | Orca five-hour, weekly and other supplied limits | Default + managed accounts |
+| Claude | Orca weekly and additional model limits | Default + managed accounts |
+| Cursor | Cursor Models · Other Models | Current active account |
+| Grok | Quota pools exposed by Orca | Current active account |
+| Copilot | Quota SDK from an existing Windows Copilot CLI | Current CLI account · experimental |
+
+Quota is never inferred from account count or a plan name. Copilot **session usage and monthly allowance are separate**. SDK request units still need independent AIC verification; a 6,500-credit allowance is not assumed for every plan. See [source research and limits](docs/RESEARCH.md).
+
+## Implementation and verification
+
+This is a **development preview**. Beyond the shared LVGL UI and portable bridge, physical firmware upload, pairing and reconnect have been checked.
+
+| Scope | Evidence |
+|---|---|
+| Software | 14 TypeScript tests; C++ BLE framing; native UI, pointer and font checks |
+| Live data | Three Codex accounts and Cursor from unmodified Orca 1.4.224, plus the existing Copilot SDK account |
+| Hardware | Full backup, application upload and readback verification; bootloader, partitions and pairing NVS preserved |
+| Connection and display | Windows numeric pairing, five-account transfer and ACK on the earlier firmware, display startup and automatic BLE reconnect on the latest update |
+
+Refresh timestamps and compact reset layouts were checked in the native renderer. Individual on-device text layouts, extended operation and every recovery scenario have not all been verified. The [verification record](docs/VERIFICATION.md) separates these boundaries.
+
+## Build and documentation
+
+| Get started | Understand the system | Inspect the evidence |
+|---|---|---|
+| [Portable setup and recovery](docs/PORTABLE_BRIDGE.md) | [Architecture](docs/ARCHITECTURE.md) | [Verification](docs/VERIFICATION.md) |
+| [Firmware and BOOT/RESET](docs/UPLOAD.md) | [BLE protocol](docs/BLE_PROTOCOL.md) | [Source research](docs/RESEARCH.md) |
+
+<details>
+<summary>Local builds and motion asset generation</summary>
+
+The native preview uses Visual Studio C++/CMake on Windows. Generated sprites and Korean fonts are committed.
 
 ```powershell
 python tools/bootstrap_dependencies.py
 npm ci --prefix orca-integration
 npm test --prefix orca-integration
+
 tools\build_native.cmd
 build\native\quotamon_protocol_test.exe
+python tools/verify_native_visuals.py
 build\native\espmonitor_sim.exe
 ```
 
-The simulator is a development tool. Download the `Quotamon-Portable-win-x64-preview` artifact from a successful [Windows Actions build](https://github.com/guyster323/ESP32_7inch_Quotamon/actions/workflows/build.yml), extract its inner ZIP and run Quotamon.exe. Enable Windows login startup in settings. Follow [portable setup](docs/PORTABLE_BRIDGE.md) and [firmware upload](docs/UPLOAD.md) for hardware setup. USB is used for flashing/power/logs; Wi-Fi and classic Bluetooth SPP are not used.
+The README GIF and still image use **Pillow and the native simulator**, with the local Noto Sans KR font or Windows Segoe UI.
 
-MIT project code. F108pro artwork/glyph shapes, Noto fonts, Orca patch context, Waveshare port and runtime dependencies retain their respective [notices](THIRD_PARTY_NOTICES.md). The new lavender Copilot pilot robot is original, unofficial artwork.
+```powershell
+python -m pip install Pillow
+python tools/generate_readme_media.py
+```
+
+For an MP4 export, install `imageio-ffmpeg` and run `python tools/generate_readme_media.py --video-only`. Open `assets/readme/index.html` locally in a browser for playback controls and looping.
+
+The generator never reads running Orca or account data. Assets are written to `assets/readme/`, with generation metadata in `assets/readme/media.json`.
+
+| Path | Purpose |
+|---|---|
+| `firmware/` | Waveshare RGB/GT911 port + ESP-IDF NimBLE receiver |
+| `native/` | Shared LVGL UI, fonts, sprites and Windows simulator |
+| `portable/` | Windows tray launcher and local settings UI |
+| `orca-integration/` | Unmodified Orca access, shared bridge core and BLE control |
+| `protocol/` | BLE frame decoder |
+| `assets/` · `visuals/` | Pixel companions, motion graphics and native screen examples |
+
+The older [internal Orca integration patch](docs/ORCA_INTEGRATION.md) remains optional developer reference material. The portable flow does not require it.
+
+</details>
+
+## Credits
+
+Inspired by the pixel artwork and split percentage bars of [F108pro Usage Monitor](https://github.com/guyster323/F108pro_Usage_monitor). Codex/Cursor/Claude/Grok use its MIT assets. The lavender Copilot pilot robot is original, unofficial artwork created for this project.
+
+[Orca](https://github.com/stablyai/orca) · [Waveshare LCD-7](https://docs.waveshare.com/ESP32-S3-Touch-LCD-7/Instructions-For-Use) · [LVGL](https://github.com/lvgl/lvgl) · [ESP-IDF](https://github.com/espressif/esp-idf) · [Noto Sans KR](https://github.com/google/fonts/tree/main/ofl/notosanskr)
+
+Project code: [MIT](LICENSE). Artwork, fonts, ports and runtime dependencies retain their respective [third-party notices](THIRD_PARTY_NOTICES.md).

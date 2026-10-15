@@ -1,0 +1,39 @@
+{
+  "size": [
+    1200,
+    900
+  ],
+  "duration_ms": 14400,
+  "loop": true,
+  "native_screen_size": [
+    800,
+    480
+  ],
+  "illustrative_data": true,
+  "live_account_data_used": false,
+  "native_ui_source": "native/ui.cpp",
+  "detail_source": "visuals/native/02-codex-detail.png",
+  "presentation_only": [
+    "device bezel",
+    "touch indicator",
+    "highlights",
+    "transitions"
+  ],
+  "regeneration": "python tools/generate_readme_media.py",
+  "files": {
+    "quotamon-demo.gif": {
+      "bytes": 695158,
+      "sha256": "b3f133c01a78e49f2dc28499b893eb8bf1eb8328e8f50520583f15a4a57b3f17"
+    },
+    "quotamon-display.png": {
+      "bytes": 133815,
+      "sha256": "577b7e9188b8251b7fa7e9da56df932de894bd27b8eaf3ab5130b1c76e0e81a5"
+    },
+    "quotamon-demo.mp4": {
+      "bytes": 366188,
+      "sha256": "0e3b64851a495f43868008c3395a1c8245364c97fd84096e2fa30176271f4b34"
+    }
+  },
+  "video_mime": "video/mp4;codecs=avc1",
+  "video_source": "quotamon-demo.gif"
+}
