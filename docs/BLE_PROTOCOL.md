@@ -32,7 +32,7 @@ At ATT MTU 23 the characteristic value is 20 bytes: 8 header + 12 message bytes.
 
 ## Message bodies
 
-- Snapshot: UTF-8 JSON with `protocol: "quotamon.v1"`, `produced_at` Unix seconds, `config_revision`, `connected:true`, `mock:false`, `accounts`, `display`. The C++ decoder enforces provider, uniqueness, number, label, account and pool bounds.
+- Snapshot: UTF-8 JSON with `protocol: "quotamon.v1"`, `produced_at` Unix seconds, `refreshed` (the PC-local snapshot creation time for the LCD footer), `config_revision`, `connected:true`, `mock:false`, `accounts`, `display`. The C++ decoder enforces provider, uniqueness, number, label, account and pool bounds. Older snapshots without `refreshed` show an unknown refresh time; provider collection timestamps remain independent.
 - Heartbeat: exactly eight bytes, Unix milliseconds as uint64 LE, then the framing CRC. It does not refresh source quota timestamps.
 - Control: bounded UTF-8 JSON. Allowed requests: `refresh`; `settings` with `base_revision`, display fields and `{id,enabled}` selections; `ack` with completed snapshot sequence.
 

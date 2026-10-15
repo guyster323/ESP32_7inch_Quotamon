@@ -4,12 +4,12 @@
 
 | 검사 | 결과 |
 |---|---|
-| TypeScript core build / 12개 테스트 | 기존 8개 + Windows 저장 페어링 검색·선택·연결 및 실패 안내, Cursor 모델 쿼터 선택·누락 처리 회귀 검사 통과 |
+| TypeScript core build / 14개 테스트 | Windows 저장 페어링·실패 안내, Cursor 모델 쿼터 선택·누락 처리, 독립된 최근 갱신 시각과 축약 리셋 시간 회귀 검사 통과 |
 | C++ wire 테스트 | CRC/golden frame, 24 KB, value size 20/244/512, 손상·누락 거부 통과 |
 | LVGL 네이티브 UI 빌드·포인터 테스트 | 카드·상세·설정·페이지·계정 선택·페어링 승인/거절 통과 |
 | 800×480 렌더 | 한글 glyph 경고 없음, 막대 경계의 두 글자색, offline 채움 삭제 확인 |
 | Windows .NET 10 BLE resource | build/publish 통과, 경고 0, actual PC adapter central 지원 확인 |
-| ESP32 firmware | PlatformIO 6.13.0 / ESP-IDF 5.5.3 빌드 통과; program 6,358,807 / 8,323,072 bytes (76.4%) |
+| ESP32 firmware | PlatformIO 6.13.0 / ESP-IDF 5.5.3 빌드 통과; 최근 갱신·리셋 표시 수정본 program 6,361,131 / 8,323,072 bytes (76.4%) |
 | Orca 1.4.214 소스 패치 | 적용 및 reverse check 통과 |
 | Orca 설정 컴포넌트 분리 렌더 | 실제 Orca UI 부품 + 모의 API로 페어링·별칭·저장/취소·주기·HTML escaping·760 px 검사 통과 |
 | 기존 설치 Orca 변경 | 수행하지 않음 |
@@ -29,6 +29,7 @@
 | 실제 BLE GATT·왕복 | Windows의 uncached primary-service 조회가 0x80070016을 반환해 cached fallback 추가. 서비스·2개 characteristic·notify 구독 성공, MTU value size 244. 수정 패키지의 helper와 실제 Orca/기존 5계정 선택으로 전송하고 보드 snapshot ACK를 2회 이상 확인 |
 | 기존 앱 적용 | 사용자 승인 후 기존 폴더에 적용·재시작. staged/적용 파일 전체 해시 일치, 계정 5개·화면 설정·자동 실행 보존. 새 앱의 자동 연결 및 오류 없는 동기화 중 UI 재확인. 임시 중계는 종료 |
 | Cursor 모델 쿼터 표시 개선 | Cursor Models·Other Models만 표시·전송하고 Monthly 제외. 실제 Orca 원천·모의 웹 UI·적용된 PC 화면 확인. 사용자가 적용 후 LCD 정상 표시 확인 |
+| 최근 갱신 시각·리셋 일정 개선 | 네이티브 렌더에서 하단 최근 갱신/원천 수집 두 줄, 시각 변경·숨김·연결 상실, `Reset 5 … | W …`와 Cursor 공통 리셋, 긴 일정의 두 줄 배치 검사 통과. PC 브리지 적용 완료. 새 앱 업로드·읽기 검증, 이전 앱 백업 해시 및 부트로더·파티션·NVS 보존 검사 통과. 전원 재연결 후 사용자 화면 기동 확인, 실행 중인 PC UI의 자동 BLE 재연결·동기화 상태 확인. 실물 문구별 배치 확인 및 이번 변경의 별도 ACK 관찰은 미수행 |
 
 ```powershell
 python tools/bootstrap_dependencies.py

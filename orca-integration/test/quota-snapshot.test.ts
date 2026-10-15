@@ -6,9 +6,32 @@ import {
   makeSnapshot,
   publicId,
   validateConfig,
-  copilotQuota
+  copilotQuota,
+  resetText
 } from '../src/quota-snapshot.js'
 const now = 1800000000
+test('reset durations use compact units and retain unknown or elapsed states', () => {
+  assert.equal(resetText(now + (5 * 24 + 3) * 3600, now), '5d 3h')
+  assert.equal(resetText(now + (2 * 60 + 41) * 60, now), '2h 41m')
+  assert.equal(resetText(now + 41 * 60, now), '41m')
+  assert.equal(resetText(null, now), '시각 미확인')
+  assert.equal(resetText(now, now), '리셋 후 확인 대기')
+})
+
+test('display refresh time advances while provider collection time is unchanged', () => {
+  const accounts = fromOrca({ rateLimits: { grok: {
+    status: 'ok', updatedAt: now, weekly: { usedPercent: 20 }
+  } } }, now)
+  const config = defaultConfig()
+  config.accounts = [{ id: accounts[0].id, alias: '', plan: '', enabled: true }]
+  const first = makeSnapshot(accounts, config, now)
+  const next = makeSnapshot(accounts, config, now + 60)
+  assert.notEqual(first.refreshed, next.refreshed)
+  assert.equal(next.refreshed, new Date((now + 60) * 1000).toLocaleTimeString('ko-KR', { hour12: false }))
+  assert.equal(first.accounts[0].updated, next.accounts[0].updated)
+  assert.equal(first.accounts[0].updated_at, next.accounts[0].updated_at)
+})
+
 test('unavailable provider placeholders are not signed-in accounts', () => {
   const raw = {
     codex: { systemDefault: { hasAuth: true }, accounts: [] },

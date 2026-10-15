@@ -22,6 +22,8 @@ inline DecodedSnapshot decode(const nlohmann::json& json) {
     if(!std::isfinite(out.producedAt)||out.producedAt<0||out.producedAt>4102444800.0) throw std::runtime_error("Invalid heartbeat timestamp");
     out.revision=json.at("config_revision").get<int>(); if(out.revision<0) throw std::runtime_error("Invalid config revision");
     out.data.connected=json.at("connected").get<bool>(); out.data.mock=json.at("mock").get<bool>();
+    out.data.refreshed=json.value("refreshed",std::string("미확인"));
+    if(out.data.refreshed.size()>64) throw std::runtime_error("Refresh label size bound");
     const auto& rows=json.at("accounts"); if(!rows.is_array()||rows.size()>20) throw std::runtime_error("Account count bound");
     std::vector<std::string> identities;
     for(const auto& row:rows) {

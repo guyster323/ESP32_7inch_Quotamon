@@ -59,6 +59,7 @@ export interface DisplayAccount {
 export interface Snapshot {
   protocol: 'quotamon.v1'
   produced_at: number
+  refreshed: string
   config_revision: number
   connected: boolean
   mock: boolean
@@ -100,10 +101,10 @@ export function resetText(at: number | null, now: number): string {
   if (at <= now) return '리셋 후 확인 대기'
   const m = Math.ceil((at - now) / 60)
   return m >= 1440
-    ? `${Math.floor(m / 1440)}일 ${Math.floor((m % 1440) / 60)}시간`
+    ? `${Math.floor(m / 1440)}d ${Math.floor((m % 1440) / 60)}h`
     : m >= 60
-      ? `${Math.floor(m / 60)}시간 ${m % 60}분`
-      : `${m}분`
+      ? `${Math.floor(m / 60)}h ${m % 60}m`
+      : `${m}m`
 }
 function normalize(
   provider: Provider,
@@ -413,6 +414,7 @@ export function makeSnapshot(
   return {
     protocol: 'quotamon.v1',
     produced_at: now,
+    refreshed: new Date(now * 1000).toLocaleTimeString('ko-KR', { hour12: false }),
     config_revision: config.revision,
     connected: true,
     mock: false,

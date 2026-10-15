@@ -30,6 +30,7 @@ struct Snapshot {
     bool connected = true;
     bool mock = true;
     std::vector<Account> accounts;
+    std::string refreshed = "미확인";
 };
 struct Settings {
     int pollSeconds = 60;

@@ -26,8 +26,13 @@
   "hardware_tested": false,
   "mock_data": true,
   "visual_checks": [
-    "16 native screenshots at 800x480",
+    "17 native screenshots at 800x480",
     "embedded Korean glyph coverage without LVGL warnings",
+    "latest display refresh and provider collection times fit in the two-line footer",
+    "refresh time advances independently of provider collection time",
+    "refresh time respects settings and clears on disconnect",
+    "5-hour and weekly resets shown together with compact units",
+    "Cursor uses one common reset schedule; long card schedules wrap to two lines",
     "same percentage text rendered white on fill and dark on empty",
     "no quota fills after disconnect"
   ],

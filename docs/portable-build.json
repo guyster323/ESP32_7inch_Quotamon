@@ -50,5 +50,32 @@
     "archive": "Quotamon-Portable-cursor-models-win-x64.zip",
     "archive_bytes": 86971406,
     "archive_sha256": "b7bb2a73e4bb51562a7d43f24c8fc5ee56fa097289231531f1b3aefa244f195e"
+  },
+  "footer_reset_update": {
+    "verified_utc": "2026-10-15T01:30:32.686241+00:00",
+    "source_tests_passed": 14,
+    "native_visual_checks_passed": true,
+    "display_refresh_time_separate_from_source_time": true,
+    "compact_reset_units": [
+      "W",
+      "5",
+      "d",
+      "h",
+      "m"
+    ],
+    "weekly_reset_shown_with_five_hour_reset": true,
+    "cursor_single_common_reset": true,
+    "active_bridge_updated": true,
+    "settings_file_preserved": true,
+    "startup_registration_preserved": true,
+    "firmware_uploaded": true,
+    "archive": "Quotamon-Portable-refresh-time-win-x64.zip",
+    "archive_bytes": 86971396,
+    "archive_sha256": "1ac54e9a7abe7b8c58dd0a9d9af8c8e03dc2974ee2ca6f8cddc561a281a21d6f",
+    "firmware_readback_verified": true,
+    "hardware_display_observed": true,
+    "hardware_display_confirmation": "User confirmed display startup after cold boot",
+    "installed_bridge_auto_connected": true,
+    "installed_ui_display_syncing": true
   }
 }

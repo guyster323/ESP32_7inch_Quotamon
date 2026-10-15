@@ -80,6 +80,25 @@ bool hasNumericPercent(lv_obj_t* object) {
     for(uint32_t i=0;i<lv_obj_get_child_cnt(object);i++) if(hasNumericPercent(lv_obj_get_child(object,static_cast<int32_t>(i)))) return true;
     return false;
 }
+lv_obj_t* findLabel(lv_obj_t* object,const std::string& needle) {
+    if(lv_obj_check_type(object,&lv_label_class)&&std::string(lv_label_get_text(object)).find(needle)!=std::string::npos) return object;
+    for(uint32_t i=0;i<lv_obj_get_child_cnt(object);i++)
+        if(auto* found=findLabel(lv_obj_get_child(object,static_cast<int32_t>(i)),needle)) return found;
+    return nullptr;
+}
+void checkFooter(const std::string& refreshed,const std::string& sourceLabel) {
+    auto* footer=findLabel(lv_scr_act(),"최근 갱신 "+refreshed);
+    require(footer!=nullptr,"Latest refresh time missing from footer");
+    const std::string text=lv_label_get_text(footer);
+    require(text.find(sourceLabel+"14:32:00")!=std::string::npos,"Provider collection time missing from footer");
+    const auto newline=text.find('\n');
+    require(newline!=std::string::npos&&text.find('\n',newline+1)==std::string::npos,"Footer must occupy two lines");
+    const auto* font=lv_obj_get_style_text_font(footer,0);
+    for(const auto& line:{text.substr(0,newline),text.substr(newline+1)})
+        require(lv_txt_get_width(line.c_str(),static_cast<uint32_t>(line.size()),font,0,LV_TEXT_FLAG_NONE)<=lv_obj_get_width(footer),"Footer time is horizontally clipped");
+    lv_area_t area; lv_obj_get_coords(footer,&area);
+    require(area.y1>431&&area.y2<480&&lv_obj_get_height(footer)>=font->line_height*2,"Footer time is vertically clipped");
+}
 void capture(const std::filesystem::path& path) {
     advance(); std::ofstream out(path,std::ios::binary);
     require(out.good(),"Cannot open screenshot output"); out<<"P6\n800 480\n255\n";
@@ -87,6 +106,15 @@ void capture(const std::filesystem::path& path) {
 }
 void renderSuite(const std::filesystem::path& folder) {
     std::filesystem::create_directories(folder);
+    nlohmann::json wire={{"protocol","quotamon.v1"},{"produced_at",1800000000},{"config_revision",0},
+        {"connected",true},{"mock",false},{"accounts",nlohmann::json::array()},
+        {"display",{{"poll_seconds",60},{"brightness_percent",70},{"show_reset",true},{"show_updated",true},{"show_credits",true},{"show_session",true}}}};
+    require(monitor::decode(wire).data.refreshed=="미확인","Legacy snapshot refresh fallback missing");
+    wire["refreshed"]="14:33:00";
+    require(monitor::decode(wire).data.refreshed=="14:33:00","Snapshot refresh time was not decoded");
+    wire["refreshed"]=std::string(65,'x');
+    bool rejected=false;try{monitor::decode(wire);}catch(const std::exception&){rejected=true;}
+    require(rejected,"Oversized refresh label accepted");
     auto s=monitor::demo(); monitor::init(s); advance();
     const auto* first=monitor::cardObject(0);
     for(int i=0;i<5;i++) {
@@ -96,11 +124,33 @@ void renderSuite(const std::filesystem::path& folder) {
     }
     require(!lv_obj_has_flag(lv_scr_act(),LV_OBJ_FLAG_SCROLLABLE),"Overview scrolls");
     capture(folder/"01-home.ppm");
+    checkFooter("14:33:00","첫 카드 수집 ");
+    auto* combinedReset=findLabel(monitor::cardObject(0),"Reset 5 2h 18m");
+    require(combinedReset!=nullptr&&std::string(lv_label_get_text(combinedReset)).find("W 3d 4h")!=std::string::npos,"5-hour card omitted weekly reset");
+    require(findLabel(monitor::cardObject(3),"Reset W 17d 0h")!=nullptr,"Cursor common reset missing");
+    auto wrapped=s;
+    wrapped.accounts[0].pools[0].reset="리셋 후 확인 대기";
+    wrapped.accounts[0].pools[1].reset="리셋 후 확인 대기";
+    monitor::apply(wrapped); advance();
+    auto* wrappedReset=findLabel(monitor::cardObject(0),"Reset 5 리셋 후 확인 대기\nW 리셋 후 확인 대기");
+    require(wrappedReset!=nullptr&&lv_obj_get_height(wrappedReset)==40,"Long reset schedule did not switch to two lines");
+    lv_area_t resetArea;lv_obj_get_coords(wrappedReset,&resetArea);
+    require(resetArea.y2<=241,"Wrapped reset schedule escaped its card");
+    capture(folder/"18-wrapped-reset.ppm");
+    monitor::apply(s); advance();
+    s.refreshed="14:34:00";
     s.accounts[0].pools[0].remaining=73; monitor::apply(s); advance();
     require(first==monitor::cardObject(0),"Snapshot update unnecessarily rebuilt home");
+    checkFooter("14:34:00","첫 카드 수집 ");
+    auto displaySettings=monitor::settings(); displaySettings.showUpdated=false;
+    monitor::setSettings(displaySettings); monitor::showHome(); advance();
+    require(findLabel(lv_scr_act(),"최근 갱신 ")==nullptr,"Refresh time toggle was ignored");
+    displaySettings.showUpdated=true; monitor::setSettings(displaySettings); monitor::showHome(); advance();
     // Use pointer input, rather than directly dispatching card click events.
     click(180,175); require(monitor::selectedAccount()==0,"Meter/card touch did not open detail");
     capture(folder/"02-codex-detail.ppm");
+    checkFooter("14:34:00","계정 수집 ");
+    require(findLabel(lv_scr_act(),"Reset 5 2h 18m")!=nullptr&&findLabel(lv_scr_act(),"Reset W 3d 4h")!=nullptr,"Detail reset abbreviations missing");
     click(65,36); require(monitor::selectedAccount()==-1,"Back touch failed");
     click(690,310); require(monitor::selectedAccount()==4,"Copilot touch failed");
     capture(folder/"03-copilot-detail.ppm");
@@ -117,6 +167,8 @@ void renderSuite(const std::filesystem::path& folder) {
     monitor::showSettings(); advance(); click(90,255); click(90,320); click(720,432);
     require(monitor::settings().showReset&&monitor::settings().showCredits,"Display-field settings failed to restore");
     click(620,36); require(monitor::refreshRequests()==1,"Refresh intent missing");
+    checkFooter("14:34:00","첫 카드 수집 ");
+    advance(8100);
     s=monitor::demo();
     s.accounts[0].pools[0].remaining=0; s.accounts[0].pools[1].remaining=8;
     s.accounts[1].pools[0].remaining=20; s.accounts[1].pools[1].remaining=100;
@@ -127,6 +179,7 @@ void renderSuite(const std::filesystem::path& folder) {
     s.connected=false; monitor::apply(s); capture(folder/"06-disconnected.ppm");
     require(!hasNumericPercent(lv_scr_act()),"Disconnected overview retained numeric percentages");
     require(monitor::cardObject(0)==nullptr,"Disconnected overview retained account cards");
+    require(findLabel(lv_scr_act(),"최근 갱신 ")==nullptr,"Disconnected overview retained refresh time");
     s.connected=true;monitor::apply(s);monitor::showDetail(0);
     s.connected=false;monitor::apply(s);capture(folder/"07-disconnected-detail.ppm");
     require(monitor::selectedAccount()==-1,"Disconnect from detail did not return home");

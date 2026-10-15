@@ -30,6 +30,11 @@ for rectangle in [(134,113,250,153),(391,113,507,153),(648,113,765,153),
     assert not any(b>160 and b>r*1.4 for r,g,b in colors), 'Offline meter retains blue quota fill'
 checks = json.loads((folder / 'native-checks.json').read_text())
 checks['visual_checks']=[f'{len(renders)} native screenshots at 800x480','embedded Korean glyph coverage without LVGL warnings',
+                         'latest display refresh and provider collection times fit in the two-line footer',
+                         'refresh time advances independently of provider collection time',
+                         'refresh time respects settings and clears on disconnect',
+                         '5-hour and weekly resets shown together with compact units',
+                         'Cursor uses one common reset schedule; long card schedules wrap to two lines',
                          'same percentage text rendered white on fill and dark on empty',
                          'no quota fills after disconnect']
 checks['lvgl_version']='8.4.0'

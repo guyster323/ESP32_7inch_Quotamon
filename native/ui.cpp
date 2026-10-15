@@ -31,8 +31,8 @@ lv_obj_t* detailLimits=nullptr;
 std::array<int,5> visible{{-1,-1,-1,-1,-1}};
 lv_obj_t *root=nullptr, *back=nullptr, *save=nullptr, *cancel=nullptr, *footer=nullptr;
 lv_obj_t *intervalLabel=nullptr, *brightnessLabel=nullptr;
-struct Meter { lv_obj_t *fill=nullptr, *dark=nullptr, *light=nullptr, *track=nullptr; int width=0; const lv_font_t* font=&font_pixel25; };
-struct Card { lv_obj_t* obj=nullptr; lv_obj_t* image=nullptr; lv_obj_t* note=nullptr; std::array<Meter,2> bars; };
+struct Meter { lv_obj_t *outer=nullptr, *fill=nullptr, *dark=nullptr, *light=nullptr, *track=nullptr; int width=0; const lv_font_t* font=&font_pixel25; };
+struct Card { lv_obj_t* obj=nullptr; lv_obj_t* image=nullptr; lv_obj_t* note=nullptr; lv_obj_t* extra=nullptr; std::array<Meter,2> bars; };
 std::array<Card,5> cards;
 lv_color_t color(unsigned value) { return lv_color_hex(value); }
 lv_obj_t* box(lv_obj_t* parent,int x,int y,int w,int h,unsigned bg,unsigned border=0,int radius=0) {
@@ -73,7 +73,7 @@ unsigned meterColor(double value,int index) {
 }
 Meter meter(lv_obj_t* parent,int x,int y,int w,int h,const Pool& p,int index) {
     auto* outer=box(parent,x,y,w,h,0x0f1f29,BORDER,2);
-    Meter m; m.width=w-4; m.font=h>=66?&font_pixel40:&font_pixel25; m.track=box(outer,2,2,w-4,h-4,TRACK);
+    Meter m; m.outer=outer; m.width=w-4; m.font=h>=66?&font_pixel40:&font_pixel25; m.track=box(outer,2,2,w-4,h-4,TRACK);
     label(m.track,4,1,w-12,p.name.c_str(),&font_ko14,0x081010);
     m.dark=label(m.track,4,h-m.font->line_height-6,w-12,"",m.font,0x081010);
     lv_obj_set_style_text_align(m.dark,LV_TEXT_ALIGN_RIGHT,0);
@@ -115,6 +115,32 @@ const lv_img_dsc_t* sprite(int i,const Account& a,bool connected) {
         default: return codex_sprites[state];
     }
 }
+std::string resetName(const std::string& name) {
+    return name=="5H"?"5":name=="WEEKLY"?"W":name;
+}
+std::string resetTime(const Pool& pool) {
+    return pool.reset.empty()?"미확인":pool.reset;
+}
+std::string resetSchedule(const Account& a) {
+    if(a.provider==Provider::Cursor) {
+        for(int j=0;j<a.poolCount;j++) if(!a.pools[j].reset.empty()&&a.pools[j].reset!="시각 미확인")
+            return "Reset W "+resetTime(a.pools[j]);
+        return "Reset W 미확인";
+    }
+    const Pool *five=nullptr,*weekly=nullptr;
+    for(int j=0;j<a.poolCount;j++) {
+        if(a.pools[j].name=="5H") five=&a.pools[j];
+        if(a.pools[j].name=="WEEKLY") weekly=&a.pools[j];
+    }
+    if(five) return "Reset 5 "+resetTime(*five)+(weekly?" | W "+resetTime(*weekly):"");
+    if(weekly) return "Reset W "+resetTime(*weekly);
+    int selected=0;
+    for(int j=0;j<a.poolCount;j++) if(a.pools[j].remaining>=0&&(a.pools[selected].remaining<0||a.pools[j].remaining<a.pools[selected].remaining)) selected=j;
+    const auto& p=a.pools[selected];
+    if(p.remaining==-1) return "일부 잔여량 미확인";
+    if(p.remaining==-2) return "무제한 · 제공된 정책 기준";
+    return "Reset "+resetName(p.name)+" "+resetTime(p);
+}
 std::string note(int index) {
     const auto& a=current.accounts[index];
     if(!current.connected) return "연결 대기 · 데이터 없음";
@@ -122,36 +148,66 @@ std::string note(int index) {
     if(a.state==SourceState::Stale) return "오래된 정보 · 마지막 수집 확인";
     if(a.provider==Provider::Copilot&&committed.showCredits&&a.hasAmounts) { char b[96]; std::snprintf(b,sizeof(b),"%.1f / %.1f AIC 남음",std::max(0.0,a.monthlyLimit-a.monthlyUsed),a.monthlyLimit); return b; }
     if(!committed.showReset) return a.plan;
-    int selected=0;
-    for(int j=0;j<a.poolCount;j++) if(a.pools[j].remaining>=0&&(a.pools[selected].remaining<0||a.pools[j].remaining<a.pools[selected].remaining)) selected=j;
-    const auto& p=a.pools[selected];
-    if(p.remaining==-1) return "일부 잔여량 미확인";
-    if(p.remaining==-2) return "무제한 · 제공된 정책 기준";
-    std::string bucket=p.name=="5H"?"5시간":p.name=="WEEKLY"?"주간":p.name;
-    std::string warning=p.remaining<=10?"긴급 · ":p.remaining<=20?"부족 · ":"";
-    return warning+bucket+" 리셋 "+(p.reset.empty()?"미확인":p.reset);
+    return resetSchedule(a);
 }
 void footerText() {
     if(!footer) return;
-    if(!feedback.empty()&&lv_tick_get()-feedbackAt<8000) {lv_label_set_text(footer,feedback.c_str());return;}
     std::string text=current.connected?"Orca · BLE 연결 · "+std::to_string(committed.pollSeconds)+"초 갱신":"Orca 연결 대기 · 표시 데이터 삭제됨";
     if(current.mock) text="예시 데이터 · "+text;
-    if(current.connected&&committed.showUpdated&&!current.accounts.empty()) {
-        int source=page>=0?page:visible[0]>=0?visible[0]:0;
-        if(static_cast<size_t>(source)<current.accounts.size())text+=(page>=0?"   |   계정 수집 ":"   |   첫 카드 수집 ")+current.accounts[source].updated;
-    }
     int enabled=0; for(const auto& a:current.accounts) if(a.enabled) ++enabled;
     if(enabled>5) text+="   |   "+std::to_string(homePage+1)+" / "+std::to_string((enabled+4)/5);
+    if(!feedback.empty()&&lv_tick_get()-feedbackAt<8000) text=feedback;
+    if(current.connected&&committed.showUpdated) {
+        text+="\n최근 갱신 "+current.refreshed;
+        int source=page>=0?page:visible[0]>=0?visible[0]:-1;
+        if(source>=0&&static_cast<size_t>(source)<current.accounts.size())
+            text+=(page>=0?"   |   계정 수집 ":"   |   첫 카드 수집 ")+current.accounts[source].updated;
+    }
     lv_label_set_text(footer,text.c_str());
 }
+void createFooter() {
+    footer=label(root,20,436,760,"",&font_ko14,MUTED);
+    lv_obj_set_height(footer,40);
+    lv_obj_set_style_text_line_space(footer,0,0);
+    lv_label_set_long_mode(footer,LV_LABEL_LONG_CLIP);
+}
+void updateNote(Card& c,int account) {
+    auto text=note(account);
+    const int width=lv_obj_get_width(c.obj)-20,height=lv_obj_get_height(c.obj);
+    const bool twoLines=lv_txt_get_width(text.c_str(),static_cast<uint32_t>(text.size()),&font_ko14,0,LV_TEXT_FLAG_NONE)>width;
+    if(twoLines) {
+        const auto divider=text.find(" | ");
+        if(divider!=std::string::npos) text.replace(divider,3,"\n");
+    }
+    const int bodyY=std::max(34,(height-108)/2),noteY=height-(twoLines?43:23);
+    lv_obj_set_y(c.note,static_cast<lv_coord_t>(noteY));
+    lv_obj_set_height(c.note,twoLines?40:20);
+    lv_label_set_text(c.note,text.c_str());
+    if(c.extra) {
+        lv_obj_set_y(c.extra,static_cast<lv_coord_t>(noteY-21));
+    }
+    const int barHeight=twoLines?(c.extra?33:44):51;
+    for(int j=0;j<2;j++) if(c.bars[j].outer) {
+        auto& m=c.bars[j];
+        lv_obj_set_y(m.outer,static_cast<lv_coord_t>(bodyY+j*(barHeight+4)));
+        lv_obj_set_height(m.outer,static_cast<lv_coord_t>(barHeight));
+        lv_obj_set_height(m.track,static_cast<lv_coord_t>(barHeight-4));
+        lv_obj_set_height(m.fill,static_cast<lv_coord_t>(barHeight-4));
+        lv_obj_set_y(m.dark,static_cast<lv_coord_t>(barHeight-m.font->line_height-6));
+        lv_obj_set_y(m.light,static_cast<lv_coord_t>(barHeight-m.font->line_height-6));
+    }
+    const int imageHeight=std::clamp(noteY-bodyY-(c.extra?21:0),1,108);
+    if(c.image) lv_img_set_zoom(c.image,static_cast<uint16_t>(imageHeight*256/108));
+}
 void updateCards() {
+    lv_obj_update_layout(root);
     for(int i=0;i<5;i++) {
         auto& c=cards[i]; if(!c.obj||visible[i]<0) continue;
         int account=visible[i]; const auto& a=current.accounts[account];
         const bool valid=current.connected&&a.state!=SourceState::Unknown;
+        updateNote(c,account);
         for(int j=0;j<std::min(a.poolCount,2);j++) setMeter(c.bars[j],a.pools[j],account,valid);
         if(c.image) lv_img_set_src(c.image,sprite(account,a,current.connected));
-        lv_label_set_text(c.note,note(account).c_str());
         double minimum=100; for(int j=0;j<a.poolCount;j++) if(a.pools[j].remaining>=0) minimum=std::min(minimum,a.pools[j].remaining);
         unsigned ink=!valid?MUTED:a.state==SourceState::Stale?AMBER:minimum<=10?RED:minimum<=20?AMBER:MUTED;
         lv_obj_set_style_text_color(c.note,color(ink),0);
@@ -172,16 +228,18 @@ void card(int slot,int i,int x,int y,int w,int h) {
     lv_obj_add_event_cb(c.obj,action,LV_EVENT_CLICKED,reinterpret_cast<void*>(static_cast<intptr_t>(100+i)));
     label(c.obj,10,7,w-20,a.title.c_str(),&font_ko16);
     int bodyY=std::max(34,(h-108)/2);
-    c.image=lv_img_create(c.obj); lv_obj_set_pos(c.image,10,static_cast<lv_coord_t>(bodyY)); lv_img_set_src(c.image,sprite(i,a,current.connected));
+    c.image=lv_img_create(c.obj); lv_obj_set_pos(c.image,10,static_cast<lv_coord_t>(bodyY)); lv_img_set_pivot(c.image,0,0); lv_img_set_src(c.image,sprite(i,a,current.connected));
     const int mx=108,mw=w-118;
     for(int j=0;j<std::min(a.poolCount,2);j++) c.bars[j]=meter(c.obj,mx,bodyY+j*55,mw,51,a.pools[j],i);
     if(a.poolCount==1) {
         label(c.obj,mx,bodyY+62,mw,a.plan.c_str(),&font_ko14,MUTED);
         label(c.obj,mx,bodyY+85,mw,"터치해서 상세 확인",&font_ko14,MUTED);
     } else if(a.poolCount>2) {
-        label(c.obj,10,h-44,w-20,("추가 "+std::to_string(a.poolCount-2)+"개 한도 · 상세에서 확인").c_str(),&font_ko14,MUTED);
+        c.extra=label(c.obj,10,h-44,w-20,("추가 "+std::to_string(a.poolCount-2)+"개 한도 · 상세에서 확인").c_str(),&font_ko14,MUTED);
     }
     c.note=label(c.obj,10,h-23,w-20,"",&font_ko14,MUTED);
+    lv_label_set_long_mode(c.note,LV_LABEL_LONG_WRAP);
+    lv_obj_set_style_text_line_space(c.note,0,0);
 }
 void settingsLabels() {
     lv_label_set_text_fmt(intervalLabel,"%d초",draft.pollSeconds);
@@ -191,7 +249,7 @@ void action(lv_event_t* e) {
     const int id=static_cast<int>(reinterpret_cast<intptr_t>(lv_event_get_user_data(e)));
     if(id>=100&&id<200) showDetail(id-100);
     else if(id==1) showHome();
-    else if(id==2) { ++refreshCount; if(onRefresh) onRefresh(); if(footer) lv_label_set_text(footer,"Orca에 새로고침 요청됨"); }
+    else if(id==2) { ++refreshCount; if(onRefresh) onRefresh(); notify("Orca에 새로고침 요청됨"); }
     else if(id==3) showSettings();
     else if(id==4) {
         committed=draft;
@@ -274,7 +332,7 @@ void showHome() {
         } else if(count==4) card(slot,i,20+(slot%2)*386,72+(slot/2)*182,374,slot<2?170:178);
         else { int w=(760-(count-1)*12)/count; card(slot,i,20+slot*(w+12),72,w,360); }
     }
-    footer=label(root,20,445,760,"",&font_ko14,MUTED); updateCards();
+    createFooter(); updateCards();
 }
 void showDetail(int i) {
     if(i<0||static_cast<size_t>(i)>=current.accounts.size()) return;
@@ -299,7 +357,7 @@ void showDetail(int i) {
     for(int j=0;j<a.poolCount;j++) {
         auto m=meter(limits,2,j*98,465,66,a.pools[j],i);
         setMeter(m,a.pools[j],i,current.connected&&a.state!=SourceState::Unknown);
-        const std::string reset=!current.connected?"연결 대기":a.state==SourceState::Unknown?"확인 불가":a.pools[j].remaining==-2?"무제한 · 비율 계산 없음":a.pools[j].remaining==-1?"잔여량 확인 불가":committed.showReset?"리셋 "+a.pools[j].reset:"";
+        const std::string reset=!current.connected?"연결 대기":a.state==SourceState::Unknown?"확인 불가":a.pools[j].remaining==-2?"무제한 · 비율 계산 없음":a.pools[j].remaining==-1?"잔여량 확인 불가":committed.showReset&&a.provider!=Provider::Cursor?"Reset "+resetName(a.pools[j].name)+" "+resetTime(a.pools[j]):"";
         label(limits,8,69+j*98,450,reset.c_str(),&font_ko14,MUTED);
     }
     if(a.provider==Provider::Copilot) {
@@ -314,7 +372,7 @@ void showDetail(int i) {
     }
     label(panel,260,303,474,note(i).c_str(),&font_ko14,MUTED);
     lv_obj_update_layout(limits); if(scroll>0) lv_obj_scroll_to_y(limits,static_cast<lv_coord_t>(scroll),LV_ANIM_OFF);
-    footer=label(root,20,445,760,"",&font_ko14,MUTED); footerText();
+    createFooter(); footerText();
 }
 void showSettings() {
     if(onEditing)onEditing();
@@ -396,11 +454,12 @@ lv_obj_t* saveButton() { return save; }
 lv_obj_t* cancelButton() { return cancel; }
 Snapshot demo() {
     Snapshot s; s.accounts.resize(5);
-    s.accounts[0]={"Codex / Orca","Orca 시스템 기본값","Business Premium",{{{"5H",72,"2시간 18분"},{"WEEKLY",54,"3일 4시간"}}}};
-    s.accounts[1]={"Codex / Personal","Personal","Plus",{{{"5H",38,"1시간 40분"},{"WEEKLY",18,"2일 8시간"}}}};
-    s.accounts[2]={"Codex / Team","Team","Business standard",{{{"5H",9,"46분"},{"WEEKLY",61,"4일 2시간"}}}};
-    s.accounts[3]={"Cursor / Ultra","개인 계정","Ultra",{{{"CURSOR",82,"17일"},{"OTHER",47,"17일"}}}};
-    s.accounts[4]={"Copilot / Business","회사 제공 계정","Business",{{{"MONTHLY",100,"매월 1일"},{"",-1,""}}}};
+    s.refreshed="14:33:00";
+    s.accounts[0]={"Codex / Orca","Orca 시스템 기본값","Business Premium",{{{"5H",72,"2h 18m"},{"WEEKLY",54,"3d 4h"}}}};
+    s.accounts[1]={"Codex / Personal","Personal","Plus",{{{"5H",38,"1h 40m"},{"WEEKLY",18,"2d 8h"}}}};
+    s.accounts[2]={"Codex / Team","Team","Business standard",{{{"5H",9,"46m"},{"WEEKLY",61,"4d 2h"}}}};
+    s.accounts[3]={"Cursor / Ultra","개인 계정","Ultra",{{{"Cursor Models",82,"17d 0h"},{"Other Models",47,"17d 0h"}}}};
+    s.accounts[4]={"Copilot / Business","회사 제공 계정","Business",{{{"MONTHLY",100,"16d 0h"},{"",-1,""}}}};
     s.accounts[4].poolCount=1;
     s.accounts[4].monthlyLimit=6500; // Illustrative fixture, never a production entitlement default.
     s.accounts[3].provider=Provider::Cursor;
