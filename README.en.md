@@ -107,12 +107,21 @@ This is a **development preview**. Beyond the shared LVGL UI and portable bridge
 
 | Scope | Evidence |
 |---|---|
-| Software | 14 TypeScript tests; C++ BLE framing; native UI, pointer and font checks |
+| Software | 35 TypeScript tests; C++ BLE framing; native UI, pointer and font checks |
 | Live data | Three Codex accounts and Cursor from unmodified Orca 1.4.224, plus the existing Copilot SDK account |
 | Hardware | Full backup, application upload and readback verification; bootloader, partitions and pairing NVS preserved |
 | Connection and display | Windows numeric pairing, five-account transfer and ACK on the earlier firmware, display startup and automatic BLE reconnect on the latest update |
 
 Refresh timestamps and compact reset layouts were checked in the native renderer. Individual on-device text layouts, extended operation and every recovery scenario have not all been verified. The [verification record](docs/VERIFICATION.md) separates these boundaries.
+
+## Changelog
+
+### 2026-10-15 — Stable account quotas and scheduled web updates
+
+- **Fixed quota ownership during account switches:** Codex and Claude usage follows the actual active account. Saved account IDs, order and aliases stay in place, and different members of the same organization remain separate.
+- **Last confirmed readings and plans:** Only readings belonging to the same account are retained in memory. An inactive default account starts as unknown after an app restart if no reading is available. The saved “plan unknown” placeholder is cleared while user-defined plans are preserved.
+- **Removed two-second web polling:** The dashboard refreshes once **two seconds before the next scheduled transfer**—58 seconds after the previous ACK with a 60-second interval. Interval changes reschedule the update. Source cache changes wait for the regular transfer; pairing, connection status and user actions remain immediate.
+- **Verification and rollout:** All 35 tests and browser checks with simulated source/BLE passed. Applied to the existing installation while preserving account settings, startup registration and runtime binaries. Physical LCD behavior during actual account switches was not directly verified for this change. [Verification record](docs/VERIFICATION.md) · [Implementation commit](https://github.com/guyster323/ESP32_7inch_Quotamon/commit/4c0c839e85358287c8bb7f744e5df3814eeab969)
 
 ## Build and documentation
 

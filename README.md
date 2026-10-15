@@ -13,7 +13,7 @@ Codex · Cursor · Copilot · Claude · Grok<br>
 [![BLE](https://img.shields.io/badge/Orca-BLE-bca3ff?labelColor=111e2a)](orca-integration)
 [![License](https://img.shields.io/badge/License-MIT-91a6b8?labelColor=111e2a)](LICENSE)
 
-[English](README.en.md) · [빠른 시작](#빠른-시작) · [연결 가이드](docs/PORTABLE_BRIDGE.md) · [펌웨어 업로드](docs/UPLOAD.md) · [설계 문서](docs/ARCHITECTURE.md)
+[English](README.en.md) · [빠른 시작](#빠른-시작) · [변경 기록](#변경-기록) · [연결 가이드](docs/PORTABLE_BRIDGE.md) · [펌웨어 업로드](docs/UPLOAD.md) · [설계 문서](docs/ARCHITECTURE.md)
 
 <a href="assets/readme/quotamon-demo.mp4">
   <img src="assets/readme/quotamon-demo.gif" width="1000" alt="Quotamon 모션 데모: Codex 세 계정, Cursor와 Copilot의 잔여량, 터치 상세, 리셋 일정과 최근 갱신 시각">
@@ -107,12 +107,21 @@ Windows 10 2004 이상/11, x64와 Bluetooth LE가 필요합니다. 폴더 전체
 
 | 범위 | 확인한 내용 |
 |---|---|
-| 소프트웨어 | TypeScript 14개 테스트, C++ BLE 프레이밍, LVGL 화면·포인터·폰트 검사 통과 |
+| 소프트웨어 | TypeScript 35개 테스트, C++ BLE 프레이밍, LVGL 화면·포인터·폰트 검사 통과 |
 | 실제 데이터 | Orca 1.4.224 무수정으로 Codex 3계정·Cursor, 기존 Copilot SDK 계정 조회 |
 | 실제 보드 | 전체 백업 후 앱 업로드·읽기 검증, 부트로더·파티션·페어링 NVS 보존 확인 |
 | 연결·화면 | Windows 번호 비교 페어링, 앞선 펌웨어의 5계정 전송·ACK, 최신 수정본의 화면 기동·자동 BLE 재연결 확인 |
 
 최근 갱신 시각과 축약 리셋 배치는 네이티브 렌더러로 검사했습니다. 실물 문구별 배치·장시간 동작·모든 오류 복구를 검증한 것은 아닙니다. 상세 근거는 [검증 기록](docs/VERIFICATION.md)에 있습니다.
+
+## 변경 기록
+
+### 2026-10-15 — 계정별 할당량 고정 · 웹 갱신 주기 개선
+
+- **계정 전환 시 할당량 혼선 수정:** Codex·Claude의 사용량을 실제 활성 계정에 연결합니다. 기본·관리 계정의 저장 ID·순서·별칭을 유지하고, 같은 조직의 다른 구성원도 구분합니다.
+- **마지막 확인값과 요금제 처리:** 같은 계정의 마지막 확인값만 메모리에 유지합니다. 비활성 기본 계정은 앱 재시작 직후 값이 없으면 확인 불가로 표시합니다. 저장된 `요금제 미확인` 문구는 빈 값으로 정리하고, 사용자가 지정한 요금제는 보존합니다.
+- **웹의 2초 주기 갱신 제거:** 다음 정기 전송 **2초 전 한 번** 갱신합니다. 60초 설정이면 이전 전송 ACK 후 58초이며, 전송 간격 변경 시 다시 예약합니다. 원천 캐시 변경은 정기 전송에 반영하고, 페어링·연결 상태와 사용자 조작은 즉시 표시합니다.
+- **검증·적용:** 테스트 35개와 모의 원천·BLE를 사용한 웹 UI 검사 통과. 기존 실행 폴더에 적용했으며, 계정 설정·자동 실행·런타임을 보존했습니다. 이번 수정의 실제 계정 전환에 따른 실물 LCD 표시는 직접 검증하지 않았습니다. [상세 검증 기록](docs/VERIFICATION.md) · [구현 커밋](https://github.com/guyster323/ESP32_7inch_Quotamon/commit/4c0c839e85358287c8bb7f744e5df3814eeab969)
 
 ## 개발과 문서
 
