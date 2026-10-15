@@ -5,6 +5,29 @@ import { join } from 'node:path'
 import { BleHost } from '../src/ble-host.js'
 import { QuotamonController } from '../src/quotamon-controller.js'
 import { defaultConfig, publicId, record } from '../src/quota-snapshot.js'
+
+test('a saved Windows pairing is selectable without a radio signal reading', async () => {
+  const host = new BleHost('fixture', () => spawn(process.execPath,
+    [join(__dirname, 'ble-resource-fixture.js')], {
+      windowsHide: true, stdio: 'pipe',
+      env: { ...process.env, BLE_FIXTURE_PAIRED: '1' }
+    }))
+  let savedAddress: string | null = null
+  const controller = new QuotamonController(host, {
+    getSnapshot: () => ({}), refreshIfStale: async () => {},
+    onChanged: () => () => {}
+  }, (config) => { savedAddress = config.address })
+  try {
+    await controller.scan()
+    const devices = controller.state().devices
+    assert.equal(devices.length, 1)
+    assert.equal(devices[0].paired, true)
+    assert.equal(devices[0].rssi, 0)
+    await controller.connect(devices[0].address)
+    assert.equal(controller.state().connected, true)
+    assert.equal(savedAddress, devices[0].address)
+  } finally { controller.dispose() }
+})
 test(
   'Orca lifecycle, stored selection, immediate ACK, reconnect and revision conflict',
   { timeout: 8000 },

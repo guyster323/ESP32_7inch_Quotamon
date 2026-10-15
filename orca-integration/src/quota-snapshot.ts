@@ -131,17 +131,27 @@ function normalize(
       resets_at: reset
     })
   }
-  const minutes = object(q.session).windowMinutes
-  add(
-    q.session,
-    finite(minutes) && minutes > 0 && minutes % 60 === 0
-      ? `${minutes / 60}H`
-      : 'SESSION'
-  )
-  add(q.weekly, 'WEEKLY')
-  add(q.fableWeekly, 'FABLE WEEKLY')
-  add(q.monthly, 'MONTHLY')
-  for (const bucket of rows(q.buckets)) add(bucket, object(bucket).name)
+  if (provider === 'cursor') {
+    // Keep the two model budgets in display order; Monthly is an aggregate.
+    for (const name of ['Cursor Models', 'Other Models']) {
+      const bucket = rows(q.buckets).find(
+        (v) => safeLabel(object(v).name, '').toLowerCase() === name.toLowerCase()
+      )
+      add(bucket ?? {}, name)
+    }
+  } else {
+    const minutes = object(q.session).windowMinutes
+    add(
+      q.session,
+      finite(minutes) && minutes > 0 && minutes % 60 === 0
+        ? `${minutes / 60}H`
+        : 'SESSION'
+    )
+    add(q.weekly, 'WEEKLY')
+    add(q.fableWeekly, 'FABLE WEEKLY')
+    add(q.monthly, 'MONTHLY')
+    for (const bucket of rows(q.buckets)) add(bucket, object(bucket).name)
+  }
   const known = pools.some((p) => p.remaining !== -1),
     updated = timestamp(q.updatedAt)
   let state: DisplayAccount['state'] =

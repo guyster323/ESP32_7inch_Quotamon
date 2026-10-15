@@ -1,5 +1,5 @@
 {
-  "status": "built-not-flashed",
+  "status": "flashed-native-paired-live-snapshot-ack-verified",
   "target": "ESP32-S3-Touch-LCD-7 Rev1.2",
   "platformio_platform": "6.13.0",
   "esp_idf": "5.5.3",
@@ -8,6 +8,23 @@
   "binary_bytes": 6359216,
   "sha256": "5b45231c7158d111e2f90d79476598e27b280ebf0339d7cd9d23e8930d72b271",
   "static_ram_report_bytes": 25272,
+  "hardware_flash_bytes": 16777216,
+  "hardware_embedded_psram_bytes": 8388608,
+  "hardware_upload_port": "COM5 (native USB, VID 303A / PID 1001)",
+  "hardware_upload_date": "2026-10-15",
+  "hardware_upload_hash_verified": true,
+  "factory_backup_bytes": 16777216,
+  "factory_backup_verified": true,
+  "hardware_cold_boot_ui_observed": true,
+  "hardware_basic_touch_observed": true,
+  "hardware_ble_advertisement_observed": true,
+  "runtime_boot_log_captured": false,
   "runtime_psram_tested": false,
-  "hardware_pairing_tested": false
+  "hardware_pairing_tested": true,
+  "hardware_pairing_path": "Windows Bluetooth settings; matching numbers approved on both devices",
+  "portable_custom_pairing_tested": true,
+  "portable_custom_pairing_result": "Failed before PairingRequested",
+  "hardware_live_snapshot_tested": true,
+  "hardware_live_selected_accounts": 5,
+  "hardware_snapshot_ack_verified": true
 }

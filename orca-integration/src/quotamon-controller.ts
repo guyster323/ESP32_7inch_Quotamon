@@ -21,7 +21,7 @@ export interface AccountSource {
 export interface ControllerState {
   connected: boolean
   pairingPin: string | null
-  devices: { address: string; name: string; rssi: number }[]
+  devices: { address: string; name: string; rssi: number; paired?: boolean }[]
   config: Config
   accounts: DisplayAccount[]
   error: string | null
@@ -32,7 +32,7 @@ export class QuotamonController extends EventEmitter {
   private connected = false
   private devices = new Map<
     string,
-    { address: string; name: string; rssi: number }
+    { address: string; name: string; rssi: number; paired?: boolean }
   >()
   private pairingPin: string | null = null
   private fault: string | null = null
@@ -225,7 +225,8 @@ export class QuotamonController extends EventEmitter {
         this.devices.set(event.address, {
           address: event.address,
           name: event.name.slice(0, 64) || 'Quotamon',
-          rssi: event.rssi
+          rssi: event.rssi,
+          paired: event.paired === true || this.devices.get(event.address)?.paired === true
         })
       this.publish()
     } else if (

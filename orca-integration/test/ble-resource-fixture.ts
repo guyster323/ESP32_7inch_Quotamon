@@ -16,8 +16,13 @@ createInterface({ input: process.stdin }).on('line', (line) => {
       type: 'device',
       address: '12345',
       name: 'Quotamon · Preview',
-      rssi: -52
+      rssi: process.env.BLE_FIXTURE_PAIRED === '1' ? 0 : -52,
+      paired: process.env.BLE_FIXTURE_PAIRED === '1'
     })
+  if (request.command === 'connect' && process.env.BLE_FIXTURE_PAIRING_FAILURE === '1') {
+    emit({ type: 'result', id: request.id, ok: false, code: 'pairing-Failed' })
+    return
+  }
   if (
     request.command === 'connect' &&
     process.env.BLE_FIXTURE_PAIRING === '1'

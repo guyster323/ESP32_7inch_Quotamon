@@ -43,6 +43,6 @@ $manifest = @{
     })
 }
 $manifest | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $outputRoot 'build-manifest.json') -Encoding utf8
-$archive = Join-Path (Split-Path -Parent $outputRoot) 'Quotamon-Portable-win-x64.zip'
+$archive = Join-Path (Split-Path -Parent $outputRoot) ((Split-Path -Leaf $outputRoot) + '-win-x64.zip')
 Compress-Archive -LiteralPath $outputRoot -DestinationPath $archive -Force
 Write-Output "Portable package: $archive"

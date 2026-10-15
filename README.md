@@ -45,7 +45,8 @@
 | 포터블 설정 화면 | 실제 제품 UI로 계정·페어링·설정·모바일 폭·오프라인 조작 검사; BLE 원천은 모의 |
 | 실행 중인 Orca 1.4.224 | 수정 없이 Codex 3계정 + Cursor 읽기 확인; 기존 Copilot CLI까지 5계정 조회 성공 |
 | Windows 트레이 실행기 | 빌드·중계 시작·종료 시 자식 프로세스 정리 검사 통과 |
-| 실제 ESP32 업로드 및 BLE 왕복 | 아직 검증 전 |
+| 실제 ESP32 업로드·화면·터치 | 16MB 전체 백업 후 업로드·해시 검증 통과. 전원 재연결 후 Quotamon 화면과 BLE 시작 터치 확인 |
+| 실제 BLE 왕복 | Windows 기본 페어링·보안 연결 확인. 검색·서비스 조회 수정본으로 실제 선택 5계정 전송과 보드 ACK 확인 |
 
 **Orca 원본을 그대로 사용합니다.** 기존 CLI로 사용량 캐시를 읽고, 포터블 중계가 BLE 전송을 담당합니다. 기존 Orca 내부 통합 패치는 선택적인 개발 자료이며 실행에 필요하지 않습니다. 인증정보는 PC 안에 유지합니다.
 
@@ -65,7 +66,7 @@
 |---|---|---|
 | Codex | Orca rate limits | 기본 계정 + 관리 계정, 5시간/주간 등 원천이 제공한 한도 |
 | Claude | Orca rate limits | 기본 계정 + 관리 계정, 주간·추가 모델 한도 포함 |
-| Cursor | Orca rate limits | 현재 로그인 계정의 월간·이름 있는 사용량 풀 |
+| Cursor | Orca rate limits | 현재 로그인 계정의 Cursor Models·Other Models 쿼터 |
 | Grok | Orca rate limits | 현재 로그인 계정의 제공되는 사용량 풀 |
 | Copilot | 기존 Windows Copilot CLI의 선택적 quota SDK | 현재 CLI 계정. SDK 실험적 경로이며 AIC 단위 대응은 추가 검증 필요 |
 

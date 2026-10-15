@@ -61,7 +61,10 @@ test('inactive accounts, privacy allowlist, unknown/unlimited and source expiry'
           }
         }
       ],
-      cursor: { status: 'ok', updatedAt: now, monthly: { isUnlimited: true } },
+      cursor: {
+        status: 'ok', updatedAt: now,
+        buckets: [{ name: 'Cursor Models', isUnlimited: true }]
+      },
       grok: { status: 'unavailable' }
     }
   }
@@ -104,6 +107,46 @@ test('inactive accounts, privacy allowlist, unknown/unlimited and source expiry'
     -1
   )
 })
+test('Cursor displays only model budgets in fixed order and ignores aggregate expiry', () => {
+  const accounts = fromOrca({ rateLimits: { cursor: {
+    status: 'ok', updatedAt: now,
+    session: { usedPercent: 100 }, weekly: { usedPercent: 100 },
+    monthly: { usedPercent: 100, resetsAt: now - 1 },
+    buckets: [
+      { name: 'Extra', usedPercent: 100 },
+      { name: 'Other Models', usedPercent: 53, resetsAt: now + 7200 },
+      { name: 'Cursor Models', usedPercent: 18, resetsAt: now + 3600 }
+    ]
+  } } }, now)
+  const account = accounts[0]
+  assert.equal(account.state, 'ready')
+  assert.deepEqual(account.pools.map((p) => [p.name, p.remaining, p.resets_at]), [
+    ['Cursor Models', 82, now + 3600],
+    ['Other Models', 47, now + 7200]
+  ])
+  const config = defaultConfig()
+  config.accounts = [{ id: account.id, alias: '', plan: '', enabled: true }]
+  assert.deepEqual(makeSnapshot(accounts, config, now).accounts[0].pools, account.pools)
+  assert.equal(makeSnapshot(accounts, config, now + 3601).accounts[0].state, 'stale')
+})
+
+test('missing Cursor model budgets remain unknown instead of using Monthly', () => {
+  for (const buckets of [undefined, [{ name: 'Other Models', usedPercent: 100 }]]) {
+    const [account] = fromOrca({ rateLimits: { cursor: {
+      status: 'ok', updatedAt: now, monthly: { isUnlimited: true }, buckets
+    } } }, now)
+    assert.deepEqual(account.pools.map((p) => [p.name, p.remaining]), [
+      ['Cursor Models', -1], ['Other Models', buckets ? 0 : -1]
+    ])
+    assert.equal(account.state, buckets ? 'ready' : 'unknown')
+  }
+  const [grok] = fromOrca({ rateLimits: { grok: {
+    status: 'ok', updatedAt: now, monthly: { usedPercent: 20 }
+  } } }, now)
+  assert.equal(grok.pools[0].name, 'MONTHLY')
+  assert.equal(grok.pools[0].remaining, 80)
+})
+
 test('settings preserve IDs/order, reject invalid selections and do not assume 6500 for every Copilot plan', () => {
   const config = defaultConfig()
   config.accounts = [

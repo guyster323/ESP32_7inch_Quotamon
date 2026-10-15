@@ -6,6 +6,43 @@ import { BleHost } from '../src/ble-host.js'
 import { QuotamonController } from '../src/quotamon-controller.js'
 import { defaultConfig, publicId, record } from '../src/quota-snapshot.js'
 import { startPortableServer } from '../src/portable-server.js'
+
+test('Windows pairing failure gives a native Bluetooth recovery instruction', async () => {
+  const host = new BleHost('fixture', () => spawn(process.execPath,
+    [join(__dirname, 'ble-resource-fixture.js')], {
+      windowsHide: true, stdio: 'pipe',
+      env: { ...process.env, BLE_FIXTURE_PAIRING_FAILURE: '1' }
+    }))
+  const controller = new QuotamonController(host, {
+    getSnapshot: () => ({}), refreshIfStale: async () => {},
+    onChanged: () => () => {}, isAvailable: () => true
+  }, () => {})
+  const root = join(__dirname, '..', '..', '..')
+  const server = await startPortableServer({
+    controller: () => controller, sourceAvailable: () => true,
+    preferences: () => ({ copilot: true, startup: false }),
+    setPreferences: async () => {}, radio: () => true,
+    webRoot: join(root, 'portable', 'web'), assetsRoot: join(root, 'assets', 'providers')
+  })
+  const url = new URL(server.url)
+  const headers = { 'X-Quotamon-Key': url.hash.slice(1), Origin: url.origin, 'Content-Type': 'application/json' }
+  try {
+    const response = await fetch(url.origin + '/api/connect', {
+      method: 'POST', headers, body: JSON.stringify({ address: '12345' })
+    })
+    assert.equal(response.status, 200)
+    let state: any
+    for (let attempt = 0; attempt < 50; attempt++) {
+      state = await (await fetch(url.origin + '/api/state', { headers })).json()
+      if (state.ui_error) break
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    }
+    assert.equal(state.connected, false)
+    assert.match(state.ui_error, /Windows Bluetooth/)
+    assert.match(state.ui_error, /6자리/)
+    assert.equal(state.config.address, null)
+  } finally { await server.close(); controller.dispose() }
+})
 test(
   'portable API protects mutations and handles selection/revision/source loss',
   { timeout: 12000 },

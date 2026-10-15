@@ -199,44 +199,48 @@ function renderCards() {
     )
     top.append(name, image(a.provider))
     card.append(top)
-    const pool = a.pools.find((p) => p.remaining >= 0) || a.pools[0]
-    const value = pool.remaining,
-      label = document.createElement('div')
-    label.className = 'quota-label'
-    label.append(
-      text(
-        'span',
-        value === -2
-          ? '무제한'
-          : value < 0
-            ? '?'
-            : (value > 0 && value < 1 ? '<1' : Math.round(value)) + '%',
-        'quota-number'
-      ),
-      text('span', pool.name, 'quota-pool')
-    )
-    const bar = document.createElement('div'),
-      fill = document.createElement('div')
-    bar.className = 'bar'
-    fill.className =
-      'fill' + (value <= 10 ? ' low' : value <= 20 ? ' warn' : '')
-    fill.style.width = Math.max(0, Math.min(100, value)) + '%'
-    bar.append(fill)
-    const note =
-      a.state === 'stale'
-        ? '오래된 정보 · 다시 확인 필요'
-        : a.state === 'unknown'
-          ? '사용량 확인 불가'
-          : pool.reset
-    card.append(
-      label,
-      bar,
-      text(
-        'div',
-        note + (a.enabled ? '' : ' · 표시 선택 전'),
-        'card-note' + (a.state === 'stale' ? ' stale' : '')
+    const pools = a.provider === 'cursor'
+      ? a.pools
+      : [a.pools.find((p) => p.remaining >= 0) || a.pools[0]]
+    for (const pool of pools) {
+      const value = pool.remaining,
+        label = document.createElement('div')
+      label.className = 'quota-label'
+      label.append(
+        text(
+          'span',
+          value === -2
+            ? '무제한'
+            : value < 0
+              ? '?'
+              : (value > 0 && value < 1 ? '<1' : Math.round(value)) + '%',
+          'quota-number'
+        ),
+        text('span', pool.name, 'quota-pool')
       )
-    )
+      const bar = document.createElement('div'),
+        fill = document.createElement('div')
+      bar.className = 'bar'
+      fill.className =
+        'fill' + (value <= 10 ? ' low' : value <= 20 ? ' warn' : '')
+      fill.style.width = Math.max(0, Math.min(100, value)) + '%'
+      bar.append(fill)
+      const note =
+        a.state === 'stale'
+          ? '오래된 정보 · 다시 확인 필요'
+          : a.state === 'unknown'
+            ? '사용량 확인 불가'
+            : pool.reset
+      card.append(
+        label,
+        bar,
+        text(
+          'div',
+          note + (a.enabled ? '' : ' · 표시 선택 전'),
+          'card-note' + (a.state === 'stale' ? ' stale' : '')
+        )
+      )
+    }
     $('cards').append(card)
   }
 }
@@ -248,7 +252,7 @@ function renderDevices() {
     const label = document.createElement('div')
     label.append(
       text('strong', device.name),
-      text('small', '신호 ' + device.rssi + ' dBm')
+      text('small', device.paired ? 'Windows에 페어링된 디스플레이' : '신호 ' + device.rssi + ' dBm')
     )
     const button = text('button', '연결', 'secondary')
     button.disabled = state.connecting || !state.source_available

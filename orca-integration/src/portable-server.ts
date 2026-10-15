@@ -107,9 +107,11 @@ export async function startPortableServer(ui: PortableUi, port = 0) {
               uiError = null
               void controller
                 .connect(input.address)
-                .catch(() => {
+                .catch((error: unknown) => {
                   uiError =
-                    '연결하지 못했습니다. 기기의 BLE 연결 시작과 양쪽 번호 승인을 확인하세요.'
+                    error instanceof Error && error.message.startsWith('pairing-')
+                      ? 'Windows Bluetooth 설정에서 Quotamon을 먼저 페어링한 뒤 이 화면에서 다시 연결하세요. 양쪽의 같은 6자리 번호를 승인해야 합니다.'
+                      : '연결하지 못했습니다. 기기의 BLE 연결 시작과 양쪽 번호 승인을 확인하세요.'
                 })
                 .finally(() => {
                   connecting = false

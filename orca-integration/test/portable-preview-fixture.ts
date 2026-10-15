@@ -32,7 +32,14 @@ const controller = new QuotamonController(
         rateLimits: {
           codex: quota(36),
           claude: quota(23),
-          cursor: { ...quota(49), planType: 'Ultra' },
+          cursor: {
+            status: 'ok', updatedAt: now, planType: 'Ultra',
+            monthly: { usedPercent: 99, resetsAt: now + 86400000 },
+            buckets: [
+              { name: 'Other Models', usedPercent: 53, resetsAt: now + 86400000 },
+              { name: 'Cursor Models', usedPercent: 18, resetsAt: now + 86400000 }
+            ]
+          },
           grok: quota(14)
         }
       }

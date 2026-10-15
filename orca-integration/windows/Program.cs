@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Globalization;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.Advertisement;
@@ -15,6 +16,8 @@ internal static class Program {
     static readonly SemaphoreSlim ConnectionGate = new(1);
     static readonly SemaphoreSlim WriteGate = new(1);
     static BluetoothLEAdvertisementWatcher? watcher;
+    static DeviceWatcher? pairedWatcher;
+    static int scanEpoch;
     static BluetoothLEDevice? device;
     static GattDeviceService? service;
     static GattSession? session;
@@ -33,7 +36,7 @@ internal static class Program {
             if(tasks.Count>=32) { Emit(new {type="error",code="command-limit"}); continue; }
             tasks.Add(Handle(line));
         }
-        confirmation?.TrySetResult(false); watcher?.Stop(); Disconnect();
+        confirmation?.TrySetResult(false); StopScanning(); Disconnect();
     }
     static async Task Probe() {
         var adapter=await BluetoothAdapter.GetDefaultAsync();
@@ -55,6 +58,7 @@ internal static class Program {
                     var address=ulong.Parse(root.GetProperty("address").GetString()!);
                     await ConnectionGate.WaitAsync();
                     try { await Connect(address).WaitAsync(TimeSpan.FromSeconds(90)); }
+                    catch { Disconnect(); throw; }
                     finally { ConnectionGate.Release(); } break;
                 case "write":
                     var bytes=Convert.FromBase64String(root.GetProperty("frame").GetString()!);
@@ -71,21 +75,44 @@ internal static class Program {
                 default: throw new InvalidOperationException("Unknown command");
             }
             Emit(new {type="result",id,ok=true});
-        } catch(Exception ex) { Emit(new {type="result",id,ok=false,code=ex is TimeoutException?"timeout":"operation-failed"}); }
+        } catch(Exception ex) { Emit(new {type="result",id,ok=false,code=ex is PairingFailure pairing?"pairing-"+pairing.Status:ex is TimeoutException?"timeout":"operation-failed"}); }
+    }
+    sealed class PairingFailure(DevicePairingResultStatus status) : Exception {
+        public DevicePairingResultStatus Status { get; } = status;
+    }
+    static void StopScanning() {
+        Interlocked.Increment(ref scanEpoch);
+        watcher?.Stop();
+        if(pairedWatcher?.Status is DeviceWatcherStatus.Started or DeviceWatcherStatus.EnumerationCompleted) pairedWatcher.Stop();
     }
     static void Scan() {
-        watcher?.Stop();
+        StopScanning();
+        var epoch=Volatile.Read(ref scanEpoch);
         watcher=new BluetoothLEAdvertisementWatcher {ScanningMode=BluetoothLEScanningMode.Active};
         watcher.AdvertisementFilter.Advertisement.ServiceUuids.Add(Service);
         watcher.Received+=(_,e)=> {
+            if(epoch!=Volatile.Read(ref scanEpoch)) return;
             lock(Discovered) Discovered.Add(e.BluetoothAddress);
             Emit(new {type="device",address=e.BluetoothAddress.ToString(),name=e.Advertisement.LocalName,rssi=e.RawSignalStrengthInDBm});
         };
         watcher.Start();
-        var current=watcher; _=Task.Run(async()=> { await Task.Delay(20000); if(current==watcher) current.Stop(); });
+        // A bonded peripheral can stop advertising while Windows holds its connection.
+        // Enumerate saved Quotamon endpoints as well; Connect still verifies the service
+        // and requires encrypted/authenticated GATT before sending display data.
+        pairedWatcher=DeviceInformation.CreateWatcher(
+            BluetoothLEDevice.GetDeviceSelectorFromPairingState(true),
+            new[]{"System.Devices.Aep.DeviceAddress"},DeviceInformationKind.AssociationEndpoint);
+        pairedWatcher.Added+=(_,info)=> {
+            if(epoch!=Volatile.Read(ref scanEpoch)||!info.Pairing.IsPaired||!string.Equals(info.Name,"Quotamon",StringComparison.OrdinalIgnoreCase))return;
+            if(!info.Properties.TryGetValue("System.Devices.Aep.DeviceAddress",out var raw)||raw is not string address)return;
+            if(!ulong.TryParse(address.Replace(":","").Replace("-",""),NumberStyles.HexNumber,CultureInfo.InvariantCulture,out var value))return;
+            Emit(new {type="device",address=value.ToString(),name=info.Name,rssi=0,paired=true});
+        };
+        pairedWatcher.Start();
+        _=Task.Run(async()=> { await Task.Delay(20000); if(epoch==Volatile.Read(ref scanEpoch)) StopScanning(); });
     }
     static async Task Connect(ulong address) {
-        Disconnect(); watcher?.Stop();
+        Disconnect(); StopScanning();
         // Reconnect to previously bonded devices is allowed; new devices must have advertised our service.
         device=await BluetoothLEDevice.FromBluetoothAddressAsync(address);
         if(device==null) throw new InvalidOperationException("Device unavailable");
@@ -95,11 +122,17 @@ internal static class Program {
             custom.PairingRequested+=OnPairing;
             try {
                 var paired=await custom.PairAsync(DevicePairingKinds.ConfirmPinMatch,DevicePairingProtectionLevel.EncryptionAndAuthentication);
-                if(paired.Status!=DevicePairingResultStatus.Paired && paired.Status!=DevicePairingResultStatus.AlreadyPaired) throw new InvalidOperationException("Pairing rejected");
+                if(paired.Status!=DevicePairingResultStatus.Paired && paired.Status!=DevicePairingResultStatus.AlreadyPaired) throw new PairingFailure(paired.Status);
             } finally { custom.PairingRequested-=OnPairing; confirmation=null; pendingPin=null; }
         }
         session=await GattSession.FromDeviceIdAsync(device.BluetoothDeviceId); session.MaintainConnection=true;
-        var services=await device.GetGattServicesForUuidAsync(Service,BluetoothCacheMode.Uncached);
+        GattDeviceServicesResult services;
+        try { services=await device.GetGattServicesForUuidAsync(Service,BluetoothCacheMode.Uncached); }
+        catch(System.Runtime.InteropServices.COMException ex) when(ex.HResult==unchecked((int)0x80070016)) {
+            // Some Windows drivers reject fresh primary-service discovery even on a
+            // securely paired connection. Reuse Windows' service cache in that case.
+            services=await device.GetGattServicesForUuidAsync(Service,BluetoothCacheMode.Cached);
+        }
         if(services.Status!=GattCommunicationStatus.Success || services.Services.Count!=1) throw new InvalidOperationException("Quota service missing");
         service=services.Services[0];
         var writes=await service.GetCharacteristicsForUuidAsync(Snapshot,BluetoothCacheMode.Uncached);

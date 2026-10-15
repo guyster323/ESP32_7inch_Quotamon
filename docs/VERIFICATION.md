@@ -1,10 +1,10 @@
 # 검증 기록
 
-기준: 2026-10-15. 개발 PC의 검사 결과이며 실제 보드의 작동 인증이 아닙니다. 기존 펌웨어/native 검사와 10월 15일 포터블 검사를 함께 기록합니다.
+기준: 2026-10-15. 개발 PC의 소프트웨어 검사와 실물 보드의 관측 결과를 구분해 기록합니다. 화면·기본 터치 확인을 전체 하드웨어 작동 인증으로 표현하지 않습니다.
 
 | 검사 | 결과 |
 |---|---|
-| TypeScript core build / 8개 테스트 | framing, privacy/freshness, settings, lifecycle, 미로그인 placeholder 제외, 포터블 API 보호·설정 충돌·Orca 상실/복구 통과 |
+| TypeScript core build / 12개 테스트 | 기존 8개 + Windows 저장 페어링 검색·선택·연결 및 실패 안내, Cursor 모델 쿼터 선택·누락 처리 회귀 검사 통과 |
 | C++ wire 테스트 | CRC/golden frame, 24 KB, value size 20/244/512, 손상·누락 거부 통과 |
 | LVGL 네이티브 UI 빌드·포인터 테스트 | 카드·상세·설정·페이지·계정 선택·페어링 승인/거절 통과 |
 | 800×480 렌더 | 한글 glyph 경고 없음, 막대 경계의 두 글자색, offline 채움 삭제 확인 |
@@ -15,13 +15,20 @@
 | 기존 설치 Orca 변경 | 수행하지 않음 |
 | 실행 중인 Orca 1.4.224 실제 쿼터 읽기 | 기본 + 추가 Codex 2계정, Cursor가 모두 ready; 기존 Copilot CLI SDK도 ready |
 | 실제 쿼터의 BLE 형식 변환 | 5계정 JSON 약 2.5 KB, value size 20에서 약 205 frames; 메모리 내 분할/재조립 일치 |
-| PC BLE 및 장치 검색 | 실제 adapter central/low-energy 지원; 20초 검색에서 Quotamon advertiser 0개 관측 |
+| PC BLE 및 장치 검색 | 실제 adapter central/low-energy 지원. 업로드 후 실물 Quotamon advertiser 검색 확인 |
 | 포터블 패키지 실제 실행 | 함께 배포하는 Node + Quotamon.exe BLE 모드로 5계정 ready, adapter, 임시 설정/revision/privacy, Copilot 끄기/켜기 통과; 설치된 Orca app.asar SHA-256 변경 없음 |
 | 포터블 실제 제품 UI | 모의 원천·BLE로 계정 편집/저장, pending connect 중 번호 승인, 새로고침, 760/430 px, 원천 상실 시 카드 삭제, JS/CSP 오류 없음 |
 | 트레이 실행기·종료 처리 | headless 실제 실행으로 BLE 모듈 강제 종료 → 1회 복구 → 안정 유지, 실행기 강제 종료 시 모든 자식 종료 확인; 검사는 자동 실행 항목 변경 안 함 |
 | 전체 patched Orca build / Electron 화면 | 아직 수행하지 않음 |
-| ESP32 chip/flash 조회 | UART 인식, 자동 리셋 조회는 No serial data received |
-| 펌웨어 업로드 / 실제 BLE 왕복 | 아직 수행하지 않음 |
+| ESP32 chip/flash 조회 | UART COM4는 무응답. 네이티브 USB COM5에서 ESP32-S3 rev0.2 / 16MB flash / 8MB embedded PSRAM 조회 성공 |
+| 기존 플래시 전체 백업 | 16,777,216 bytes 비공개 로컬 백업. 전송 digest 및 원본 대상 verify_flash digest 일치 |
+| 펌웨어 업로드 | 부트로더·파티션·앱 업로드 및 세 이미지 hash 검증 통과. 검증된 8MB 파티션 구성을 16MB 실물 보드에 사용 |
+| 실물 LCD·기본 터치 | 전체 전원 분리 후 재연결해 Quotamon 화면 표시, BLE 연결 시작 버튼 터치를 사용자 확인 |
+| 실제 BLE 페어링 | 앱 custom PairAsync는 번호 이벤트 전 Failed. Windows 기본 창에서 동일 번호·양쪽 승인 성공. Secure Connections=true / EncryptionAndAuthentication / access Allowed 확인 |
+| Windows에 저장된 실물 기기 검색 | 수정한 DeviceWatcher가 광고 없는 페어링 장치를 발견함. 서비스 UUID·암호화 GATT 확인은 연결 시 수행 |
+| 실제 BLE GATT·왕복 | Windows의 uncached primary-service 조회가 0x80070016을 반환해 cached fallback 추가. 서비스·2개 characteristic·notify 구독 성공, MTU value size 244. 수정 패키지의 helper와 실제 Orca/기존 5계정 선택으로 전송하고 보드 snapshot ACK를 2회 이상 확인 |
+| 기존 앱 적용 | 사용자 승인 후 기존 폴더에 적용·재시작. staged/적용 파일 전체 해시 일치, 계정 5개·화면 설정·자동 실행 보존. 새 앱의 자동 연결 및 오류 없는 동기화 중 UI 재확인. 임시 중계는 종료 |
+| Cursor 모델 쿼터 표시 개선 | Cursor Models·Other Models만 표시·전송하고 Monthly 제외. 실제 Orca 원천·모의 웹 UI·적용된 PC 화면 확인. 사용자가 적용 후 LCD 정상 표시 확인 |
 
 ```powershell
 python tools/bootstrap_dependencies.py
@@ -39,7 +46,7 @@ UI 테스트는 실제 공유 LVGL 코드·RGB565 자산을 사용하며 수치�
 
 펌웨어 크기 검사는 flash partition 적합성 검사입니다. 표시된 정적 RAM 25,272 bytes는 실제 부팅 후 BLE·PSRAM framebuffer·JSON/UI의 동적 메모리 총량을 의미하지 않습니다. 2개 RGB framebuffer, malloc/PSRAM, XIP 구성을 사용하며 실제 여유 메모리·tearing·radio 동시 동작은 하드웨어에서 확인해야 합니다.
 
-Controller 테스트는 모의 BLE resource로 마지막 write 응답보다 ACK가 먼저 도착하는 경우, 저장 revision 충돌, 종료·설정 해제를 검사합니다. Windows radio·페어링·절전 검사와는 별개입니다. 포터블 중계 사용에 전체 Orca 빌드는 필요하지 않습니다. 릴리스 전 실제 보드 결과를 추가해야 합니다. 선택적인 내부 패치의 전체 앱 빌드는 여전히 검증 전입니다.
+Controller 테스트는 모의 BLE resource로 마지막 write 응답보다 ACK가 먼저 도착하는 경우, 저장 revision 충돌, 종료·설정 해제를 검사합니다. 실물 결과는 위 표에 따로 기록했습니다. 절전·모든 오류 복구 시나리오를 검증한 것은 아닙니다. 포터블 중계 사용에 전체 Orca 빌드는 필요하지 않습니다. 선택적인 내부 패치의 전체 앱 빌드는 여전히 검증 전입니다.
 
 ## 실행 중인 Orca로 재확인
 

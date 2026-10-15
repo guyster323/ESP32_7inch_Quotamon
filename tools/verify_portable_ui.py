@@ -17,6 +17,11 @@ try:
         page.on('pageerror',lambda error:errors.append(str(error)))
         page.on('console',lambda message:errors.append(message.text) if message.type=='error' else None)
         page.goto(url);expect(page.locator('.quota-card')).to_have_count(5)
+        cursor=page.locator('.quota-card').filter(has=page.locator('.provider',has_text='cursor'))
+        expect(cursor.locator('.quota-pool')).to_have_text(['Cursor Models','Other Models'])
+        expect(cursor.locator('.quota-number')).to_have_text(['82%','47%'])
+        expect(cursor.locator('.bar')).to_have_count(2)
+        expect(cursor).not_to_contain_text('MONTHLY')
         page.screenshot(path=str(out/'01-dashboard-mock.png'),full_page=True)
         page.get_by_role('button',name='계정 선택',exact=True).click()
         expect(page.locator('.account-row')).to_have_count(5)
@@ -68,7 +73,7 @@ try:
         assert not errors,errors
         browser.close()
     checks=dict(passed=True,actual_product_ui=True,mock_source=True,mock_ble=True,hardware_verified=False,
-        checks=['five-provider assets','selection and aliases survive polling','settings save',
+        checks=['five-provider assets','Cursor shows both model budgets without Monthly','selection and aliases survive polling','settings save',
         'numeric pairing approval/rejection while connect pending','page refresh keeps local UI access',
         '760/430px no overflow','Orca loss removes cards','no browser/CSP errors'])
     (out/'checks.json').write_text(json.dumps(checks,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
