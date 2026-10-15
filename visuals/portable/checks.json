@@ -7,6 +7,7 @@
   "checks": [
     "five-provider assets",
     "Cursor shows both model budgets without Monthly",
+    "no two-second idle polling",
     "selection and aliases survive polling",
     "settings save",
     "numeric pairing approval/rejection while connect pending",

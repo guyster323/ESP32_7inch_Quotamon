@@ -159,7 +159,10 @@ export async function refreshRunningOrca(): Promise<unknown> {
 export class RunningOrcaSource extends EventEmitter implements AccountSource {
   private snapshot: unknown
   private available = false
-  private pending: Promise<void> | undefined
+  private pollInflight: Promise<void> | undefined
+  private refreshInflight: Promise<void> | undefined
+  private requestSeq = 0
+  private appliedSeq = 0
   private stopped = false
   private timer: ReturnType<typeof setInterval> | undefined
   private lastProviderRefresh = 0
@@ -192,56 +195,75 @@ export class RunningOrcaSource extends EventEmitter implements AccountSource {
   }
   async poll(): Promise<void> {
     if (this.stopped) return
-    if (this.pending) return this.pending
-    this.pending = (async () => {
-      try {
-        const snapshot = await this.query()
-        if (this.stopped) return
-        const fingerprint = createHash('sha256')
-          .update(JSON.stringify(snapshot))
-          .digest('hex')
-        const changed = !this.available || this.fingerprint !== fingerprint
-        this.snapshot = snapshot
-        this.available = true
-        this.fingerprint = fingerprint
-        if (changed) this.emit('changed')
-      } catch {
-        if (this.stopped) return
-        const changed = this.available
-        this.snapshot = undefined
-        this.available = false
-        this.fingerprint = ''
-        this.lastProviderRefresh = 0
-        if (changed) this.emit('changed')
-      }
-    })()
+    if (this.pollInflight) return this.pollInflight
+    const seq = ++this.requestSeq
+    const run = Promise.resolve()
+      .then(() => this.query())
+      .then((snapshot) => {
+        this.publish(seq, snapshot)
+      })
+      .catch(() => {
+        this.lose(seq)
+      })
+    this.pollInflight = run
     try {
-      await this.pending
+      await run
     } finally {
-      this.pending = undefined
+      if (this.pollInflight === run) this.pollInflight = undefined
     }
   }
   async refreshIfStale(): Promise<void> {
     // The regular CLI reads the cache. At most one owner-local cache refresh per
     // 15 minutes prevents a minimized Orca window from freezing quota forever.
-    if (!this.available) {
-      await this.poll()
-      return
-    }
-    if (Date.now() - this.lastProviderRefresh < 15 * 60000) {
-      await this.poll()
-      return
-    }
+    if (this.stopped) return
+    if (!this.available) return this.poll()
+    if (this.refreshInflight) return this.refreshInflight
+    if (Date.now() - this.lastProviderRefresh < 15 * 60000) return this.poll()
     this.lastProviderRefresh = Date.now()
+    const seq = ++this.requestSeq
+    const run = Promise.resolve()
+      .then(() => this.providerRefresh())
+      .then((snapshot) => {
+        this.publish(seq, snapshot)
+      })
+      .catch(async () => {
+        if (!this.stopped && seq > this.appliedSeq) await this.poll()
+      })
+    this.refreshInflight = run
     try {
-      const snapshot = await this.providerRefresh()
-      if (this.stopped) return
-      this.snapshot = snapshot
-      this.available = true
-      this.emit('changed')
-    } catch {
-      await this.poll()
+      await run
+    } finally {
+      if (this.refreshInflight === run) this.refreshInflight = undefined
     }
+  }
+  private publish(seq: number, snapshot: unknown): void {
+    if (this.stopped || seq <= this.appliedSeq) return
+    let fingerprint: string
+    try {
+      const encoded = JSON.stringify(snapshot)
+      if (typeof encoded !== 'string') throw Error('fingerprint')
+      fingerprint = createHash('sha256').update(encoded).digest('hex')
+    } catch {
+      this.lose(seq)
+      return
+    }
+    if (this.stopped || seq <= this.appliedSeq) return
+    this.appliedSeq = seq
+    const changed = !this.available || this.fingerprint !== fingerprint
+    this.snapshot = snapshot
+    this.available = true
+    this.fingerprint = fingerprint
+    if (changed) this.emit('changed')
+  }
+  private lose(seq: number): void {
+    if (this.stopped || seq <= this.appliedSeq) return
+    this.appliedSeq = seq
+    const changed = this.available
+    this.snapshot = undefined
+    this.available = false
+    this.fingerprint = ''
+    this.lastProviderRefresh = 0
+    if (changed) this.emit('changed')
   }
   dispose(): void {
     this.stopped = true

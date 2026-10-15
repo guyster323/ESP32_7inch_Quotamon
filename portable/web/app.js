@@ -9,6 +9,7 @@ let state,
   dirty = false,
   prefsDirty = false,
   busyPoll = false,
+  pollAgain = false,
   scanUntil = 0,
   localNotice = ''
 const pages = {
@@ -295,13 +296,7 @@ function render() {
     : state.connecting
       ? '연결 중'
       : '연결 대기'
-  $('scan').disabled = Date.now() < scanUntil
-  $('scan-status').textContent =
-    Date.now() < scanUntil
-      ? '주변 기기를 20초 동안 찾고 있습니다.'
-      : scanUntil && !state.devices.length
-        ? '기기를 찾지 못했습니다. 펌웨어와 BLE 연결 시작을 확인하세요.'
-        : ''
+  renderScanStatus()
   $('disconnect').disabled = !state.config.address && !state.connected
   $('last-poll').textContent =
     'PC 확인 ' + new Date().toLocaleTimeString('ko-KR', { hour12: false })
@@ -325,8 +320,20 @@ function render() {
     if (!dialog.open) dialog.showModal()
   } else if (dialog.open) dialog.close()
 }
+function renderScanStatus() {
+  $('scan').disabled = Date.now() < scanUntil
+  $('scan-status').textContent =
+    Date.now() < scanUntil
+      ? '주변 기기를 20초 동안 찾고 있습니다.'
+      : scanUntil && !state.devices.length
+        ? '기기를 찾지 못했습니다. 펌웨어와 BLE 연결 시작을 확인하세요.'
+        : ''
+}
 async function poll() {
-  if (busyPoll) return
+  if (busyPoll) {
+    pollAgain = true
+    return
+  }
   busyPoll = true
   try {
     state = await api('state')
@@ -337,6 +344,10 @@ async function poll() {
     )
   } finally {
     busyPoll = false
+    if (pollAgain) {
+      pollAgain = false
+      void poll()
+    }
   }
 }
 async function action(name, value = {}, success = '') {
@@ -353,6 +364,7 @@ $('refresh').addEventListener('click', () =>
 )
 $('scan').addEventListener('click', async () => {
   scanUntil = Date.now() + 20000
+  setTimeout(renderScanStatus, 20000)
   await action('scan')
   render()
 })
@@ -427,5 +439,40 @@ $('pair-dialog').addEventListener('cancel', (event) => {
   if (state.pairingPin)
     action('confirm', { pin: state.pairingPin, accept: false })
 })
-void poll()
-setInterval(poll, 2000)
+// One authenticated stream replaces periodic state requests. The bridge signals
+// two seconds before the next snapshot, or immediately for connection/settings.
+async function watch() {
+  try {
+    const response = await fetch('/api/events', {
+      headers: { 'X-Quotamon-Key': key }
+    })
+    if (response.status === 403) {
+      notice('트레이에서 설정 페이지를 다시 열어주세요.')
+      return
+    }
+    if (!response.ok || !response.body) throw Error('Stream unavailable')
+    if (localNotice === '중계 프로그램 연결을 확인하고 있습니다.') notice('')
+    const reader = response.body.getReader(), decoder = new TextDecoder()
+    let pending = ''
+    try {
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+        pending += decoder.decode(value, { stream: true })
+        let end
+        while ((end = pending.indexOf('\n\n')) >= 0) {
+          const event = pending.slice(0, end)
+          pending = pending.slice(end + 2)
+          if (event === 'data: refresh') void poll()
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
+  } catch {
+    /* The stream also ends normally when its controller is replaced. */
+  }
+  notice('중계 프로그램 연결을 확인하고 있습니다.')
+  setTimeout(watch, 3000)
+}
+void watch()

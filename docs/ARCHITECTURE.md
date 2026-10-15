@@ -16,6 +16,7 @@ The ESP32 owns the LVGL UI, touch input, BLE server, framing validation, bonding
 | Operation | Default |
 |---|---|
 | Snapshot transmission | 60 s, configurable 15–3600 s |
+| Web quota refresh | Once 2 s before the next scheduled snapshot; no 2 s polling |
 | Heartbeat | 10 s |
 | Read running Orca cache / detect loss | 15 s |
 | Link freshness limit | 35 s |
@@ -27,6 +28,8 @@ The ESP32 owns the LVGL UI, touch input, BLE server, framing validation, bonding
 
 Transport freshness and provider freshness are different. A fresh heartbeat cannot turn an old provider cache into a fresh quota. Quota windows remain separate; they are not averaged into a fabricated overall percentage.
 
+The web UI keeps one authenticated `/api/events` stream open. The bridge signals a state read two seconds before the next snapshot deadline, measured from the previous ACK and the configured interval (60 s means a read at +58 s). An ACK or interval change reschedules that one timer. Cache changes wait for the configured snapshot interval; explicit refresh, settings and connection still request an immediate snapshot. Initial page load, pairing, device discovery, connection/source changes and user actions update the web immediately. Stream keepalives do not fetch state or redraw cards. Replacing a controller closes its streams; the browser reconnects without retaining old subscriptions.
+
 ## Standalone boundary
 
 The board needs power and BLE, and does not need a Wi-Fi network. Orca and the portable bridge must run on a nearby Windows PC. Stock Orca does not send BLE itself; the bridge provides that operation without modifying Orca. Reading Orca's private LAN WebSocket from an independent ESP32 would require its authenticated paired-device/E2EE protocol and network access; it is not a public quota HTTP endpoint. The board does not sign into cloud accounts independently.
@@ -34,6 +37,12 @@ The board needs power and BLE, and does not need a Wi-Fi network. Orca and the p
 ## Data boundary
 
 Allowed fields are constructed in `orca-integration/src/quota-snapshot.ts`. IDs are provider-prefixed hashes; default aliases reject email addresses. Account auth, email, refresh/access tokens, Orca runtime tokens, conversation text, file paths and payment data never enter the display snapshot. Windows Bluetooth addresses stay in the bridge's local configuration, not in the quota payload or public test artifacts.
+
+Live Codex and Claude quota follows the runtime owner in `activeAccountIdsByRuntime`, or the legacy `activeAccountId` when that modern map is absent. Orca targets are only `{runtime, wslDistro}`. A missing `accountId` does not mean the system default, and the bridge does not identify a person from quota values, list index, `providerAccountId` alone, or a plan name. Host and named WSL lanes stay separate. Explicit null is that lane's own home. A present modern target with no owner stays unowned. Two members of one organization remain two accounts.
+
+`OrcaAccountProjector` remembers the last ready reading in process memory, keyed by the public ID and a hash of member email, auth kind, provider account, workspace account, and organization. It is not stored on disk. Source loss, a failed source update, and dispose clear it. A stale reading can be shown, but it does not replace the ready memory. Saved alias, plan, enabled flag, and order stay on the configured slots. A configured row missing from the current source remains unknown in that slot. The stored sentinel `요금제 미확인` becomes empty; a real saved plan overrides the provider plan. Unlabeled managed rows use a stable label that does not depend on list index.
+
+`RunningOrcaSource` numbers poll and provider-refresh requests. Only a newer sequence may publish or clear, and dispose ignores a late result. The native one-pool card still shows the plan text and the tap-for-detail hint. This bridge change does not modify firmware.
 
 Unselected accounts contribute only the sanitized account directory needed by the touchscreen selector. Their quota values, source timestamps and amount/session fields are removed before BLE serialization. Cached snapshot changes and source refreshes trigger normalization; the bridge does not rediscover provider authentication files on UI polls. Copilot optionally uses its already installed SDK quota RPC with no model session.
 

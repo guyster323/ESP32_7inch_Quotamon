@@ -226,3 +226,330 @@ test('settings preserve IDs/order, reject invalid selections and do not assume 6
   )
   assert.ok(tiny[0].pools[0].remaining > 0 && tiny[0].pools[0].remaining < 1)
 })
+
+function codexSwitchSnapshot(selection: {
+  host: string | null
+  wsl?: Record<string, string | null>
+  target?: { runtime: 'host' | 'wsl'; wslDistro: string | null } | null
+  liveUsed?: number
+  omitHost?: boolean
+}): unknown {
+  const liveUsed = selection.liveUsed ?? 73
+  return {
+    codex: {
+      systemDefault: {
+        hasAuth: true,
+        authKind: 'oauth',
+        email: 'default.member@example.com',
+        providerAccountId: 'org-same',
+        workspaceLabel: 'Business'
+      },
+      accounts: [
+        {
+          id: 'personal',
+          workspaceLabel: 'Personal',
+          email: 'personal.member@example.com',
+          providerAccountId: 'pid-personal'
+        },
+        {
+          id: 'team',
+          workspaceLabel: 'Team',
+          email: 'team.member@example.com',
+          providerAccountId: 'org-same'
+        }
+      ],
+      activeAccountId: 'team',
+      activeAccountIdsByRuntime: {
+        ...(selection.omitHost ? {} : { host: selection.host }),
+        wsl: selection.wsl ?? {}
+      }
+    },
+    rateLimits: {
+      ...(selection.target === undefined
+        ? { codexTarget: { runtime: 'host', wslDistro: null } }
+        : selection.target === null
+          ? { codexTarget: null }
+          : { codexTarget: selection.target }),
+      codex: {
+        provider: 'codex',
+        status: 'ok',
+        updatedAt: now,
+        session: { usedPercent: liveUsed, resetsAt: now + 3600 },
+        weekly: { usedPercent: 10, resetsAt: now + 86400 }
+      },
+      inactiveCodexAccounts: [
+        {
+          accountId: 'personal',
+          rateLimits: {
+            provider: 'codex',
+            status: 'ok',
+            updatedAt: now,
+            session: { usedPercent: 22, resetsAt: now + 3600 },
+            weekly: { usedPercent: 5, resetsAt: now + 86400 }
+          }
+        }
+      ]
+    }
+  }
+}
+
+test('host runtime selection assigns live Codex quota to Team and not the default slot', () => {
+  const accounts = fromOrca(
+    codexSwitchSnapshot({ host: 'team', liveUsed: 73 }),
+    now
+  )
+  const byId = new Map(accounts.map((a) => [a.id, a]))
+  const fallback = byId.get(publicId('codex', 'system-default'))
+  const team = byId.get(publicId('codex', 'team'))
+  const personal = byId.get(publicId('codex', 'personal'))
+  assert.ok(fallback)
+  assert.ok(team)
+  assert.equal(team.pools[0].remaining, 27)
+  assert.equal(team.pools[1].remaining, 90)
+  assert.equal(fallback.pools[0].remaining, -1)
+  assert.equal(personal?.pools[0].remaining, 78)
+  assert.equal(fallback.id, publicId('codex', 'system-default'))
+  const json = JSON.stringify(accounts)
+  for (const secret of [
+    'default.member@example.com',
+    'team.member@example.com',
+    'personal.member@example.com',
+    'org-same',
+    'pid-personal'
+  ])
+    assert.equal(json.includes(secret), false)
+})
+
+test('explicit null host selection wins over a stale activeAccountId', () => {
+  const accounts = fromOrca(
+    codexSwitchSnapshot({ host: null, liveUsed: 73 }),
+    now
+  )
+  const byId = new Map(accounts.map((a) => [a.id, a]))
+  const fallback = byId.get(publicId('codex', 'system-default'))
+  const team = byId.get(publicId('codex', 'team'))
+  assert.equal(fallback?.pools[0].remaining, 27)
+  assert.notEqual(team?.pools[0].remaining, 27)
+})
+
+test('named WSL selection owns the live quota and the host default does not', () => {
+  const accounts = fromOrca(
+    codexSwitchSnapshot({
+      host: null,
+      wsl: { Ubuntu: 'personal' },
+      target: { runtime: 'wsl', wslDistro: 'Ubuntu' },
+      liveUsed: 40
+    }),
+    now
+  )
+  const byId = new Map(accounts.map((a) => [a.id, a]))
+  assert.equal(byId.get(publicId('codex', 'personal'))?.pools[0].remaining, 60)
+  assert.equal(byId.get(publicId('codex', 'system-default'))?.pools[0].remaining, -1)
+  assert.notEqual(byId.get(publicId('codex', 'team'))?.pools[0].remaining, 60)
+})
+
+test('a modern target with no owner stays unowned even when every managed row is inactive', () => {
+  const accounts = fromOrca(
+    {
+      codex: {
+        systemDefault: { hasAuth: true },
+        accounts: [{ id: 'team', workspaceLabel: 'Team' }]
+      },
+      rateLimits: {
+        codexTarget: { runtime: 'host', wslDistro: null },
+        codex: {
+          provider: 'codex',
+          status: 'ok',
+          updatedAt: now,
+          session: { usedPercent: 73, resetsAt: now + 3600 }
+        },
+        inactiveCodexAccounts: [
+          {
+            accountId: 'team',
+            rateLimits: {
+              provider: 'codex',
+              status: 'ok',
+              updatedAt: now,
+              session: { usedPercent: 22, resetsAt: now + 3600 }
+            }
+          }
+        ]
+      }
+    },
+    now
+  )
+  const byId = new Map(accounts.map((a) => [a.id, a]))
+  assert.equal(byId.get(publicId('codex', 'system-default'))?.pools[0].remaining, -1)
+  assert.equal(byId.get(publicId('codex', 'team'))?.pools[0].remaining, 78)
+})
+
+test('inactive quota from another provider and a WSL account selected on the host are rejected', () => {
+  const accounts = fromOrca(
+    {
+      codex: {
+        systemDefault: { hasAuth: true },
+        accounts: [
+          {
+            id: 'team',
+            workspaceLabel: 'Team',
+            managedHomeRuntime: 'wsl',
+            wslDistro: 'Ubuntu'
+          }
+        ],
+        activeAccountIdsByRuntime: { host: 'team', wsl: {} }
+      },
+      rateLimits: {
+        codexTarget: { runtime: 'host', wslDistro: null },
+        codex: {
+          provider: 'codex',
+          status: 'ok',
+          updatedAt: now,
+          session: { usedPercent: 73, resetsAt: now + 3600 }
+        },
+        inactiveCodexAccounts: [
+          {
+            accountId: 'team',
+            rateLimits: {
+              provider: 'claude',
+              status: 'ok',
+              updatedAt: now,
+              session: { usedPercent: 22, resetsAt: now + 3600 }
+            }
+          }
+        ]
+      }
+    },
+    now
+  )
+  const byId = new Map(accounts.map((a) => [a.id, a]))
+  assert.equal(byId.get(publicId('codex', 'system-default'))?.pools[0].remaining, -1)
+  assert.equal(byId.get(publicId('codex', 'team'))?.pools[0].remaining, -1)
+})
+
+test('an unnamed WSL target uses the single selected distro and ignores an explicit null default', () => {
+  const unique = fromOrca(
+    codexSwitchSnapshot({
+      host: null,
+      wsl: { Ubuntu: 'personal' },
+      target: { runtime: 'wsl', wslDistro: null },
+      liveUsed: 40
+    }),
+    now
+  )
+  const blocked = fromOrca(
+    codexSwitchSnapshot({
+      host: null,
+      wsl: { __default__: null, Ubuntu: 'personal' },
+      target: { runtime: 'wsl', wslDistro: null },
+      liveUsed: 40
+    }),
+    now
+  )
+  const uniqueIds = new Map(unique.map((a) => [a.id, a]))
+  const blockedIds = new Map(blocked.map((a) => [a.id, a]))
+  assert.equal(uniqueIds.get(publicId('codex', 'personal'))?.pools[0].remaining, 60)
+  assert.equal(
+    uniqueIds.get(publicId('codex', 'system-default'))?.pools[0].remaining,
+    -1
+  )
+  assert.equal(blockedIds.get(publicId('codex', 'personal'))?.pools[0].remaining, 78)
+  assert.equal(
+    blockedIds.get(publicId('codex', 'system-default'))?.pools[0].remaining,
+    -1
+  )
+})
+
+test('configured slots keep order and plans when source rows reverse or disappear', () => {
+  const personal = publicId('codex', 'personal')
+  const team = publicId('codex', 'team')
+  const copilot = publicId('copilot', 'active')
+  const source = (order: string[]) =>
+    fromOrca(
+      {
+        codex: {
+          systemDefault: { hasAuth: true },
+          accounts: order.map((id) => ({ id }))
+        },
+        rateLimits: {
+          codexTarget: { runtime: 'host' },
+          activeAccountIdsByRuntime: { host: 'team' },
+          codex: {
+            status: 'ok',
+            updatedAt: now,
+            planType: 'business',
+            session: { usedPercent: 10, resetsAt: now + 3600 }
+          },
+          inactiveCodexAccounts: [
+            {
+              accountId: 'personal',
+              rateLimits: {
+                status: 'ok',
+                updatedAt: now,
+                planType: 'plus',
+                session: { usedPercent: 30, resetsAt: now + 3600 }
+              }
+            }
+          ]
+        }
+      },
+      now
+    )
+  const forward = source(['personal', 'team'])
+  const reverse = source(['team', 'personal'])
+  assert.equal(forward.find((a) => a.id === personal)?.profile, 'Codex / 관리 계정')
+  assert.equal(reverse.find((a) => a.id === personal)?.profile, 'Codex / 관리 계정')
+  assert.deepEqual(
+    forward.filter((a) => a.id === personal || a.id === team).map((a) => a.id),
+    [personal, team]
+  )
+  assert.deepEqual(
+    reverse.filter((a) => a.id === personal || a.id === team).map((a) => a.id),
+    [team, personal]
+  )
+  const config = validateConfig({
+    ...defaultConfig(),
+    accounts: [
+      { id: personal, alias: '개인', plan: '요금제 미확인', enabled: true },
+      { id: copilot, alias: '회사', plan: '', enabled: true },
+      { id: team, alias: '팀', plan: 'Business standard', enabled: true }
+    ]
+  })
+  assert.equal(config.accounts[0].plan, '')
+  assert.equal(config.accounts[2].plan, 'Business standard')
+  const missing = makeSnapshot(reverse, config, now)
+  assert.deepEqual(
+    missing.accounts.slice(0, 3).map((a) => [a.id, a.profile, a.plan]),
+    [
+      [personal, '개인', 'plus'],
+      [copilot, '회사', '요금제 미확인'],
+      [team, '팀', 'Business standard']
+    ]
+  )
+  assert.equal(missing.accounts[1].state, 'unknown')
+  assert.equal(missing.accounts[1].pools[0].remaining, -1)
+  const recovered = makeSnapshot(
+    [
+      ...reverse,
+      copilotQuota(
+        {
+          quotaSnapshots: {
+            premium_interactions: {
+              usedRequests: 1,
+              entitlementRequests: 10,
+              remainingPercentage: 90
+            }
+          }
+        },
+        now
+      )
+    ],
+    config,
+    now
+  )
+  assert.equal(recovered.accounts[1].state, 'ready')
+  assert.equal(recovered.accounts[1].pools[0].remaining, 90)
+  assert.deepEqual(
+    recovered.accounts.map((a) => a.id),
+    missing.accounts.map((a) => a.id)
+  )
+})

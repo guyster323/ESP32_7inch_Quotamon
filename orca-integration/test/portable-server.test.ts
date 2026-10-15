@@ -2,10 +2,94 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { join } from 'node:path'
+import { EventEmitter, once } from 'node:events'
+import { get } from 'node:http'
+import { setImmediate as nextTurn } from 'node:timers/promises'
 import { BleHost } from '../src/ble-host.js'
 import { QuotamonController } from '../src/quotamon-controller.js'
 import { defaultConfig, publicId, record } from '../src/quota-snapshot.js'
 import { startPortableServer } from '../src/portable-server.js'
+
+test('web updates once two seconds before each acknowledged send deadline, with immediate status changes',
+  { timeout: 10000 }, async (t) => {
+    t.mock.timers.enable({ apis: ['Date', 'setTimeout', 'setInterval'], now: 1800000000000 })
+    let current = {
+      connected: true, next_snapshot_at: Date.now() + 60000,
+      pairingPin: null as string | null, devices: [], config: defaultConfig(),
+      accounts: [] as unknown[], error: null
+    }
+    const controller = Object.assign(new EventEmitter(), { state: () => current })
+    const server = await startPortableServer({
+      controller: () => controller as unknown as QuotamonController,
+      sourceAvailable: () => true, radio: () => true,
+      preferences: () => ({ copilot: false, startup: false }),
+      setPreferences: async () => {}, webRoot: '', assetsRoot: ''
+    })
+    const url = new URL(server.url)
+    let request: ReturnType<typeof get> | undefined
+    try {
+      assert.equal((await fetch(url.origin + '/api/events')).status, 403)
+      assert.equal((await fetch(url.origin + '/api/events', {
+        headers: { 'X-Quotamon-Key': url.hash.slice(1), Origin: 'http://evil.invalid' }
+      })).status, 403)
+      const response = await new Promise<import('node:http').IncomingMessage>((resolve) => {
+        request = get(url.origin + '/api/events', {
+          headers: { 'X-Quotamon-Key': url.hash.slice(1) }
+        }, resolve)
+      })
+      let output = ''
+      response.setEncoding('utf8')
+      response.on('data', (chunk) => { output += chunk })
+      await once(response, 'data')
+      const count = () => (output.match(/data: refresh/g) || []).length
+      assert.equal(count(), 1) // Initial page load.
+      current.accounts = [{ quota: 'changed' }]
+      controller.emit('state')
+      t.mock.timers.tick(57999)
+      await nextTurn()
+      assert.equal(count(), 1) // No 2-second polling or quota-driven redraw.
+      let update = once(response, 'data')
+      t.mock.timers.tick(1)
+      await update
+      assert.equal(count(), 2)
+      t.mock.timers.tick(2000)
+      current.next_snapshot_at = Date.now() + 60000 // ACK starts the next interval.
+      controller.emit('state')
+      t.mock.timers.tick(57999)
+      await nextTurn()
+      assert.equal(count(), 2)
+      update = once(response, 'data')
+      t.mock.timers.tick(1)
+      await update
+      assert.equal(count(), 3)
+      current.config = { ...current.config, revision: 1,
+        display: { ...current.config.display, poll_seconds: 90 } }
+      current.next_snapshot_at = Date.now() + 90000
+      update = once(response, 'data')
+      controller.emit('state')
+      await update
+      assert.equal(count(), 4) // Settings are visible immediately.
+      t.mock.timers.tick(87999)
+      await nextTurn()
+      assert.equal(count(), 4)
+      update = once(response, 'data')
+      t.mock.timers.tick(1)
+      await update
+      assert.equal(count(), 5)
+      current.pairingPin = '123456'
+      update = once(response, 'data')
+      controller.emit('state')
+      await update
+      assert.equal(count(), 6) // Pairing must not wait for a transfer.
+      controller.emit('disposed')
+      await once(response, 'end')
+      assert.equal(controller.listenerCount('state'), 0)
+    } finally {
+      request?.destroy()
+      await server.close()
+      t.mock.timers.reset()
+    }
+  })
 
 test('Windows pairing failure gives a native Bluetooth recovery instruction', async () => {
   const host = new BleHost('fixture', () => spawn(process.execPath,

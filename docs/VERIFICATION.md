@@ -4,7 +4,11 @@
 
 | 검사 | 결과 |
 |---|---|
+| 웹 전송 전 갱신 | 2026-10-15 단독 수정. TypeScript/회귀 테스트 35개 통과. 가상 시계로 60초/90초 주기의 2초 전 알림과 ACK·설정 변경 재예약, 원천 캐시 변경 시 정기 전송 대기, 페어링 즉시 알림·인증·구독 해제 확인. 실제 웹+모의 원천/BLE 검사에서 2초 유휴 폴링 제거, 설정·검색·페어링·원천 상실 동작 통과. 최종 패키지의 실제 Orca 원천·Codex 3계정·저장 5개 ID/순서 유지 확인. 15:02 적용; 설정·자동 실행·런타임·Orca 보존 |
 | TypeScript core build / 14개 테스트 | Windows 저장 페어링·실패 안내, Cursor 모델 쿼터 선택·누락 처리, 독립된 최근 갱신 시각과 축약 리셋 시간 회귀 검사 통과 |
+| 계정 신원·소스 순서 | 2026-10-15 `npm test --prefix orca-integration` 34개 통과. 런타임 소유자, 같은 조직의 다른 구성원, 저장 슬롯·요금제 센티넬, 메모리 캐시, poll/provider refresh 지연 응답과 dispose, 원천이 없을 때 보드 설정 알림이 저장 선택을 바꾸지 않음을 포함. 실행 중인 Orca에서 실제 계정 전환은 하지 않음 |
+| 계정 신원 스테이징 패키지 | 코디네이터가 `dist/Quotamon-Portable-account-identity`를 임시 설정(`address=null`)으로 기동. 최종 런타임 재포장과 오프라인 설정 거절 이후에도 실제 Orca 원천, Codex 3계정, 저장 5개 ID·순서, Cursor 모델 풀이 유지됐다. 보드 페어링·연결 없음. 매니페스트 19개 파일 해시 일치 |
+| 계정 신원 실행 폴더 적용 | 2026-10-15 14:48 `dist/Quotamon-Portable`에 `bridge.cjs`와 `build-manifest.json`만 교체하고 Quotamon만 재시작. 설정은 첫 요금제 센티넬이 빈 값이 된 것만 달라졌고, 자동 실행·Node·`Quotamon.exe`·Orca PID/app.asar는 유지. 새 Chrome UI에서 Orca 연결됨·디스플레이 동기화 중 확인. 실물 LCD 계정 전환은 관찰하지 않음 |
 | C++ wire 테스트 | CRC/golden frame, 24 KB, value size 20/244/512, 손상·누락 거부 통과 |
 | LVGL 네이티브 UI 빌드·포인터 테스트 | 카드·상세·설정·페이지·계정 선택·페어링 승인/거절 통과 |
 | 800×480 렌더 | 한글 glyph 경고 없음, 막대 경계의 두 글자색, offline 채움 삭제 확인 |

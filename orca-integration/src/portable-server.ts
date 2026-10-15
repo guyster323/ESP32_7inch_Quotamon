@@ -34,6 +34,8 @@ export async function startPortableServer(ui: PortableUi, port = 0) {
     origin = '',
     uiError: string | null = null,
     connecting = false
+  const observers = new Set<() => void>()
+  const notify = (): void => { for (const observer of observers) observer() }
   const server = createServer((req, res) => {
     void (async () => {
       res.setHeader('Cache-Control', 'no-store')
@@ -67,6 +69,49 @@ export async function startPortableServer(ui: PortableUi, port = 0) {
         }
         if (req.headers.origin && req.headers.origin !== origin) {
           json(403, { error: 'Invalid origin' })
+          return
+        }
+        if (path === '/api/events' && req.method === 'GET') {
+          const controller = ui.controller()
+          res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8' })
+          let status = '', scheduledAt: number | null = null
+          let timer: ReturnType<typeof setTimeout> | undefined
+          const refresh = (): void => { res.write('data: refresh\n\n') }
+          const changed = (force = false): void => {
+            const { accounts: _accounts, next_snapshot_at, ...current } = controller.state()
+            const nextStatus = JSON.stringify({
+              ...current, source: ui.sourceAvailable(), radio: ui.radio(),
+              preferences: ui.preferences(), connecting, uiError
+            })
+            if (force || nextStatus !== status) {
+              status = nextStatus
+              refresh()
+            }
+            // Re-arm only after an ACK or a change to the configured interval.
+            // Source quota changes alone do not redraw the web dashboard.
+            const next = next_snapshot_at === null ? null : next_snapshot_at - 2000
+            if (next === scheduledAt) return
+            scheduledAt = next
+            if (timer) clearTimeout(timer)
+            timer = undefined
+            if (next !== null && next > Date.now())
+              timer = setTimeout(refresh, next - Date.now())
+          }
+          const onState = (): void => changed()
+          const onAction = (): void => changed(true)
+          const disposed = (): void => { res.end() }
+          const keepalive = setInterval(() => { res.write(': keepalive\n\n') }, 30000)
+          controller.on('state', onState)
+          controller.once('disposed', disposed)
+          observers.add(onAction)
+          res.once('close', () => {
+            if (timer) clearTimeout(timer)
+            clearInterval(keepalive)
+            controller.off('state', onState)
+            controller.off('disposed', disposed)
+            observers.delete(onAction)
+          })
+          changed()
           return
         }
         if (path === '/api/state' && req.method === 'GET') {
@@ -105,6 +150,7 @@ export async function startPortableServer(ui: PortableUi, port = 0) {
               if (!ui.sourceAvailable()) throw Error('Orca not ready')
               connecting = true
               uiError = null
+              notify()
               void controller
                 .connect(input.address)
                 .catch((error: unknown) => {
@@ -115,6 +161,7 @@ export async function startPortableServer(ui: PortableUi, port = 0) {
                 })
                 .finally(() => {
                   connecting = false
+                  notify()
                 })
               break
             case '/api/confirm':
@@ -135,9 +182,9 @@ export async function startPortableServer(ui: PortableUi, port = 0) {
               )
               break
             case '/api/refresh':
-              void controller.refresh().catch(() => {
-                uiError = '사용량 갱신을 확인할 수 없습니다.'
-              })
+              void controller.refresh()
+                .catch(() => { uiError = '사용량 갱신을 확인할 수 없습니다.' })
+                .finally(notify)
               break
             case '/api/preferences':
               if (
@@ -156,6 +203,7 @@ export async function startPortableServer(ui: PortableUi, port = 0) {
               return
           }
           uiError = null
+          notify()
           json(200, { ok: true })
         } catch {
           json(409, {

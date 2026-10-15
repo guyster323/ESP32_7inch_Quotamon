@@ -84,6 +84,16 @@ export const safeLabel = (v: unknown, fallback: string, limit = 64): string =>
     : fallback
 export const publicId = (provider: Provider, id: string): string =>
   `${provider}-${createHash('sha256').update(id).digest('hex').slice(0, 16)}`
+export function storedPlan(plan: string): string {
+  const label = safeLabel(plan, '')
+  return !label || label === '요금제 미확인' ? '' : label
+}
+function observedPlan(q: Record<string, unknown>): string {
+  const raw = q.planType ?? q.plan
+  return typeof raw === 'string'
+    ? storedPlan(raw) || '요금제 미확인'
+    : '요금제 미확인'
+}
 const finite = (v: unknown): v is number =>
   typeof v === 'number' && Number.isFinite(v)
 export function timestamp(v: unknown): number | null {
@@ -175,7 +185,7 @@ function normalize(
       ? profile
       : `${names[provider]} / ${profile}`,
     profile,
-    plan: safeLabel(q.planType ?? q.plan, '요금제 미확인'),
+    plan: observedPlan(q),
     enabled: false,
     pools: pools.length
       ? pools
@@ -200,6 +210,137 @@ function normalize(
     has_session: false
   }
 }
+type Owner =
+  | { kind: 'managed'; id: string }
+  | { kind: 'system-default' }
+  | { kind: 'none' }
+const hasOwn = (value: object, key: string): boolean =>
+  Object.prototype.hasOwnProperty.call(value, key)
+function managedIds(accounts: Record<string, unknown>): Set<string> {
+  const ids = new Set<string>()
+  for (const row of rows(accounts.accounts)) {
+    if (record(row) && typeof row.id === 'string' && row.id) ids.add(row.id)
+  }
+  return ids
+}
+function usableQuota(
+  value: unknown,
+  provider: Provider
+): Record<string, unknown> | undefined {
+  if (!record(value)) return undefined
+  if (value.provider !== undefined && value.provider !== provider) return undefined
+  return value
+}
+function laneKey(distro: unknown): string {
+  return typeof distro === 'string' && distro.trim() ? distro.trim() : '__default__'
+}
+function managedRow(
+  accounts: Record<string, unknown>,
+  id: string
+): Record<string, unknown> | undefined {
+  for (const row of rows(accounts.accounts)) {
+    if (record(row) && row.id === id) return row
+  }
+  return undefined
+}
+function runtimeCompatible(
+  row: Record<string, unknown>,
+  provider: 'codex' | 'claude',
+  runtime: 'host' | 'wsl',
+  wslKey: string
+): boolean {
+  const field = provider === 'codex' ? 'managedHomeRuntime' : 'managedAuthRuntime'
+  if (!hasOwn(row, field)) return true
+  if (runtime === 'host') return row[field] !== 'wsl'
+  if (row[field] !== 'wsl') return false
+  return laneKey(row.wslDistro) === wslKey
+}
+// Orca targets name a runtime lane, not an account. Explicit null on the host
+// lane is that host's system default. A WSL null is that distro's own home.
+function activeOwner(
+  accounts: Record<string, unknown>,
+  rates: Record<string, unknown>,
+  provider: 'codex' | 'claude'
+): Owner {
+  const targetKey = provider === 'codex' ? 'codexTarget' : 'claudeTarget'
+  const inactiveKey =
+    provider === 'codex' ? 'inactiveCodexAccounts' : 'inactiveClaudeAccounts'
+  const present = hasOwn(rates, targetKey)
+  const raw = present ? rates[targetKey] : undefined
+  const target =
+    raw === undefined && !present
+      ? { runtime: 'host', wslDistro: null }
+      : raw
+  if (
+    !record(target) ||
+    (target.runtime !== 'host' && target.runtime !== 'wsl') ||
+    (target.runtime === 'host' && target.wslDistro != null)
+  )
+    return { kind: 'none' }
+  const ids = managedIds(accounts)
+  const selection = record(accounts.activeAccountIdsByRuntime)
+    ? accounts.activeAccountIdsByRuntime
+    : null
+  const accept = (id: unknown, runtime: 'host' | 'wsl', wslKey: string): Owner => {
+    if (typeof id !== 'string' || !ids.has(id)) return { kind: 'none' }
+    const row = managedRow(accounts, id)
+    return row && runtimeCompatible(row, provider, runtime, wslKey)
+      ? { kind: 'managed', id }
+      : { kind: 'none' }
+  }
+  if (target.runtime === 'wsl') {
+    const key = laneKey(target.wslDistro)
+    const wsl = selection && record(selection.wsl) ? selection.wsl : null
+    if (!wsl) return { kind: 'none' }
+    if (hasOwn(wsl, key)) {
+      if (wsl[key] === null) return { kind: 'none' }
+      return accept(wsl[key], 'wsl', key)
+    }
+    if (key !== '__default__') return { kind: 'none' }
+    const selected = [
+      ...new Set(
+        Object.values(wsl).filter(
+          (id): id is string => typeof id === 'string' && id.length > 0
+        )
+      )
+    ]
+    if (selected.length !== 1) return { kind: 'none' }
+    const selectedKey =
+      Object.entries(wsl).find(([, value]) => value === selected[0])?.[0] ??
+      '__default__'
+    return accept(selected[0], 'wsl', selectedKey)
+  }
+  let id: unknown
+  let explicit = false
+  if (selection && hasOwn(selection, 'host')) {
+    id = selection.host
+    explicit = true
+  } else if (hasOwn(accounts, 'activeAccountId')) {
+    id = accounts.activeAccountId
+    explicit = true
+  }
+  if (id === null) return { kind: 'system-default' }
+  if (typeof id === 'string') return accept(id, 'host', '__default__')
+  if (
+    !explicit &&
+    record(raw) &&
+    hasOwn(raw, 'accountId') &&
+    typeof raw.accountId === 'string'
+  )
+    return accept(raw.accountId, 'host', '__default__')
+  const legacy =
+    !present && selection === null && !hasOwn(accounts, 'activeAccountId')
+  if (legacy) {
+    const inactive = new Set<string>()
+    for (const row of rows(rates[inactiveKey])) {
+      if (record(row) && typeof row.accountId === 'string')
+        inactive.add(row.accountId)
+    }
+    if ([...ids].every((managedId) => inactive.has(managedId)))
+      return { kind: 'system-default' }
+  }
+  return { kind: 'none' }
+}
 // Only explicitly constructed display fields leave Orca; raw account/auth objects never cross BLE.
 export function fromOrca(
   raw: unknown,
@@ -209,8 +350,7 @@ export function fromOrca(
     rates = object(root.rateLimits),
     result: DisplayAccount[] = []
   for (const provider of ['codex', 'claude'] as const) {
-    const accounts = object(root[provider]),
-      target = object(rates[`${provider}Target`])
+    const accounts = object(root[provider])
     const inactive = rows(
       rates[
         provider === 'codex'
@@ -218,8 +358,10 @@ export function fromOrca(
           : 'inactiveClaudeAccounts'
       ]
     )
+    const owner = activeOwner(accounts, rates, provider)
+    const live = usableQuota(rates[provider], provider)
     const base = object(accounts.systemDefault),
-      quota = target.accountId ? undefined : rates[provider]
+      quota = owner.kind === 'system-default' ? live : undefined
     if (
       base.hasAuth === true ||
       (record(quota) && quota.status !== 'unavailable')
@@ -233,16 +375,18 @@ export function fromOrca(
           now
         )
       )
-    rows(accounts.accounts).forEach((v, i) => {
+    rows(accounts.accounts).forEach((v) => {
       if (!record(v) || typeof v.id !== 'string') return
       const match = inactive.find((a) => object(a).accountId === v.id)
       const q =
-        target.accountId === v.id ? rates[provider] : object(match).rateLimits
+        owner.kind === 'managed' && owner.id === v.id
+          ? live
+          : usableQuota(object(match).rateLimits, provider)
       result.push(
         normalize(
           provider,
           v.id,
-          v.workspaceLabel ?? v.label ?? `${names[provider]} / 계정 ${i + 1}`,
+          v.workspaceLabel ?? v.label ?? `${names[provider]} / 관리 계정`,
           q,
           now
         )
@@ -358,7 +502,7 @@ export function validateConfig(value: unknown): Config {
     accounts.push({
       id: row.id,
       alias: safeLabel(row.alias, ''),
-      plan: safeLabel(row.plan, ''),
+      plan: storedPlan(row.plan),
       enabled: row.enabled
     })
   }
@@ -376,6 +520,34 @@ export function validateConfig(value: unknown): Config {
     }
   }
 }
+function configuredUnknown(selected: Selection): DisplayAccount {
+  const prefix = selected.id.split('-')[0]
+  const provider: Provider =
+    prefix === 'claude' ||
+    prefix === 'cursor' ||
+    prefix === 'grok' ||
+    prefix === 'copilot'
+      ? prefix
+      : 'codex'
+  const profile = selected.alias || names[provider]
+  return {
+    id: selected.id,
+    provider,
+    title: profile.startsWith(names[provider])
+      ? profile
+      : `${names[provider]} / ${profile}`,
+    profile,
+    plan: storedPlan(selected.plan) || '요금제 미확인',
+    enabled: selected.enabled,
+    pools: [{ name: 'PLAN', remaining: -1, reset: '시각 미확인', resets_at: null }],
+    state: 'unknown',
+    updated: '미확인',
+    updated_at: null,
+    source_note: '사용량 확인 불가',
+    has_amounts: false,
+    has_session: false
+  }
+}
 export function makeSnapshot(
   accounts: DisplayAccount[],
   config: Config,
@@ -385,9 +557,8 @@ export function makeSnapshot(
   const byId = new Map(accounts.map((a) => [a.id, a])),
     ordered: DisplayAccount[] = []
   for (const selected of config.accounts) {
-    const a = byId.get(selected.id)
-    if (!a) continue
-    byId.delete(selected.id)
+    const a = byId.get(selected.id) ?? configuredUnknown(selected)
+    if (byId.has(selected.id)) byId.delete(selected.id)
     const profile = selected.alias || a.profile
     ordered.push({
       ...a,
@@ -395,7 +566,7 @@ export function makeSnapshot(
       title: profile.startsWith(names[a.provider])
         ? profile
         : `${names[a.provider]} / ${profile}`,
-      plan: selected.plan || a.plan,
+      plan: storedPlan(selected.plan) || a.plan,
       enabled: selected.enabled
     })
   }

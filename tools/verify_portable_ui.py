@@ -13,7 +13,8 @@ try:
     with sync_playwright() as p:
         edge=Path('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe')
         browser=p.chromium.launch(**({'executable_path':str(edge)} if edge.exists() else {}),headless=True)
-        page=browser.new_page(viewport={'width':1360,'height':1000});errors=[]
+        page=browser.new_page(viewport={'width':1360,'height':1000});errors=[];state_requests=[]
+        page.on('request',lambda request:state_requests.append(request.url) if request.url.endswith('/api/state') else None)
         page.on('pageerror',lambda error:errors.append(str(error)))
         page.on('console',lambda message:errors.append(message.text) if message.type=='error' else None)
         page.goto(url);expect(page.locator('.quota-card')).to_have_count(5)
@@ -22,6 +23,9 @@ try:
         expect(cursor.locator('.quota-number')).to_have_text(['82%','47%'])
         expect(cursor.locator('.bar')).to_have_count(2)
         expect(cursor).not_to_contain_text('MONTHLY')
+        idle_requests=len(state_requests)
+        page.wait_for_timeout(2300)
+        assert len(state_requests)==idle_requests,'Idle UI must not poll every two seconds'
         page.screenshot(path=str(out/'01-dashboard-mock.png'),full_page=True)
         page.get_by_role('button',name='계정 선택',exact=True).click()
         expect(page.locator('.account-row')).to_have_count(5)
@@ -73,7 +77,7 @@ try:
         assert not errors,errors
         browser.close()
     checks=dict(passed=True,actual_product_ui=True,mock_source=True,mock_ble=True,hardware_verified=False,
-        checks=['five-provider assets','Cursor shows both model budgets without Monthly','selection and aliases survive polling','settings save',
+        checks=['five-provider assets','Cursor shows both model budgets without Monthly','no two-second idle polling','selection and aliases survive polling','settings save',
         'numeric pairing approval/rejection while connect pending','page refresh keeps local UI access',
         '760/430px no overflow','Orca loss removes cards','no browser/CSP errors'])
     (out/'checks.json').write_text(json.dumps(checks,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

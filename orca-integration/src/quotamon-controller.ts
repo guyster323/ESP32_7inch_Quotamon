@@ -1,12 +1,12 @@
 import { EventEmitter } from 'node:events'
 import { BleHost } from './ble-host.js'
 import { fragment, Reassembler } from './ble-protocol.js'
+import { OrcaAccountProjector } from './orca-account-projector.js'
 import {
   Config,
   DisplayAccount,
   Snapshot,
   defaultConfig,
-  fromOrca,
   makeSnapshot,
   record,
   validateConfig
@@ -20,6 +20,7 @@ export interface AccountSource {
 }
 export interface ControllerState {
   connected: boolean
+  next_snapshot_at: number | null
   pairingPin: string | null
   devices: { address: string; name: string; rssi: number; paired?: boolean }[]
   config: Config
@@ -38,6 +39,7 @@ export class QuotamonController extends EventEmitter {
   private fault: string | null = null
   private cachedCopilot: DisplayAccount | undefined
   private cachedSource: DisplayAccount[] = []
+  private readonly projector = new OrcaAccountProjector()
   private sequence = 0
   private valueSize = 20
   private receive = new Reassembler()
@@ -71,7 +73,8 @@ export class QuotamonController extends EventEmitter {
     this.unsubscribe = source.onChanged(() => {
       if (source.isAvailable?.() === false) this.lastRefresh = 0
       this.updateSource()
-      this.dirty = true
+      // Cache quota changes until the configured send deadline. Settings,
+      // connection and explicit refresh still request an immediate snapshot.
       this.publish()
     })
     this.timer = setInterval(() => {
@@ -82,6 +85,9 @@ export class QuotamonController extends EventEmitter {
   state(): ControllerState {
     return {
       connected: this.connected,
+      next_snapshot_at: this.connected && this.lastSent
+        ? this.lastSent + this.config.display.poll_seconds * 1000
+        : null,
       pairingPin: this.pairingPin,
       devices: [...this.devices.values()],
       config: this.config,
@@ -97,9 +103,11 @@ export class QuotamonController extends EventEmitter {
   }
   private updateSource(): void {
     try {
-      this.cachedSource = fromOrca(this.source.getSnapshot())
+      if (this.source.isAvailable?.() === false) throw Error('Orca 연결 대기')
+      this.cachedSource = this.projector.project(this.source.getSnapshot())
       if (this.fault === 'Orca 사용량 정보 대기 중') this.fault = null
     } catch {
+      this.projector.clear()
       this.cachedSource = []
       this.cachedCopilot = undefined
       this.fault = 'Orca 사용량 정보 대기 중'
@@ -214,6 +222,10 @@ export class QuotamonController extends EventEmitter {
   private async onEvent(event: unknown): Promise<void> {
     if (this.stopped) return
     if (!record(event)) return
+    if (event.type === 'adapter') {
+      this.publish()
+      return
+    }
     if (
       event.type === 'device' &&
       typeof event.address === 'string' &&
@@ -273,6 +285,13 @@ export class QuotamonController extends EventEmitter {
       } else if (request.type === 'refresh') {
         await this.refresh()
         this.dirty = true
+      } else if (
+        request.type === 'settings' &&
+        this.source.isAvailable?.() === false
+      ) {
+        this.dirty = true
+        this.fault = 'Orca 사용량 정보 대기 중'
+        this.publish()
       } else if (
         request.type === 'settings' &&
         request.base_revision === this.config.revision &&
@@ -365,6 +384,7 @@ export class QuotamonController extends EventEmitter {
           await acknowledged
           this.lastSent = Date.now()
           this.lastHeartbeat = this.lastSent
+          this.publish()
         } finally {
           if (ackTimer) clearTimeout(ackTimer)
           this.ack = undefined
@@ -389,8 +409,11 @@ export class QuotamonController extends EventEmitter {
   }
   dispose(): void {
     this.stopped = true
+    this.emit('disposed')
     clearInterval(this.timer)
     this.unsubscribe()
+    this.projector.clear()
+    this.cachedSource = []
     this.ack?.reject(Error('중계 종료'))
     this.host.dispose()
   }
