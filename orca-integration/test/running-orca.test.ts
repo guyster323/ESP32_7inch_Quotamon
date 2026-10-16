@@ -1,6 +1,21 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { RunningOrcaSource } from '../src/running-orca-source.js'
+import { installedOrcaCli, readRunningOrca, RunningOrcaSource } from '../src/running-orca-source.js'
+
+test('missing Orca install environment rejects without a relative executable', async () => {
+  const previous = { local: process.env.LOCALAPPDATA, cli: process.env.ORCA_CLI_COMMAND }
+  try {
+    process.env.LOCALAPPDATA = ''
+    process.env.ORCA_CLI_COMMAND = ''
+    assert.equal(installedOrcaCli(), undefined)
+    await assert.rejects(readRunningOrca(), /Orca/)
+  } finally {
+    if (previous.local === undefined) delete process.env.LOCALAPPDATA
+    else process.env.LOCALAPPDATA = previous.local
+    if (previous.cli === undefined) delete process.env.ORCA_CLI_COMMAND
+    else process.env.ORCA_CLI_COMMAND = previous.cli
+  }
+})
 test('running Orca cache loss clears data, recovery emits change, refresh is coalesced', async () => {
   let online = true,
     queries = 0,

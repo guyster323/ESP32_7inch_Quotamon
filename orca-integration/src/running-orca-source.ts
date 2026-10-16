@@ -8,20 +8,13 @@ import { record } from './quota-snapshot.js'
 import type { AccountSource } from './quotamon-controller.js'
 
 export type OrcaQuery = () => Promise<unknown>
-export function installedOrcaCli(): string {
-  return (
-    process.env.ORCA_CLI_COMMAND ||
-    join(
-      process.env.LOCALAPPDATA || '',
-      'Programs',
-      'orca',
-      'resources',
-      'bin',
-      'orca.exe'
-    )
-  )
+export function installedOrcaCli(): string | undefined {
+  if (process.env.ORCA_CLI_COMMAND) return process.env.ORCA_CLI_COMMAND
+  if (!process.env.LOCALAPPDATA) return
+  return join(process.env.LOCALAPPDATA, 'Programs', 'orca', 'resources', 'bin', 'orca.exe')
 }
 export function readRunningOrca(cli = installedOrcaCli()): Promise<unknown> {
+  if (!cli) return Promise.reject(Error('Orca 연결 대기'))
   const env = { ...process.env }
   for (const key of [
     'ORCA_PAIRING_CODE',

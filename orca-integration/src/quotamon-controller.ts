@@ -276,10 +276,12 @@ export class QuotamonController extends EventEmitter {
     ) {
       const message = this.receive.push(Buffer.from(event.frame, 'base64'))
       if (!message || message.kind !== 2) return
-      const request: unknown = JSON.parse(
-        Buffer.from(message.body).toString('utf8')
-      )
-      if (!record(request)) return
+      let request: Record<string, unknown>
+      try {
+        const value: unknown = JSON.parse(Buffer.from(message.body).toString('utf8'))
+        if (!record(value)) return
+        request = value
+      } catch { return }
       if (request.type === 'runtime_stats') {
         const metrics = parseRuntimeMetrics(request)
         if (metrics) this.emit('runtime-metrics', metrics)

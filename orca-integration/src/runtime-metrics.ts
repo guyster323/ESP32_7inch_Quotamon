@@ -26,7 +26,7 @@ export function parseRuntimeMetrics(input: unknown): RuntimeMetrics | undefined 
     output[key] = value
   }
   if (output.window_ms < 1000 || output.window_ms > 60000 || output.visible_characters > 5 ||
-      output.cpu_average_percent > 100 || output.psram_free_bytes > 8 * 1024 * 1024 ||
+      output.cpu_average_percent > 100 || output.psram_free_bytes > 32 * 1024 * 1024 ||
       output.psram_minimum_free_bytes > output.psram_free_bytes ||
       output.psram_largest_free_block_bytes > output.psram_free_bytes) return
   return output

@@ -44,11 +44,11 @@ void loadDisplay() {
     if(start<1440&&end<1440&&start!=end) {localDisplay.sleepEnabled=enabled==1;localDisplay.sleepStartMinute=start;localDisplay.sleepEndMinute=end;}
     nvs_close(handle);
 }
-void persistDisplay(const monitor::Settings& s) {
+bool persistDisplay(const monitor::Settings& s) {
     if(s.language==localDisplay.language&&s.sleepEnabled==localDisplay.sleepEnabled&&
-       s.sleepStartMinute==localDisplay.sleepStartMinute&&s.sleepEndMinute==localDisplay.sleepEndMinute)return;
+       s.sleepStartMinute==localDisplay.sleepStartMinute&&s.sleepEndMinute==localDisplay.sleepEndMinute)return false;
     nvs_handle_t handle;
-    if(nvs_open("quotamon-ui",NVS_READWRITE,&handle)!=ESP_OK)return;
+    if(nvs_open("quotamon-ui",NVS_READWRITE,&handle)!=ESP_OK)return false;
     esp_err_t result=nvs_set_str(handle,"language",s.language.c_str());
     if(result==ESP_OK)result=nvs_set_u8(handle,"sleep_on",s.sleepEnabled);
     if(result==ESP_OK)result=nvs_set_u16(handle,"sleep_start",static_cast<uint16_t>(s.sleepStartMinute));
@@ -60,6 +60,7 @@ void persistDisplay(const monitor::Settings& s) {
         ESP_LOGI("quotamon-ui","Display saved: language=%s schedule=%d start=%d end=%d",
             s.language.c_str(),s.sleepEnabled,s.sleepStartMinute,s.sleepEndMinute);
     } else ESP_LOGW("quotamon-ui","Display save failed: %s",esp_err_to_name(result));
+    return result==ESP_OK;
 }
 void brightness(int value) {
     if(!dimmer) {
@@ -129,7 +130,10 @@ extern "C" void app_main() {
                     bool firstSnapshot=!current.connected;
                     current=std::move(decoded.data);revision=decoded.revision;confirmedSettings=decoded.settings;
                     timeval clock{static_cast<time_t>(decoded.producedAt),0};settimeofday(&clock,nullptr);
-                    utcOffsetMinutes=decoded.utcOffsetMinutes;clockValid=true;persistDisplay(decoded.settings);
+                    utcOffsetMinutes=decoded.utcOffsetMinutes;clockValid=true;
+                    static int64_t lastPersistUs=0;
+                    const int64_t nowUs=esp_timer_get_time();
+                    if((!lastPersistUs||nowUs-lastPersistUs>=60LL*1000000)&&persistDisplay(decoded.settings))lastPersistUs=nowUs;
                     monitor::setSettings(decoded.settings);brightness(decoded.settings.brightnessPercent);monitor::apply(current);
                     if(firstSnapshot&&(monitor::selectedAccount()==-4||monitor::selectedAccount()==-5))monitor::showHome();
                     transport::sendControl(nlohmann::json({{"type","ack"},{"sequence",event->message.sequence}}).dump());

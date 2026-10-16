@@ -160,6 +160,10 @@ Refresh timestamps and compact reset layouts were checked in the native renderer
 
 ## Changelog
 
+### 2026-10-16 — Recovery and connection hardening
+
+- Hardened corrupt-settings backup and defaults recovery, saved BLE peer reconnects and scan reset, malformed control JSON handling, revision checks, NVS write intervals, Orca path checks and 32MiB PSRAM reporting. The Python companion's USB UART is experimental and transmission-only; receiver firmware is unimplemented and device delivery is unconfirmed.
+
 ### 2026-10-16 — Languages and scheduled screen-off
 
 - Added Korean, Simplified Chinese, Japanese, English and German selection, synchronized between the web UI and ESP32.

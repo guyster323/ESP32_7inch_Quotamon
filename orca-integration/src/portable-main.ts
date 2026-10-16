@@ -64,17 +64,23 @@ async function copilot(): Promise<DisplayAccount> {
 }
 async function load(): Promise<void> {
   if (!existsSync(configFile)) return
-  const value: unknown = JSON.parse(await readFile(configFile, 'utf8'))
-  if (!record(value)) throw Error('Invalid settings')
-  config = validateConfig(value.config)
-  if (
-    !record(value.preferences) ||
-    typeof value.preferences.copilot !== 'boolean'
-  )
-    throw Error('Invalid preferences')
-  preferences = {
-    copilot: value.preferences.copilot,
-    startup: args.includes('--startup-enabled')
+  try {
+    const value: unknown = JSON.parse(await readFile(configFile, 'utf8'))
+    if (!record(value)) throw Error('Invalid settings')
+    config = validateConfig(value.config)
+    if (
+      !record(value.preferences) ||
+      typeof value.preferences.copilot !== 'boolean'
+    )
+      throw Error('Invalid preferences')
+    preferences = {
+      copilot: value.preferences.copilot,
+      startup: args.includes('--startup-enabled')
+    }
+  } catch {
+    try { renameSync(configFile, configFile + '.bad') } catch { /* Best effort. */ }
+    config = defaultConfig()
+    preferences = { copilot: true, startup: false }
   }
 }
 function persist(next: Config): void {

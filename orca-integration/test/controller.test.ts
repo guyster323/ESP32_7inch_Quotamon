@@ -13,6 +13,29 @@ const fixture = () =>
     env: { SystemRoot: process.env.SystemRoot }
   })
 
+test('malformed control JSON leaves the BLE session connected', async () => {
+  const host = new BleHost('fixture', fixture)
+  const controller = new QuotamonController(host, {
+    getSnapshot: () => ({}), refreshIfStale: async () => {},
+    onChanged: () => () => {}
+  }, () => {})
+  try {
+    await controller.connect('12345')
+    assert.equal(controller.state().connected, true)
+    for (const [sequence, body] of ['{"type":', 'null', '[]'].entries()) {
+      for (const frame of fragment(2, sequence, Buffer.from(body), 20))
+        host.emit('event', { type: 'notification', frame: Buffer.from(frame).toString('base64') })
+      await new Promise(resolve => setImmediate(resolve))
+      assert.equal(controller.state().connected, true)
+      assert.equal(controller.state().error, null)
+    }
+    for (const frame of fragment(2, 4, Buffer.from('{"type":"refresh"}'), 20))
+      host.emit('event', { type: 'notification', frame: Buffer.from(frame).toString('base64') })
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(controller.state().connected, true)
+  } finally { controller.dispose() }
+})
+
 test('a saved Windows pairing is selectable without a radio signal reading', async () => {
   const host = new BleHost('fixture', () => spawn(process.execPath,
     [join(__dirname, 'ble-resource-fixture.js')], {

@@ -87,6 +87,7 @@ internal static class Program {
     }
     static void Scan() {
         StopScanning();
+        lock(Discovered) Discovered.Clear();
         var epoch=Volatile.Read(ref scanEpoch);
         watcher=new BluetoothLEAdvertisementWatcher {ScanningMode=BluetoothLEScanningMode.Active};
         watcher.AdvertisementFilter.Advertisement.ServiceUuids.Add(Service);

@@ -19,6 +19,13 @@ test('runtime diagnostics preserve counters and discard unrelated private peer f
   assert.deepEqual(parsed, sample)
   assert.notEqual(parsed?.cpu_percent, sample.cpu_percent)
 })
+
+test('runtime diagnostics accept up to 32MiB of free PSRAM', () => {
+  const limit = 32 * 1024 * 1024
+  for (const bytes of [16 * 1024 * 1024, limit])
+    assert.equal(parseRuntimeMetrics({ ...sample, psram_free_bytes: bytes })?.psram_free_bytes, bytes)
+  assert.equal(parseRuntimeMetrics({ ...sample, psram_free_bytes: limit + 1 }), undefined)
+})
 test('runtime diagnostics reject malformed CPU, heap and schema values', () => {
   for (const patch of [{ schema: 2 }, { cpu_percent: [10, 101] }, { cpu_percent: [NaN, 0] },
     { cpu_valid: 'yes' }, { page: 100 }, { window_ms: 0 }, { visible_characters: 6 },

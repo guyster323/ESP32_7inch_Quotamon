@@ -4,6 +4,7 @@
 #include <new>
 #include <memory>
 #include <cstring>
+#include "sdkconfig.h"
 #include "esp_timer.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
@@ -65,9 +66,10 @@ int gap(ble_gap_event* e,void*) {
         case BLE_GAP_EVENT_CONNECT:
             if(e->connect.status==0) {
                 ++epoch;connection=e->connect.conn_handle;authenticated=false;subscribed=false;receive.reset();connectedAt=esp_timer_get_time()/1000;
-                ble_gap_conn_desc desc{};ble_addr_t peers[1]{};int peerCount=0;bool known=false;
-                if(ble_gap_conn_find(connection,&desc)==0&&ble_store_util_bonded_peers(peers,&peerCount,1)==0&&peerCount==1)
-                    known=desc.peer_id_addr.type==peers[0].type&&std::memcmp(desc.peer_id_addr.val,peers[0].val,6)==0;
+                ble_gap_conn_desc desc{};ble_addr_t peers[CONFIG_BT_NIMBLE_MAX_BONDS]{};int peerCount=0;bool known=false;
+                if(ble_gap_conn_find(connection,&desc)==0&&ble_store_util_bonded_peers(peers,&peerCount,CONFIG_BT_NIMBLE_MAX_BONDS)==0)
+                    for(int i=0;i<peerCount;++i)
+                        if(desc.peer_id_addr.type==peers[i].type&&std::memcmp(desc.peer_id_addr.val,peers[i].val,6)==0) {known=true;break;}
                 if(connectedAt>pairUntil&&!known) {ble_gap_terminate(connection,BLE_ERR_REM_USER_CONN_TERM);}
                 else {ble_gap_security_initiate(connection);}
             }
