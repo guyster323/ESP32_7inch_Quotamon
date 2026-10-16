@@ -91,6 +91,8 @@ The web UI and ESP32 support **Korean, Simplified Chinese, Japanese, English and
 
 Under **Settings → Screen-off schedule**, set daily off/on times. The default is **disabled, 23:00–07:00**. The schedule uses the PC's local time and switches off the backlight while BLE and data reception continue. Touch the dark display to wake it for **five minutes**.
 
+On the ESP32, **tap a time → enter four digits → OK → Save**. For example, `0730` enters `07:30`. The `−` and `+` buttons still adjust it in 15-minute steps.
+
 [Settings, clock sync, fonts and verification](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md) · [English web settings](visuals/locales/web-en.png) · [Japanese LCD preview](visuals/locales/lcd-ja-home.png)
 
 ## Meet the pixel crew
@@ -114,13 +116,13 @@ Restored 24 additional F108pro expressions and added native LVGL eyelids for Cop
 
 The current firmware uses **74.9% of its flash partition** and **16.6% of static RAM capacity**. After adding languages and screen scheduling, the physical board was measured with BLE and animations running.
 
-| Hardware measurement | Home: five characters, 60.27s |
+| Hardware measurement | Home: five characters, 70.32s |
 |---|---:|
-| CPU utilization: two-core mean | **6.23%** |
-| Actual LVGL refresh rate | **7.48fps** |
-| Current free PSRAM | **About 636KiB** |
+| CPU utilization: two-core mean | **6.28%** |
+| Actual LVGL refresh rate | **7.47fps** |
+| Current free PSRAM | **About 635KiB** |
 
-Free PSRAM stayed at 651,272 bytes; the largest contiguous block was 608KiB. FPS counts actual content updates, not LCD scan frequency or maximum throughput. [Latest samples](docs/runtime-metrics-languages.json) · [Methods and earlier firmware measurements](docs/RUNTIME_METRICS.md). The GIFs use illustrative data and are renderer output, not hardware footage.
+Free PSRAM stayed at 650,584 bytes; the largest contiguous block was 608KiB. During 55.11s of scheduled screen-off, average CPU utilization was 1.49% and BLE stayed connected. FPS counts actual content updates, not LCD scan frequency or maximum throughput. [Latest samples](docs/screen-schedule-hardware.json) · [Methods and earlier firmware measurements](docs/RUNTIME_METRICS.md). The GIFs use illustrative data and are renderer output, not hardware footage.
 
 [Detail GIF](visuals/native/character-detail-animation.gif) · [State GIF](visuals/native/character-states-animation.gif) · [Implementation, resources and hardware rollout](docs/CHARACTER_ANIMATION.md)
 
@@ -154,6 +156,7 @@ Refresh timestamps and compact reset layouts were checked in the native renderer
 
 - Added Korean, Simplified Chinese, Japanese, English and German selection, synchronized between the web UI and ESP32.
 - Added a daily backlight-off schedule, overnight ranges and five-minute touch wake. BLE and incoming data remain active.
+- Added a direct time-entry keypad and fixed device settings saves rebooting the ESP32 and reverting preferences.
 - Added a shared translation catalog, complete UI glyph subsets and settings, time-boundary and rendering checks. [Usage and verification](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md)
 
 ### 2026-10-16 — Pixel character animation

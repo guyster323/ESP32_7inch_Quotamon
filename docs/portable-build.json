@@ -158,7 +158,9 @@
     "startup_registration_preserved": true,
     "orca_unchanged": true,
     "hardware_language_change_user_confirmed": true,
-    "hardware_screen_schedule_user_confirmed": false,
-    "firmware_record": "docs/character-animation-build.json"
+    "hardware_screen_schedule_user_confirmed": true,
+    "firmware_record": "docs/character-animation-build.json",
+    "hardware_screen_schedule_record": "docs/screen-schedule-hardware.json",
+    "hardware_device_save_user_confirmed": false
   }
 }

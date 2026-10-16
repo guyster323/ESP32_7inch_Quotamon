@@ -10,7 +10,7 @@ result=subprocess.run([str(ROOT/'build/native/espmonitor_sim.exe'),'--render-loc
     capture_output=True,text=True,encoding='utf-8',errors='replace',cwd=ROOT)
 assert result.returncode==0,result.stdout+result.stderr
 assert '[Warn]' not in result.stdout+result.stderr,result.stdout+result.stderr
-for name in [f'lcd-{code}-settings' for code in ['ko','zh-CN','ja','en','de']]+['lcd-ja-home','lcd-zh-CN-schedule']:
+for name in [f'lcd-{code}-settings' for code in ['ko','zh-CN','ja','en','de']]+['lcd-ja-home','lcd-zh-CN-schedule','lcd-ko-time-input']:
     with Image.open(frames/(name+'.ppm')) as image:image.save(out/(name+'.png'))
 report=json.loads((frames/'lcd-checks.json').read_text(encoding='utf-8'))
 report['checks'].append('screen-off pauses animation; wake resumes')

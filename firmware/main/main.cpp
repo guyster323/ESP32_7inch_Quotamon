@@ -23,6 +23,15 @@ bool screenOff=false, backlightOff=false, clockValid=false;
 int utcOffsetMinutes=0;
 int64_t wakeUntilUs=0;
 monitor::Settings localDisplay;
+struct PendingSettings {
+    monitor::Settings value;
+    int baseRevision;
+    nlohmann::json accounts;
+};
+// LVGL callbacks run on a PSRAM stack. NVS partition protection can freeze
+// the cache even with XIP enabled, so flash writes must run on main's DRAM stack.
+// Both producer and consumer hold the LVGL lock.
+std::unique_ptr<PendingSettings> pendingSettings;
 const char* tr(const char* key) {return monitor::i18n::text(key,monitor::settings().language);}
 void loadDisplay() {
     ESP_ERROR_CHECK(nvs_flash_init());
@@ -45,7 +54,12 @@ void persistDisplay(const monitor::Settings& s) {
     if(result==ESP_OK)result=nvs_set_u16(handle,"sleep_start",static_cast<uint16_t>(s.sleepStartMinute));
     if(result==ESP_OK)result=nvs_set_u16(handle,"sleep_end",static_cast<uint16_t>(s.sleepEndMinute));
     if(result==ESP_OK)result=nvs_commit(handle);
-    nvs_close(handle);if(result==ESP_OK)localDisplay=s;
+    nvs_close(handle);
+    if(result==ESP_OK) {
+        localDisplay=s;
+        ESP_LOGI("quotamon-ui","Display saved: language=%s schedule=%d start=%d end=%d",
+            s.language.c_str(),s.sleepEnabled,s.sleepStartMinute,s.sleepEndMinute);
+    } else ESP_LOGW("quotamon-ui","Display save failed: %s",esp_err_to_name(result));
 }
 void brightness(int value) {
     if(!dimmer) {
@@ -58,10 +72,20 @@ void brightness(int value) {
 void clear() {bool pairing=monitor::selectedAccount()==-4;current.connected=false;current.accounts.clear();monitor::apply(current);if(pairing)monitor::showPairingWait();else monitor::showHome();}
 void settings(const monitor::Settings& s,const monitor::Snapshot& data) {
     if(editRevision!=revision) {monitor::setSettings(confirmedSettings);monitor::apply(current);monitor::notify(tr("설정이 변경되어 저장하지 않았습니다. 다시 확인하세요."));return;}
+    auto pending=std::make_unique<PendingSettings>();
+    pending->value=s;pending->baseRevision=editRevision;
+    pending->accounts=nlohmann::json::array();
+    for(const auto& a:data.accounts)pending->accounts.push_back({{"id",a.id},{"enabled",a.enabled}});
+    pendingSettings=std::move(pending);
+}
+void commitPendingSettings() {
+    if(!pendingSettings)return;
+    auto pending=std::move(pendingSettings);
+    if(pending->baseRevision!=revision) {monitor::setSettings(confirmedSettings);monitor::apply(current);monitor::notify(tr("설정이 변경되어 저장하지 않았습니다. 다시 확인하세요."));return;}
+    const auto& s=pending->value;
     persistDisplay(s);wakeUntilUs=0;
     brightness(s.brightnessPercent);
-    nlohmann::json rows=nlohmann::json::array();for(const auto& a:data.accounts)rows.push_back({{"id",a.id},{"enabled",a.enabled}});
-    nlohmann::json request={{"type","settings"},{"base_revision",editRevision},{"accounts",rows},{"display",{
+    nlohmann::json request={{"type","settings"},{"base_revision",pending->baseRevision},{"accounts",std::move(pending->accounts)},{"display",{
         {"language",s.language},{"sleep_enabled",s.sleepEnabled},{"sleep_start_minute",s.sleepStartMinute},{"sleep_end_minute",s.sleepEndMinute},
         {"poll_seconds",s.pollSeconds},{"brightness_percent",s.brightnessPercent},{"show_reset",s.showReset},{"show_updated",s.showUpdated},{"show_credits",s.showCredits},{"show_session",s.showSession}}}};
     monitor::notify(tr(transport::sendControl(request.dump())?"Orca에 설정 저장 요청됨":"기기에 임시 적용됨 · Orca 연결 후 다시 저장하세요."));
@@ -93,6 +117,7 @@ extern "C" void app_main() {
     for(;;) {
         std::unique_ptr<transport::Event> event(transport::poll(100));
         esp_lv_adapter_lock(-1);
+        commitPendingSettings();
         if(event) {
             if(event->type==transport::EventType::Disconnected)clear();
             else if(event->type==transport::EventType::Pairing&&transport::isCurrent(*event))monitor::showPairing(event->passkey);
@@ -115,10 +140,16 @@ extern "C" void app_main() {
         const auto& displaySettings=monitor::settings();
         const bool off=monitor::screenShouldSleep(displaySettings.sleepEnabled,displaySettings.sleepStartMinute,
             displaySettings.sleepEndMinute,time(nullptr),utcOffsetMinutes,clockValid,esp_timer_get_time(),wakeUntilUs);
-        if(off!=screenOff) {screenOff=off;monitor::setDisplayAwake(!off);brightness(displaySettings.brightnessPercent);}
+        if(off!=screenOff) {
+            screenOff=off;monitor::setDisplayAwake(!off);brightness(displaySettings.brightnessPercent);
+            ESP_LOGI("quotamon-ui","Screen %s: local_minute=%lld schedule=%d start=%d end=%d",
+                off?"off":"on",static_cast<long long>((time(nullptr)/60+utcOffsetMinutes)%1440),
+                displaySettings.sleepEnabled,displaySettings.sleepStartMinute,displaySettings.sleepEndMinute);
+        }
         esp_lv_adapter_unlock();
         if(off!=backlightOff) {
             const auto result=off?waveshare_rgb_lcd_backlight_off():waveshare_rgb_lcd_backlight_on();
+            ESP_LOGI("quotamon-ui","Backlight %s: %s",off?"off":"on",esp_err_to_name(result));
             if(result==ESP_OK)backlightOff=off;
         }
         diagnostics::tick();

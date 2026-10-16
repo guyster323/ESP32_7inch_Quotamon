@@ -366,11 +366,33 @@ void renderLocales(const std::filesystem::path& folder) {
         capture(folder/("lcd-"+code+"-home.ppm"));
         monitor::showSettings();click(665,185);require(monitor::selectedAccount()==-7,"Schedule button failed");
         capture(folder/("lcd-"+code+"-schedule.ppm"));
+        click(440,176);capture(folder/("lcd-"+code+"-time-input.ppm"));
+        click(400,432); // Cancel direct entry without touching the schedule draft.
         click(600,432);require(!monitor::settings().sleepEnabled,"Cancel changed the screen schedule");
         monitor::showPairingWait();capture(folder/("lcd-"+code+"-pairing.ppm"));
         monitor::showPairing(632814);capture(folder/("lcd-"+code+"-code.ppm"));
         monitor::showHome();monitor::showDetail(0);capture(folder/("lcd-"+code+"-detail.ppm"));
     }
+    monitor::showHome();advance();
+    monitor::showSettings();click(665,185);click(65,118);click(530,176);click(735,432);
+    require(monitor::settings().sleepEnabled,"Schedule checkbox/save failed");
+    require(monitor::settings().sleepStartMinute==1395,"Schedule time adjustment/save failed");
+    monitor::showSettings();click(665,185);click(440,176);
+    click(400,140);click(280,207);click(520,207);click(400,338);click(520,338);
+    require(findLabel(lv_scr_act(),"24:60")!=nullptr,"Invalid direct time was not kept for correction");
+    click(280,140);click(520,140);click(400,338);click(280,273);click(520,338);
+    click(735,432);
+    require(monitor::settings().sleepStartMinute==787,"Direct HH:MM entry/save failed");
+    monitor::showSettings();click(665,185);click(440,244);
+    click(400,140);click(520,140);click(400,207);click(520,273);click(520,338);
+    click(65,432);click(665,185);click(735,432);
+    require(monitor::settings().sleepEndMinute==1439,"Direct end time was lost through settings navigation");
+    monitor::showSettings();click(665,185);click(440,244);click(280,140);click(520,338);
+    require(findLabel(lv_scr_act(),"1_:__")!=nullptr,"Incomplete direct time was accepted");
+    click(400,432);click(735,432);
+    require(monitor::settings().sleepEndMinute==1439,"Keypad cancel changed the saved end time");
+    monitor::showSettings();click(665,185);click(65,118);click(735,432);
+    require(!monitor::settings().sleepEnabled,"Schedule disable/save failed");
     monitor::showHome();advance();
     monitor::setDisplayAwake(false);const std::vector<uint32_t> sleepingPixels(pixels.begin(),pixels.end());advance(2000);
     require(std::equal(pixels.begin(),pixels.end(),sleepingPixels.begin()),"Sleeping display kept animating");
@@ -390,7 +412,7 @@ void renderLocales(const std::filesystem::path& folder) {
     try {monitor::decode(fixture);}catch(const std::exception&){rejected=true;}
     require(rejected,"Equal sleep endpoints accepted");
     std::ofstream result(folder/"lcd-checks.json");
-    result<<R"({"passed":true,"mock_data":true,"hardware_tested":false,"languages":["ko","zh-CN","ja","en","de"],"checks":["real language selector event","unsaved interval survives language switch","language save","schedule navigation and cancel","home/settings/schedule/detail/pairing rendered","legacy snapshot","invalid language and schedule rejected"]})";
+    result<<R"({"passed":true,"mock_data":true,"hardware_tested":false,"languages":["ko","zh-CN","ja","en","de"],"checks":["real language selector event","unsaved interval survives language switch","language save","schedule checkbox/time/save","direct HH:MM keypad entry/save","invalid direct time kept for correction","keypad cancel preserves draft","home/settings/schedule/keypad/detail/pairing rendered","legacy snapshot","invalid language and schedule rejected"]})";
     std::cout<<"Localized LCD UI: PASS\n";
 }
 LRESULT CALLBACK wndProc(HWND hwnd,UINT msg,WPARAM w,LPARAM l) {

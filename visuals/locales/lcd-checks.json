@@ -13,8 +13,11 @@
     "real language selector event",
     "unsaved interval survives language switch",
     "language save",
-    "schedule navigation and cancel",
-    "home/settings/schedule/detail/pairing rendered",
+    "schedule checkbox/time/save",
+    "direct HH:MM keypad entry/save",
+    "invalid direct time kept for correction",
+    "keypad cancel preserves draft",
+    "home/settings/schedule/keypad/detail/pairing rendered",
     "legacy snapshot",
     "invalid language and schedule rejected",
     "screen-off pauses animation; wake resumes"

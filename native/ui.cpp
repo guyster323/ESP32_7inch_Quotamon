@@ -34,6 +34,10 @@ lv_obj_t* detailLimits=nullptr;
 std::array<int,5> visible{{-1,-1,-1,-1,-1}};
 lv_obj_t *root=nullptr, *back=nullptr, *save=nullptr, *cancel=nullptr, *footer=nullptr;
 lv_obj_t *intervalLabel=nullptr, *brightnessLabel=nullptr;
+lv_obj_t *timeInput=nullptr,*timeInputValue=nullptr;
+std::string timeDigits;
+int timeInputRow=0;
+bool replaceTimeDigits=true;
 struct Meter { lv_obj_t *outer=nullptr, *fill=nullptr, *dark=nullptr, *light=nullptr, *track=nullptr; int width=0; const lv_font_t* font=&font_pixel25; };
 struct Card { lv_obj_t* obj=nullptr; lv_obj_t* image=nullptr; lv_obj_t* note=nullptr; lv_obj_t* extra=nullptr; std::array<Meter,2> bars; };
 std::array<Card,5> cards;
@@ -68,6 +72,7 @@ lv_obj_t* label(lv_obj_t* parent,int x,int y,int w,const char* value,const lv_fo
     lv_label_set_text(o,value); return o;
 }
 void action(lv_event_t* e);
+void showTimeInput(int row);
 lv_obj_t* button(lv_obj_t* parent,int x,int y,int w,const char* text,int actionId) {
     auto* o=box(parent,x,y,w,48,PANEL,BORDER,8);
     lv_obj_add_flag(o,LV_OBJ_FLAG_CLICKABLE);
@@ -302,6 +307,7 @@ void newPage() {
     lv_obj_clear_flag(root,LV_OBJ_FLAG_SCROLLABLE); lv_scr_load(root);
     if(old) lv_obj_del(old);
     cards={}; back=save=cancel=footer=nullptr; detailLimits=nullptr;
+    timeInput=timeInputValue=nullptr;
 }
 void card(int slot,int i,int x,int y,int w,int h) {
     auto& c=cards[slot]; const auto& a=current.accounts[i];
@@ -378,8 +384,50 @@ void action(lv_event_t* e) {
         minute=(minute+((id%2)==0?-15:15)+1440)%1440;
         showScreenSchedule();
     }
+    else if(id==30||id==31) showTimeInput(id-30);
+    else if(id==32) {lv_obj_del(timeInput);timeInput=timeInputValue=nullptr;}
     else if(id==21) {if(onPairingForget)onPairingForget();if(onPairingStart)onPairingStart();showPairingWait();}
     else if(id>=200&&id<300) { const size_t i=static_cast<size_t>(id-200); if(i<accountDraft.size()) accountDraft[i]=lv_obj_has_state(lv_event_get_target(e),LV_STATE_CHECKED); }
+}
+void showTimeInput(int row) {
+    timeInputRow=row;replaceTimeDigits=true;
+    const int minute=row?draft.sleepEndMinute:draft.sleepStartMinute;
+    char digits[5];std::snprintf(digits,sizeof(digits),"%02d%02d",minute/60,minute%60);timeDigits=digits;
+    timeInput=box(root,0,0,800,480,BG);lv_obj_add_flag(timeInput,LV_OBJ_FLAG_CLICKABLE);
+    label(timeInput,220,16,360,tr(row?"켜는 시각":"끄는 시각"),&font_ko20);
+    label(timeInput,500,20,110,"HH:MM",&font_ko14,MUTED);
+    timeInputValue=label(timeInput,220,54,360,"",&font_ko20);
+    lv_obj_set_style_text_color(timeInputValue,color(BLUE),0);
+    lv_obj_set_style_text_align(timeInputValue,LV_TEXT_ALIGN_CENTER,0);
+    const std::string value=timeDigits.substr(0,2)+":"+timeDigits.substr(2);
+    lv_label_set_text(timeInputValue,value.c_str());
+    auto* keys=lv_btnmatrix_create(timeInput);
+    static const char* map[]={"1","2","3","\n","4","5","6","\n","7","8","9","\n","<","0","OK",""};
+    lv_btnmatrix_set_map(keys,map);lv_obj_set_pos(keys,220,94);lv_obj_set_size(keys,360,292);
+    lv_obj_set_style_text_font(keys,&font_ko20,LV_PART_ITEMS);
+    lv_obj_set_style_bg_color(keys,color(BG),0);lv_obj_set_style_border_width(keys,0,0);
+    lv_obj_set_style_bg_color(keys,color(PANEL),LV_PART_ITEMS);
+    lv_obj_set_style_text_color(keys,color(TEXT),LV_PART_ITEMS);
+    lv_obj_add_event_cb(keys,[](lv_event_t* event) {
+        const auto key=lv_btnmatrix_get_selected_btn(lv_event_get_target(event));
+        if(key==LV_BTNMATRIX_BTN_NONE)return;
+        if(key==11) {
+            const int hour=timeDigits.size()==4?std::stoi(timeDigits.substr(0,2)):24;
+            const int minute=timeDigits.size()==4?std::stoi(timeDigits.substr(2)):60;
+            if(hour>23||minute>59) {lv_obj_set_style_text_color(timeInputValue,color(RED),0);return;}
+            (timeInputRow?draft.sleepEndMinute:draft.sleepStartMinute)=hour*60+minute;
+            showScreenSchedule();return;
+        }
+        if(replaceTimeDigits) {if(key!=9)timeDigits.clear();replaceTimeDigits=false;}
+        if(key==9) {if(!timeDigits.empty())timeDigits.pop_back();}
+        else {
+            if(timeDigits.size()==4)timeDigits.clear();
+            timeDigits+=key==10?'0':static_cast<char>('1'+key);
+        }
+        std::string value=timeDigits;value.append(4-value.size(),'_');value.insert(2,":");
+        lv_label_set_text(timeInputValue,value.c_str());lv_obj_set_style_text_color(timeInputValue,color(TEXT),0);
+    },LV_EVENT_VALUE_CHANGED,nullptr);
+    button(timeInput,220,408,360,tr("취소"),32);
 }
 }
 void init(const Snapshot& data) {
@@ -530,7 +578,7 @@ void showScreenSchedule() {
         const int minute=row?draft.sleepEndMinute:draft.sleepStartMinute;
         label(panel,20,83+row*68,240,tr(row?"켜는 시각":"끄는 시각"),&font_ko16);
         char time[8];std::snprintf(time,sizeof(time),"%02d:%02d",minute/60,minute%60);
-        label(panel,354,83+row*68,130,time,&font_ko20);
+        button(panel,354,72+row*68,130,time,30+row);
         button(panel,280,72+row*68,60,"−",26+row*2);button(panel,480,72+row*68,60,"+",27+row*2);
     }
     label(panel,20,216,720,tr("PC 현지 시각 기준 · BLE 연결과 수신은 유지됩니다."),&font_ko14,MUTED);
