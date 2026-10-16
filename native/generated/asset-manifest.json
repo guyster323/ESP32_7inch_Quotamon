@@ -2,219 +2,556 @@
   "source": "https://github.com/guyster323/F108pro_Usage_monitor",
   "commit": "ddab71ab58e353a0b9d1a60274ae9a1a05b0d965",
   "license": "MIT",
-  "format": "LVGL 8 RGB565 little-endian + alpha",
+  "format": "QPA1 lossless indexed RGB565+alpha, LVGL 8 custom decoder",
   "sprites": [
     {
       "provider": "codex",
       "state": "idle",
+      "frame": 0,
       "source": "assets/providers/codex/idle_00.png",
       "sha256": "9d1d8004b77e799aebf70f15b0a224af368369ae82b9f54ab0ba49e79c94cfb6",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "codex",
+      "state": "idle",
+      "frame": 1,
+      "source": "assets/providers/codex/idle_01.png",
+      "sha256": "4b1764e7b0004d64939f40e27b3f76a29b9798da87af4f1f7b54622b332d5290",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "codex",
       "state": "caution",
+      "frame": 0,
       "source": "assets/providers/codex/caution_00.png",
       "sha256": "92be4dad4dc2efaa9182cdab912a37f047dfd9c1cc6d5912f373df0929e9d97b",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "codex",
+      "state": "caution",
+      "frame": 1,
+      "source": "assets/providers/codex/caution_01.png",
+      "sha256": "c6e850f28245c05c6e394287c4e42e9072c592e46595f0b7338d81a3722c7994",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "codex",
       "state": "critical",
+      "frame": 0,
       "source": "assets/providers/codex/critical_00.png",
       "sha256": "a4e4e1041fa7a9e3c0be48fc28907dee2f25c10b3054c3e90c766972c4580cf1",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "codex",
+      "state": "critical",
+      "frame": 1,
+      "source": "assets/providers/codex/critical_01.png",
+      "sha256": "9ec1bfde9ea152c68a656c02fe91486d9a4f82e09e4c48b7b2f23706c23e1860",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "codex",
       "state": "exhausted",
+      "frame": 0,
       "source": "assets/providers/codex/exhausted_00.png",
       "sha256": "459d9f589624f47a1d4bc3600878e614e67cf86c8cb9fcded73a0e7e975a8451",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "codex",
+      "state": "exhausted",
+      "frame": 1,
+      "source": "assets/providers/codex/exhausted_01.png",
+      "sha256": "55d3b5da6da580b14a2925c73adc6001eccac00c55084249f553216674e628ee",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "codex",
       "state": "offline",
+      "frame": 0,
       "source": "assets/providers/codex/offline_00.png",
       "sha256": "bcbb0cacaa20ad5176ee33c9b63994e5d5f94fc7760fdf6f3338c87bc671c87d",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "codex",
+      "state": "offline",
+      "frame": 1,
+      "source": "assets/providers/codex/offline_01.png",
+      "sha256": "4998213a5043a5a72bb84678d912e73340c8992059fd564210753638e72305dd",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "codex",
       "state": "stale",
+      "frame": 0,
       "source": "assets/providers/codex/stale_00.png",
       "sha256": "3feef64c034240498f8b0eb9348976db248fae2dd716220148f8a9aa07a918a9",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "codex",
+      "state": "stale",
+      "frame": 1,
+      "source": "assets/providers/codex/stale_01.png",
+      "sha256": "fa952d01616c5c6b1f00948860fb6a50373f2b3fac337203d0ee4a580d0b3091",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "cursor",
       "state": "idle",
+      "frame": 0,
       "source": "assets/providers/cursor/idle_00.png",
       "sha256": "73fc39497ef186443bcf141ca1e95411247f18c5286548e07a5266c82cf11d29",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "cursor",
+      "state": "idle",
+      "frame": 1,
+      "source": "assets/providers/cursor/idle_01.png",
+      "sha256": "f156fb63dcb7897bf4885cc0ecbcfc98f331d7a92a31b47247345e62b8075dfc",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "cursor",
       "state": "caution",
+      "frame": 0,
       "source": "assets/providers/cursor/caution_00.png",
       "sha256": "1158325df39d14343ac67cb1185210c5518de45680f4ca0b1fc812d077a59ad6",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "cursor",
+      "state": "caution",
+      "frame": 1,
+      "source": "assets/providers/cursor/caution_01.png",
+      "sha256": "6e1becb3104173ea7b71e2c4dde54794390a13c1baee52b489d3f2d1252cf0d5",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "cursor",
       "state": "critical",
+      "frame": 0,
       "source": "assets/providers/cursor/critical_00.png",
       "sha256": "8dea7c5bc4a98bf889f68afc09d21a76caa11b0bdfe942096333f743305fee4b",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "cursor",
+      "state": "critical",
+      "frame": 1,
+      "source": "assets/providers/cursor/critical_01.png",
+      "sha256": "d7516d6b5704482ee467f5c412d38cc9ab3e3e83c2f1aece45796ef70174a832",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "cursor",
       "state": "exhausted",
+      "frame": 0,
       "source": "assets/providers/cursor/exhausted_00.png",
       "sha256": "bf1a8ded5924671b22795a0b39c43ef27da632f46466f47b087be667a30e6b66",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "cursor",
+      "state": "exhausted",
+      "frame": 1,
+      "source": "assets/providers/cursor/exhausted_01.png",
+      "sha256": "48c9865fe48f4a7c7eb2b7becec3989b52fda9658bf6fcbd22713b28d6d3afb5",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "cursor",
       "state": "offline",
+      "frame": 0,
       "source": "assets/providers/cursor/offline_00.png",
       "sha256": "11200cc692e16a6f3ed30170721df9ce98b4aff7df9b3db5a2404c96e28cf146",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "cursor",
+      "state": "offline",
+      "frame": 1,
+      "source": "assets/providers/cursor/offline_01.png",
+      "sha256": "db2dfb582a2a24fdd8ec3abf15f42a9540f7d2393a465fd5387d833129532c09",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "cursor",
       "state": "stale",
+      "frame": 0,
       "source": "assets/providers/cursor/stale_00.png",
       "sha256": "7f868f5c7f734f58ba952f451e980227d0fdbb82812359345ce461191c71f47a",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "cursor",
+      "state": "stale",
+      "frame": 1,
+      "source": "assets/providers/cursor/stale_01.png",
+      "sha256": "4786157e88c6ec87b30a26943f86e734f4715857811631f65b01f61251982ec0",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "claude",
       "state": "idle",
+      "frame": 0,
       "source": "assets/providers/claude/idle_00.png",
       "sha256": "22fc692ea97c44d9f56c074424dd42833d7d98cd38ef07bc9888ebeefa8ea396",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "claude",
+      "state": "idle",
+      "frame": 1,
+      "source": "assets/providers/claude/idle_01.png",
+      "sha256": "3d9648227787b8546b4d766c7da89a38634f95b91cbcbd9931fd65b3d0e27f96",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "claude",
       "state": "caution",
+      "frame": 0,
       "source": "assets/providers/claude/caution_00.png",
       "sha256": "75c202f94e9d927e52654ac14ece21035c0b6ae13ed8c1fb7803d8407d55a094",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "claude",
+      "state": "caution",
+      "frame": 1,
+      "source": "assets/providers/claude/caution_01.png",
+      "sha256": "28df790105c56c85ef85777827c78eeeca9b4a15a50afabf7a55f776aa220b58",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "claude",
       "state": "critical",
+      "frame": 0,
       "source": "assets/providers/claude/critical_00.png",
       "sha256": "d33df16f00aa3f9b22739a09006c91bc8ae0516633bd7fea3db9d5c417afd398",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "claude",
+      "state": "critical",
+      "frame": 1,
+      "source": "assets/providers/claude/critical_01.png",
+      "sha256": "bd2b82c8da7a01c34a35392520b1781821b9db9f7bb7a4461f8bf7c6a790ed7f",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "claude",
       "state": "exhausted",
+      "frame": 0,
       "source": "assets/providers/claude/exhausted_00.png",
       "sha256": "18de95f0f77bdcd8ce3b5dc371086309caf68fad76783c92464b7e6966135677",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "claude",
+      "state": "exhausted",
+      "frame": 1,
+      "source": "assets/providers/claude/exhausted_01.png",
+      "sha256": "4d33a36d1e424bfbcbdfe76502d8f8059c6ef4beddf185cdc824a33dd4251f25",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "claude",
       "state": "offline",
+      "frame": 0,
       "source": "assets/providers/claude/offline_00.png",
       "sha256": "03cf454b18929cf786d2c08c90aed46cacb3325404f85dbd5c44924596552c0c",
-      "bytes": 28512
+      "bytes": 9635,
+      "palette_colors": 41,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "claude",
+      "state": "offline",
+      "frame": 1,
+      "source": "assets/providers/claude/offline_01.png",
+      "sha256": "0ac18b1fc9dba76158540071c86bce9a9a62689e2cbd69ee1124737d54d7494d",
+      "bytes": 9650,
+      "palette_colors": 46,
+      "decoded_bytes": 28512
     },
     {
       "provider": "claude",
       "state": "stale",
+      "frame": 0,
       "source": "assets/providers/claude/stale_00.png",
       "sha256": "4952f6ff2550e8c244e32ad82f510f5ebda6e70900e436e4ab99ce30298fccc2",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "claude",
+      "state": "stale",
+      "frame": 1,
+      "source": "assets/providers/claude/stale_01.png",
+      "sha256": "b6e55486379775c86ca64fa48a65e342209820c7d6bcf0112d8a68545f222677",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "grok",
       "state": "idle",
+      "frame": 0,
       "source": "assets/providers/grok/idle_00.png",
       "sha256": "4a65429b126b30c4bba2ac8e54c619f7cce0636b89c8b1a9a41411abeb2b9d4b",
-      "bytes": 28512
+      "bytes": 9659,
+      "palette_colors": 49,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "grok",
+      "state": "idle",
+      "frame": 1,
+      "source": "assets/providers/grok/idle_01.png",
+      "sha256": "716753fcd53bb988fb556bdf5410baa2552eb3cb5df1a0627d0842c7722c60f7",
+      "bytes": 9659,
+      "palette_colors": 49,
+      "decoded_bytes": 28512
     },
     {
       "provider": "grok",
       "state": "caution",
+      "frame": 0,
       "source": "assets/providers/grok/caution_00.png",
       "sha256": "e763d2c3d17205c36ca383166bcec37bd51f3010da43dfaf9b4771d61fe976c5",
-      "bytes": 28512
+      "bytes": 9659,
+      "palette_colors": 49,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "grok",
+      "state": "caution",
+      "frame": 1,
+      "source": "assets/providers/grok/caution_01.png",
+      "sha256": "902bc507ac38ead710bdd0f7a1c0bef5770e35011ff55ea3005a4810d8f10d26",
+      "bytes": 9659,
+      "palette_colors": 49,
+      "decoded_bytes": 28512
     },
     {
       "provider": "grok",
       "state": "critical",
+      "frame": 0,
       "source": "assets/providers/grok/critical_00.png",
       "sha256": "038ee3ed1b26b0a7d01c79602c9b5fc39d6a37d6c000b5065f0959163411356d",
-      "bytes": 28512
+      "bytes": 9659,
+      "palette_colors": 49,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "grok",
+      "state": "critical",
+      "frame": 1,
+      "source": "assets/providers/grok/critical_01.png",
+      "sha256": "a2ec02b9495f642ae229c97f576e34f1dfaff1a66b150ac9f252d207ae67aa89",
+      "bytes": 9659,
+      "palette_colors": 49,
+      "decoded_bytes": 28512
     },
     {
       "provider": "grok",
       "state": "exhausted",
+      "frame": 0,
       "source": "assets/providers/grok/exhausted_00.png",
       "sha256": "af514fbd93cd83fc7dd6497582e1f717d4985409188b4f7ab74157f7121869f2",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "grok",
+      "state": "exhausted",
+      "frame": 1,
+      "source": "assets/providers/grok/exhausted_01.png",
+      "sha256": "bcbdd507351f6a0dcd81c67a4af5b5ba1f8683eb4a0b7a6533f6f42f32666580",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "grok",
       "state": "offline",
+      "frame": 0,
       "source": "assets/providers/grok/offline_00.png",
       "sha256": "1955f128f8ff5823a2c0d9bcdd3ed0bccf935d1d9f9d2f328114463378b3bedb",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "grok",
+      "state": "offline",
+      "frame": 1,
+      "source": "assets/providers/grok/offline_01.png",
+      "sha256": "55a6dc8dcd17aa1f8e40e1649342a6df71a0e3a651fc17ddef1fc0800acd9925",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "grok",
       "state": "stale",
+      "frame": 0,
       "source": "assets/providers/grok/stale_00.png",
       "sha256": "76e7970fadf26c24a9c1564423b7e36a45d916a84fdffc062d71ebb691c94b3a",
-      "bytes": 28512
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
+    },
+    {
+      "provider": "grok",
+      "state": "stale",
+      "frame": 1,
+      "source": "assets/providers/grok/stale_01.png",
+      "sha256": "1d6c348f1034f9e693d3f997bc8c94ed5d6ae897a2c82ded2ddfe93ad5c4f9f4",
+      "bytes": 9656,
+      "palette_colors": 48,
+      "decoded_bytes": 28512
     },
     {
       "provider": "copilot",
       "state": "idle",
+      "frame": 0,
       "source": "assets/providers/copilot/idle_00.png",
       "sha256": "ef9793b156a2b7df111c492cfa8527eec2629131d8f9b6b3be30a8cdfb374378",
-      "bytes": 28512
+      "bytes": 9641,
+      "palette_colors": 43,
+      "decoded_bytes": 28512
     },
     {
       "provider": "copilot",
       "state": "caution",
+      "frame": 0,
       "source": "assets/providers/copilot/caution_00.png",
       "sha256": "74ca05b9a85b17f39c9beb120c08f954c4ad72df76b19e30a6d58d20034031a6",
-      "bytes": 28512
+      "bytes": 9638,
+      "palette_colors": 42,
+      "decoded_bytes": 28512
     },
     {
       "provider": "copilot",
       "state": "critical",
+      "frame": 0,
       "source": "assets/providers/copilot/critical_00.png",
       "sha256": "8ea78b0a9637709b495611873b44854bb7ae923c0aef40df05c630c852f37525",
-      "bytes": 28512
+      "bytes": 9635,
+      "palette_colors": 41,
+      "decoded_bytes": 28512
     },
     {
       "provider": "copilot",
       "state": "exhausted",
+      "frame": 0,
       "source": "assets/providers/copilot/exhausted_00.png",
       "sha256": "af7b5bcdd85759e0596820b600413285a30d925d11c06fda4ec888663ea6fa78",
-      "bytes": 28512
+      "bytes": 9635,
+      "palette_colors": 41,
+      "decoded_bytes": 28512
     },
     {
       "provider": "copilot",
       "state": "offline",
+      "frame": 0,
       "source": "assets/providers/copilot/offline_00.png",
       "sha256": "5f4d6537557354936f434bc994d99a6cde4293bb354ae9447bdb48e108587b95",
-      "bytes": 28512
+      "bytes": 9623,
+      "palette_colors": 37,
+      "decoded_bytes": 28512
     },
     {
       "provider": "copilot",
       "state": "stale",
+      "frame": 0,
       "source": "assets/providers/copilot/stale_00.png",
       "sha256": "a011b3e1d8f13dc6bd01d7bdc61c376cfa00cf3ccacc31f3e851e84248513141",
-      "bytes": 28512
+      "bytes": 9638,
+      "palette_colors": 42,
+      "decoded_bytes": 28512
     }
   ],
+  "animation": {
+    "tick_ms": 100,
+    "raster_bytes": 521289,
+    "expression_frames": 2,
+    "copilot": "Shared base bitmap + native LVGL eyelid drawing; no duplicate raster",
+    "motion": "native/character_motion.h; bounded integer poses, account-specific phase"
+  },
   "korean_font": {
     "name": "Noto Sans KR Medium (weight 500)",
     "license": "SIL OFL 1.1",

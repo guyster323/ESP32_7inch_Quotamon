@@ -1,9 +1,10 @@
 # 검증 기록
 
-기준: 2026-10-15. 개발 PC의 소프트웨어 검사와 실물 보드의 관측 결과를 구분해 기록합니다. 화면·기본 터치 확인을 전체 하드웨어 작동 인증으로 표현하지 않습니다.
+기준: 2026-10-16. 개발 PC의 소프트웨어 검사와 실물 보드의 관측 결과를 구분해 기록합니다. 화면·기본 터치 확인을 전체 하드웨어 작동 인증으로 표현하지 않습니다.
 
 | 검사 | 결과 |
 |---|---|
+| 캐릭터 애니메이션 | 2026-10-16. 공유 LVGL 렌더에서 5종×6상태 동작·표정, Copilot 눈꺼풀, 캐릭터 영역 밖 픽셀 불변, 상세 화면, 스냅샷 적용, 40회 화면 전환 후 힙·타이머 유지, 설정·연결 상실 시 정지 검사 통과. [GIF·구현 기록](CHARACTER_ANIMATION.md), [펌웨어 빌드 크기·해시](character-animation-build.json). 실물 앱 영역 업로드·플래시 검증·이전 앱 백업 해시와 부트로더/파티션/NVS 보존 검사 완료. PC BLE 도우미 재시작 후 사용자 화면 기동·BLE 연결·정상 동작 확인. 개별 모션의 직접 관측·별도 ACK 수집·CPU/FPS/동적 PSRAM 측정은 미수행 |
 | 웹 전송 전 갱신 | 2026-10-15 단독 수정. TypeScript/회귀 테스트 35개 통과. 가상 시계로 60초/90초 주기의 2초 전 알림과 ACK·설정 변경 재예약, 원천 캐시 변경 시 정기 전송 대기, 페어링 즉시 알림·인증·구독 해제 확인. 실제 웹+모의 원천/BLE 검사에서 2초 유휴 폴링 제거, 설정·검색·페어링·원천 상실 동작 통과. 최종 패키지의 실제 Orca 원천·Codex 3계정·저장 5개 ID/순서 유지 확인. 15:02 적용; 설정·자동 실행·런타임·Orca 보존 |
 | TypeScript core build / 14개 테스트 | Windows 저장 페어링·실패 안내, Cursor 모델 쿼터 선택·누락 처리, 독립된 최근 갱신 시각과 축약 리셋 시간 회귀 검사 통과 |
 | 계정 신원·소스 순서 | 2026-10-15 `npm test --prefix orca-integration` 34개 통과. 런타임 소유자, 같은 조직의 다른 구성원, 저장 슬롯·요금제 센티넬, 메모리 캐시, poll/provider refresh 지연 응답과 dispose, 원천이 없을 때 보드 설정 알림이 저장 선택을 바꾸지 않음을 포함. 실행 중인 Orca에서 실제 계정 전환은 하지 않음 |
@@ -43,6 +44,7 @@ tools\build_native.cmd
 build\native\quotamon_protocol_test.exe
 python -m pip install Pillow==12.3.0
 python tools/verify_native_visuals.py
+python tools/verify_character_animation.py
 dotnet publish orca-integration/windows/Quotamon.Ble.csproj -c Release -o dist/orca-resource
 dist\orca-resource\Quotamon.Ble.exe --probe
 ```

@@ -1,4 +1,5 @@
-"""Convert MIT F108pro runtime sprites unchanged and subset OFL Korean fonts."""
+"""Compile unchanged F108pro expression pairs and subset OFL Korean fonts."""
+import argparse
 from pathlib import Path
 import ast
 import hashlib
@@ -33,7 +34,7 @@ def pixel_font(glyphs, scale):
     code.extend(['default: return NULL; }}', f'const lv_font_t font_pixel{height} = {{ .get_glyph_dsc=describe, .get_glyph_bitmap=bitmap, .line_height={height}, .base_line=0 }};'])
     (OUT / f'font_pixel{height}.c').write_text('\n'.join(code)+'\n', encoding='utf-8')
 
-def generate():
+def generate(sprites_only=False):
     OUT.mkdir(parents=True, exist_ok=True)
     actual = subprocess.check_output(['git', '-C', str(REF), 'rev-parse', 'HEAD'], text=True).strip()
     if actual != PIN:
@@ -41,36 +42,62 @@ def generate():
     shutil.copyfile(REF / 'LICENSE', OUT / 'F108pro-LICENSE.txt')
     shutil.copyfile(ROOT / '.tools/fonts/OFL.txt', OUT / 'NotoSansKR-OFL.txt')
     declarations = ['#pragma once', '#include "lvgl.h"', '#ifdef __cplusplus', 'extern "C" {', '#endif']
+    previous = json.loads((OUT / 'asset-manifest.json').read_text(encoding='utf-8')) if sprites_only else {}
     manifest = {'source': 'https://github.com/guyster323/F108pro_Usage_monitor', 'commit': PIN,
-                'license': 'MIT', 'format': 'LVGL 8 RGB565 little-endian + alpha', 'sprites': []}
+                'license': 'MIT', 'format': 'QPA1 lossless indexed RGB565+alpha, LVGL 8 custom decoder', 'sprites': []}
     states = ['idle', 'caution', 'critical', 'exhausted', 'offline', 'stale']
     for provider in ['codex', 'cursor', 'claude', 'grok', 'copilot']:
         names = []
+        pairs = []
         for state in states:
-            name = f'sprite_{provider}_{state}'
-            path = ROOT / f'assets/providers/{provider}/{state}_00.png'
-            im = Image.open(path).convert('RGBA')
-            assert im.size == (88, 108)
-            data = bytearray()
-            for r, g, b, a in im.get_flattened_data():
-                value = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)
-                data.extend([value & 255, value >> 8, a])
-            attribution = 'MIT Quotamon contributors; imagegen original asset.' if provider=='copilot' else f'MIT QuotaDeck contributors; source commit {PIN}. See F108pro-LICENSE.txt.'
-            lines = [f'/* {attribution} */',
-                     '#include "lvgl.h"', f'static const uint8_t {name}_map[] = {{']
-            lines.extend(','.join(f'0x{v:02x}' for v in data[i:i+24])+',' for i in range(0, len(data), 24))
-            lines.extend(['};', f'const lv_img_dsc_t {name} = {{',
-                          '  .header = { .cf = LV_IMG_CF_TRUE_COLOR_ALPHA, .always_zero = 0, .reserved = 0, .w = 88, .h = 108 },',
-                          f'  .data_size = {len(data)}, .data = {name}_map', '};'])
-            (OUT / f'{name}.c').write_text('\n'.join(lines)+'\n', encoding='utf-8')
-            declarations.append(f'extern const lv_img_dsc_t {name};')
-            names.append('&'+name)
-            manifest['sprites'].append({'provider': provider, 'state': state, 'source': str(path.relative_to(ROOT)).replace('\\','/'),
-                                        'sha256': hashlib.sha256(path.read_bytes()).hexdigest(), 'bytes': len(data)})
+            pair = []
+            for frame in range(1 if provider == 'copilot' else 2):
+                name = f'sprite_{provider}_{state}' + ('_01' if frame else '')
+                path = ROOT / f'assets/providers/{provider}/{state}_{frame:02}.png'
+                im = Image.open(path).convert('RGBA')
+                assert im.size == (88, 108)
+                pixels = []
+                for r, g, b, a in im.get_flattened_data():
+                    value = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)
+                    pixels.append((value & 255, value >> 8, a))
+                palette = sorted(set(pixels))
+                assert len(palette) <= 256, f'{path}: palette exceeds 256 colors'
+                lookup = {entry: index for index, entry in enumerate(palette)}
+                data = bytearray(b'QPA1') + len(palette).to_bytes(2, 'little') + b'\0\0'
+                for entry in palette:
+                    data.extend(entry)
+                data.extend(lookup[pixel] for pixel in pixels)
+                # Lossless relative to the previous RGB565+alpha compiler.
+                assert [palette[index] for index in data[8+len(palette)*3:]] == pixels
+                attribution = 'MIT Quotamon contributors; imagegen original asset.' if provider=='copilot' else f'MIT QuotaDeck contributors; source commit {PIN}. See F108pro-LICENSE.txt.'
+                lines = [f'/* {attribution} */',
+                         '#include "lvgl.h"', f'static const uint8_t {name}_map[] = {{']
+                lines.extend(','.join(f'0x{v:02x}' for v in data[i:i+24])+',' for i in range(0, len(data), 24))
+                lines.extend(['};', f'const lv_img_dsc_t {name} = {{',
+                              '  .header = { .cf = LV_IMG_CF_RAW_ALPHA, .always_zero = 0, .reserved = 0, .w = 88, .h = 108 },',
+                              f'  .data_size = {len(data)}, .data = {name}_map', '};'])
+                (OUT / f'{name}.c').write_text('\n'.join(lines)+'\n', encoding='utf-8')
+                declarations.append(f'extern const lv_img_dsc_t {name};')
+                pair.append('&'+name)
+                manifest['sprites'].append({'provider': provider, 'state': state, 'frame': frame, 'source': str(path.relative_to(ROOT)).replace('\\','/'),
+                                            'sha256': hashlib.sha256(path.read_bytes()).hexdigest(), 'bytes': len(data),
+                                            'palette_colors': len(palette), 'decoded_bytes': len(pixels)*3})
+            names.append(pair[0])
+            pairs.append('{' + ','.join(pair if len(pair) == 2 else pair * 2) + '}')
         declarations.append(f'extern const lv_img_dsc_t* const {provider}_sprites[6];')
-        (OUT / f'{provider}_sprites.c').write_text('#include "assets.h"\n'+f'const lv_img_dsc_t* const {provider}_sprites[6] = {{'+','.join(names)+'};\n', encoding='utf-8')
+        declarations.append(f'extern const lv_img_dsc_t* const {provider}_animation[6][2];')
+        (OUT / f'{provider}_sprites.c').write_text('#include "assets.h"\n'+f'const lv_img_dsc_t* const {provider}_sprites[6] = {{'+','.join(names)+'};\n'+f'const lv_img_dsc_t* const {provider}_animation[6][2] = {{'+','.join(pairs)+'};\n', encoding='utf-8')
     declarations.extend(['#ifdef __cplusplus', '}', '#endif'])
     (OUT / 'assets.h').write_text('\n'.join(declarations)+'\n', encoding='utf-8')
+    manifest['animation'] = {'tick_ms': 100, 'raster_bytes': sum(s['bytes'] for s in manifest['sprites']),
+                             'expression_frames': 2, 'copilot': 'Shared base bitmap + native LVGL eyelid drawing; no duplicate raster',
+                             'motion': 'native/character_motion.h; bounded integer poses, account-specific phase'}
+    if sprites_only:
+        for key in ['korean_font', 'copilot']:
+            manifest[key] = previous[key]
+        (OUT / 'asset-manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+        print(f"Compiled {len(manifest['sprites'])} sprites ({manifest['animation']['raster_bytes']} bytes); existing fonts preserved.")
+        return
     # Read only a literal glyph dictionary; never import or run reference application code.
     parsed = ast.parse((REF / 'src/quotadeck/renderer/canvas.py').read_text(encoding='utf-8'))
     glyphs = next(ast.literal_eval(n.value) for n in parsed.body if isinstance(n, ast.Assign)
@@ -102,7 +129,9 @@ def generate():
                             'sizes':[14,16,20], 'symbols':symbols, 'dynamic_account_name_glyphs':'All 11,172 modern Korean syllables, ASCII and Latin extended; unsupported scripts need additional font coverage'}
     manifest['copilot']='Original imagegen lavender pilot robot; assets/copilot/provenance.json'
     (OUT / 'asset-manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
-    print('Generated 30 provider sprites, split-meter pixel fonts and Korean/Latin fonts.')
+    print('Generated 54 provider sprites, split-meter pixel fonts and Korean/Latin fonts.')
 
 if __name__ == '__main__':
-    generate()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--sprites-only', action='store_true', help='Rebuild sprites without changing fonts or LVGL configuration')
+    generate(parser.parse_args().sprites_only)

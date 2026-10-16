@@ -1,0 +1,40 @@
+{
+  "checks": [
+    "expression pairs play",
+    "all providers and all six states move",
+    "only sprite regions change",
+    "detail animates",
+    "snapshot preserves cards",
+    "settings and disconnect stop redraws",
+    "page lifecycle retains one timer and stable heap"
+  ],
+  "copilot_eye_pixels_closed": 26,
+  "copilot_eye_pixels_open": 135,
+  "hardware_tested": false,
+  "heap_free_after": 482896,
+  "heap_free_before": 482872,
+  "page_cycles": 40,
+  "passed": true,
+  "provider_state_combinations": 30,
+  "tick_ms": 100,
+  "timer_count": 4,
+  "lossless_palette_assets_checked": 54,
+  "previews": [
+    {
+      "path": "visuals/native/character-animation.gif",
+      "frames": 100,
+      "duration_ms": 10000
+    },
+    {
+      "path": "visuals/native/character-detail-animation.gif",
+      "frames": 80,
+      "duration_ms": 8000
+    },
+    {
+      "path": "visuals/native/character-states-animation.gif",
+      "frames": 200,
+      "duration_ms": 20000
+    }
+  ],
+  "renderer": "Shared LVGL 8.4 native UI, synthetic usage only"
+}

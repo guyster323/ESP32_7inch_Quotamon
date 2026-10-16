@@ -91,6 +91,23 @@ Requires Windows 10 2004 or later / Windows 11, x64 and Bluetooth LE. Keep the p
 |:---:|:---:|:---:|:---:|:---:|
 | <img src="assets/providers/codex/idle_00.png" width="88" alt="Codex pixel companion"> | <img src="assets/providers/cursor/idle_00.png" width="88" alt="Cursor pixel companion"> | <img src="assets/providers/copilot/idle_00.png" width="88" alt="Copilot pixel companion"> | <img src="assets/providers/claude/idle_00.png" width="88" alt="Claude pixel companion"> | <img src="assets/providers/grok/idle_00.png" width="88" alt="Grok pixel companion"> |
 
+Companions blink, breathe and make small gestures on both home cards and account details. Their movements follow quota/source state, with separate timing for each account.
+
+[![Character animation from the actual shared LVGL renderer](visuals/native/character-animation.gif)](visuals/native/character-animation.gif)
+
+| State | Movement |
+|---|---|
+| Normal | Blinks, expression changes, breathing and occasional small leans or hops |
+| Caution / critical | Looking from side to side / occasional brief shaking |
+| Exhausted / unknown | Slow breathing in a tired or offline pose |
+| Stale | Stale expression and occasional side-to-side movement |
+
+Restored 24 additional F108pro expressions and added native LVGL eyelids for Copilot. **Lossless palette storage expands the set from 30 to 54 images while reducing asset bytes from 855,360 to 521,289—about 39%.** One 100ms timer updates visible characters; settings and pairing pages pause it.
+
+The final ESP32 application uses **72.4% of its flash partition** and **16.5% of static RAM capacity**. After XIP, two LCD buffers and the LVGL stack, estimated PSRAM reserve is **852KiB**, before other dynamic allocations. CPU, FPS and actual free PSRAM have not been measured yet. The GIFs use illustrative usage data and are renderer output, not hardware footage.
+
+[Detail GIF](visuals/native/character-detail-animation.gif) · [State GIF](visuals/native/character-states-animation.gif) · [Implementation, resources and hardware rollout](docs/CHARACTER_ANIMATION.md)
+
 | Provider | Source data | Account coverage |
 |---|---|---|
 | Codex | Orca five-hour, weekly and other supplied limits | Default + managed accounts |
@@ -108,13 +125,21 @@ This is a **development preview**. Beyond the shared LVGL UI and portable bridge
 | Scope | Evidence |
 |---|---|
 | Software | 35 TypeScript tests; C++ BLE framing; native UI, pointer and font checks |
+| Character animation | Five providers × six states, 40 page cycles, unchanged pixels outside sprite regions and 54 lossless assets verified. All 380 rendered frames match before/after compression |
 | Live data | Three Codex accounts and Cursor from unmodified Orca 1.4.224, plus the existing Copilot SDK account |
 | Hardware | Full backup, application upload and readback verification; bootloader, partitions and pairing NVS preserved |
-| Connection and display | Windows numeric pairing, five-account transfer and ACK on the earlier firmware, display startup and automatic BLE reconnect on the latest update |
+| Connection and display | Windows numeric pairing and five-account transfer/ACK on earlier firmware. After the animation update and BLE-helper restart, the user confirmed display startup, BLE reconnection and normal operation |
 
 Refresh timestamps and compact reset layouts were checked in the native renderer. Individual on-device text layouts, extended operation and every recovery scenario have not all been verified. The [verification record](docs/VERIFICATION.md) separates these boundaries.
 
 ## Changelog
+
+### 2026-10-16 — Pixel character animation
+
+- Home cards and account details now breathe, blink, change expression and make occasional small gestures according to quota/source state, with separate timing for each account.
+- Restored 24 original F108pro expression frames; Copilot uses native LVGL eyelids. One reusable timer updates visible characters only.
+- Lossless palette storage and one shared decode buffer reduce asset storage by about 39%. CI now checks animation regressions and the PSRAM XIP/framebuffer budget alongside flash capacity.
+- [Actual LVGL-rendered GIF](visuals/native/character-animation.gif) · [Implementation, resources and verification](docs/CHARACTER_ANIMATION.md). Flashed and verified the application while preserving the bootloader, partitions and pairing NVS. The user confirmed the physical display reconnected over BLE and operates normally.
 
 ### 2026-10-15 — Stable account quotas and scheduled web updates
 
@@ -143,6 +168,7 @@ npm test --prefix orca-integration
 tools\build_native.cmd
 build\native\quotamon_protocol_test.exe
 python tools/verify_native_visuals.py
+python tools/verify_character_animation.py
 build\native\espmonitor_sim.exe
 ```
 

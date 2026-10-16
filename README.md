@@ -91,6 +91,23 @@ Windows 10 2004 이상/11, x64와 Bluetooth LE가 필요합니다. 폴더 전체
 |:---:|:---:|:---:|:---:|:---:|
 | <img src="assets/providers/codex/idle_00.png" width="88" alt="Codex 픽셀 캐릭터"> | <img src="assets/providers/cursor/idle_00.png" width="88" alt="Cursor 픽셀 캐릭터"> | <img src="assets/providers/copilot/idle_00.png" width="88" alt="Copilot 픽셀 캐릭터"> | <img src="assets/providers/claude/idle_00.png" width="88" alt="Claude 픽셀 캐릭터"> | <img src="assets/providers/grok/idle_00.png" width="88" alt="Grok 픽셀 캐릭터"> |
 
+캐릭터는 홈 카드와 상세 화면에서 눈을 깜박이고 숨을 쉬며, 잔여량과 수집 상태에 따라 다른 동작을 합니다. 같은 서비스의 계정이 여러 개여도 각기 다른 시점에 움직입니다.
+
+[![실제 공유 LVGL 렌더러의 캐릭터 애니메이션](visuals/native/character-animation.gif)](visuals/native/character-animation.gif)
+
+| 상태 | 움직임 |
+|---|---|
+| 정상 | 눈깜박임·표정 변화, 숨쉬기, 가끔 몸 기울이기와 작은 반동 |
+| 주의 / 긴급 | 좌우 살피기 / 간헐적인 짧은 떨림 |
+| 소진 / 확인 불가 | 지친 자세나 offline 표정으로 느린 호흡 |
+| 오래된 정보 | stale 표정과 간헐적인 좌우 움직임 |
+
+원본 F108pro의 추가 표정 24장을 복원하고 Copilot에는 LVGL 눈꺼풀을 더했습니다. **자산은 30장→54장으로 늘었지만 무손실 팔레트 저장으로 855,360→521,289바이트, 약 39% 줄었습니다.** 한 개의 100ms 타이머가 보이는 캐릭터만 갱신하며, 설정·페어링 화면에서는 멈춥니다.
+
+최종 ESP32 앱은 파티션의 **72.4%**, 정적 RAM은 **16.5%**를 사용합니다. XIP·LCD 버퍼 2개·LVGL 스택을 제외한 PSRAM 여유는 **852KiB로 추정**하며, 다른 동적 할당과 실제 CPU·FPS·가용 PSRAM은 아직 실측하지 않았습니다. 아래 GIF는 예시 사용량으로 렌더한 화면이며 실물 촬영은 아닙니다.
+
+[상세 화면 GIF](visuals/native/character-detail-animation.gif) · [상태별 GIF](visuals/native/character-states-animation.gif) · [구현·자원·실물 적용 기록](docs/CHARACTER_ANIMATION.md)
+
 | 서비스 | 가져오는 데이터 | 계정 범위 |
 |---|---|---|
 | Codex | Orca의 5시간·주간 등 사용량 한도 | 기본 계정 + 관리 계정 |
@@ -108,13 +125,21 @@ Windows 10 2004 이상/11, x64와 Bluetooth LE가 필요합니다. 폴더 전체
 | 범위 | 확인한 내용 |
 |---|---|
 | 소프트웨어 | TypeScript 35개 테스트, C++ BLE 프레이밍, LVGL 화면·포인터·폰트 검사 통과 |
+| 캐릭터 애니메이션 | 5종×6상태, 40회 화면 전환, 캐릭터 영역 밖 픽셀 불변, 54개 자산 무손실 검사 통과. 압축 전후 실제 렌더 380프레임 일치 |
 | 실제 데이터 | Orca 1.4.224 무수정으로 Codex 3계정·Cursor, 기존 Copilot SDK 계정 조회 |
 | 실제 보드 | 전체 백업 후 앱 업로드·읽기 검증, 부트로더·파티션·페어링 NVS 보존 확인 |
-| 연결·화면 | Windows 번호 비교 페어링, 앞선 펌웨어의 5계정 전송·ACK, 최신 수정본의 화면 기동·자동 BLE 재연결 확인 |
+| 연결·화면 | Windows 번호 비교 페어링, 앞선 펌웨어의 5계정 전송·ACK. 최신 애니메이션 펌웨어 업로드 후 BLE 도우미 재시작, 실물 기동·BLE 연결·정상 동작 사용자 확인 |
 
 최근 갱신 시각과 축약 리셋 배치는 네이티브 렌더러로 검사했습니다. 실물 문구별 배치·장시간 동작·모든 오류 복구를 검증한 것은 아닙니다. 상세 근거는 [검증 기록](docs/VERIFICATION.md)에 있습니다.
 
 ## 변경 기록
+
+### 2026-10-16 — 픽셀 캐릭터 애니메이션
+
+- 홈과 상세 화면에 눈깜박임·표정 변화·숨쉬기·좌우 살피기·작은 반동을 추가했습니다. 잔여량과 수집 상태에 따라 동작이 달라집니다.
+- 원본 F108pro의 추가 표정 24장을 복원하고, Copilot은 LVGL 눈꺼풀을 사용합니다. 계정마다 다른 시점에 움직이며 화면에 보이는 캐릭터만 갱신합니다.
+- 무손실 팔레트 저장과 공유 복원 버퍼로 자산 저장량을 약 39% 줄였습니다. 플래시 적합성에 더해 PSRAM의 XIP·LCD 버퍼 예산 검사와 애니메이션 회귀 검사를 CI에 추가했습니다.
+- [실제 LVGL 렌더 GIF](visuals/native/character-animation.gif) · [구현·자원·검증 기록](docs/CHARACTER_ANIMATION.md). 펌웨어 업로드·플래시 검증과 기존 페어링 보존을 완료했고, 사용자가 실물 BLE 연결·정상 동작을 확인했습니다.
 
 ### 2026-10-15 — 계정별 할당량 고정 · 웹 갱신 주기 개선
 
@@ -143,6 +168,7 @@ npm test --prefix orca-integration
 tools\build_native.cmd
 build\native\quotamon_protocol_test.exe
 python tools/verify_native_visuals.py
+python tools/verify_character_animation.py
 build\native\espmonitor_sim.exe
 ```
 

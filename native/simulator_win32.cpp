@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <vector>
 #include <chrono>
+#include <set>
 
 namespace {
 constexpr int W=800,H=480;
@@ -99,10 +100,141 @@ void checkFooter(const std::string& refreshed,const std::string& sourceLabel) {
     lv_area_t area; lv_obj_get_coords(footer,&area);
     require(area.y1>431&&area.y2<480&&lv_obj_get_height(footer)>=font->line_height*2,"Footer time is vertically clipped");
 }
-void capture(const std::filesystem::path& path) {
-    advance(); std::ofstream out(path,std::ios::binary);
+void writePixels(const std::filesystem::path& path) {
+    std::ofstream out(path,std::ios::binary);
     require(out.good(),"Cannot open screenshot output"); out<<"P6\n800 480\n255\n";
     for(auto c:pixels) { const char b[]={static_cast<char>(c>>16),static_cast<char>(c>>8),static_cast<char>(c)}; out.write(b,3); }
+}
+void capture(const std::filesystem::path& path) { advance(); writePixels(path); }
+lv_obj_t* findImage(lv_obj_t* object) {
+    if(lv_obj_check_type(object,&lv_img_class)) return object;
+    for(uint32_t i=0;i<lv_obj_get_child_cnt(object);i++)
+        if(auto* found=findImage(lv_obj_get_child(object,static_cast<int32_t>(i)))) return found;
+    return nullptr;
+}
+unsigned timerCount() {
+    unsigned count=0;
+    for(auto* timer=lv_timer_get_next(nullptr);timer;timer=lv_timer_get_next(timer)) ++count;
+    return count;
+}
+void renderAnimation(const std::filesystem::path& folder) {
+    std::filesystem::create_directories(folder);
+    auto s=monitor::demo();
+    constexpr monitor::Provider providers[]={monitor::Provider::Codex,monitor::Provider::Cursor,
+        monitor::Provider::Copilot,monitor::Provider::Claude,monitor::Provider::Grok};
+    constexpr const char* names[]={"Codex","Cursor","Copilot","Claude","Grok"};
+    for(int i=0;i<5;i++) {
+        auto& a=s.accounts[i]; a.provider=providers[i]; a.title=names[i];
+        a.poolCount=2; a.hasAmounts=false; a.hasSession=false;
+        a.pools[0]={"5H",72,"2h 18m"}; a.pools[1]={"WEEKLY",54,"3d 4h"};
+    }
+    monitor::init(s); advance();
+    const unsigned timers=timerCount();
+    std::array<lv_obj_t*,5> images{};
+    std::array<std::set<const void*>,5> sources;
+    std::array<std::set<int>,5> positions;
+    unsigned minEyes=100000, maxEyes=0;
+    for(int i=0;i<5;i++) { images[i]=findImage(monitor::cardObject(i)); require(images[i]!=nullptr,"Animation image missing"); }
+    // A ten-second recording also checks that only sprite regions change.
+    const std::vector<uint32_t> reference(pixels.begin(),pixels.end());
+    std::array<lv_area_t,5> regions;
+    for(int i=0;i<5;i++) {
+        lv_area_t card;lv_obj_get_coords(monitor::cardObject(i),&card);
+        const int bodyY=std::max(34,(lv_obj_get_height(monitor::cardObject(i))-108)/2);
+        regions[i]={static_cast<lv_coord_t>(card.x1+6),static_cast<lv_coord_t>(card.y1+bodyY-6),
+                    static_cast<lv_coord_t>(card.x1+102),static_cast<lv_coord_t>(card.y1+bodyY+108)};
+    }
+    for(int frame=0;frame<100;frame++) {
+        advance(100);
+        for(int i=0;i<5;i++) {
+            sources[i].insert(lv_img_get_src(images[i]));
+            positions[i].insert(lv_obj_get_y(images[i])*1000+lv_obj_get_x(images[i]));
+        }
+        lv_area_t copilot;lv_obj_get_coords(images[2],&copilot);
+        const int zoom=lv_img_get_zoom(images[2]);
+        unsigned eyes=0;
+        for(int y=copilot.y1+45*zoom/256;y<copilot.y1+60*zoom/256;y++)
+            for(int x=copilot.x1+38*zoom/256;x<copilot.x1+64*zoom/256;x++) {
+                const auto p=pixels[y*W+x];
+                if(((p>>16)&255)>170&&((p>>8)&255)>210&&(p&255)>210) ++eyes;
+            }
+        minEyes=std::min(minEyes,eyes);maxEyes=std::max(maxEyes,eyes);
+        for(int y=0;y<H;y++) for(int x=0;x<W;x++) if(pixels[y*W+x]!=reference[y*W+x]) {
+            bool allowed=false;
+            for(const auto& area:regions) allowed|=x>=area.x1&&x<=area.x2&&y>=area.y1&&y<=area.y2;
+            if(!allowed) {
+                writePixels(folder/"unexpected-change.ppm");
+                throw std::runtime_error("Animation changed pixels outside sprite lane at "+std::to_string(x)+","+std::to_string(y)+" frame "+std::to_string(frame));
+            }
+        }
+        wchar_t file[40]; swprintf_s(file,L"home-%03d.ppm",frame);writePixels(folder/file);
+    }
+    for(int i=0;i<5;i++) {
+        require(positions[i].size()>=3,"Character did not breathe or gesture");
+        if(providers[i]!=monitor::Provider::Copilot) require(sources[i].size()==2,"Expression frame never displayed");
+    }
+    require(maxEyes>minEyes*2,"Copilot eyelids never close over the rendered eyes");
+    auto* card=monitor::cardObject(0);
+    monitor::apply(s);require(card==monitor::cardObject(0),"Animation snapshot rebuilt the home cards");
+    // Every provider/state combination must move, retaining its real severity.
+    for(int state=0;state<6;state++) {
+        auto states=s;
+        for(auto& a:states.accounts) {
+            a.state=state==4?monitor::SourceState::Unknown:state==5?monitor::SourceState::Stale:monitor::SourceState::Ready;
+            a.pools[0].remaining=state==1?18:state==2?8:state==3?0:72;
+        }
+        monitor::apply(states);advance();
+        std::array<std::set<int>,5> poses;
+        std::array<std::set<const void*>,5> frames;
+        for(int tick=0;tick<100;tick++) {
+            advance(100);
+            for(int i=0;i<5;i++) {
+                poses[i].insert(lv_obj_get_y(images[i])*1000+lv_obj_get_x(images[i]));
+                frames[i].insert(lv_img_get_src(images[i]));
+            }
+            if(state>0&&tick<40) {
+                wchar_t file[40]; swprintf_s(file,L"state-%d-%03d.ppm",state,tick);writePixels(folder/file);
+            }
+        }
+        for(int i=0;i<5;i++) {
+            require(poses[i].size()>=2,"Severity state is static");
+            if(providers[i]!=monitor::Provider::Copilot) require(frames[i].size()==2,"Severity expression did not play");
+        }
+    }
+    monitor::apply(s);monitor::showDetail(2);advance();
+    auto* detail=findImage(lv_scr_act());require(detail!=nullptr,"Detail character missing");
+    std::set<int> detailPositions;
+    for(int tick=0;tick<80;tick++) {
+        advance(100);detailPositions.insert(lv_obj_get_y(detail));
+        wchar_t file[40]; swprintf_s(file,L"detail-%03d.ppm",tick);writePixels(folder/file);
+    }
+    require(detailPositions.size()>=3,"Detail character is static");
+    // Repeated page deletion, pairing, snapshot updates and reinitialization
+    // must never accumulate timers or leave deleted image pointers active.
+    monitor::showHome();advance();lv_mem_monitor_t before;lv_mem_monitor(&before);
+    for(int i=0;i<40;i++) {
+        monitor::showDetail(i%5);advance(150);
+        monitor::showSettings();advance(200);
+        const std::vector<uint32_t> settingsPixels(pixels.begin(),pixels.end());
+        advance(1000);require(std::equal(settingsPixels.begin(),settingsPixels.end(),pixels.begin()),"Animation runs on settings page");
+        monitor::showPairingWait();advance(150);
+        monitor::showPairing(384925);advance(150);
+        monitor::init(s);advance(150);
+        require(timerCount()==timers,"Page navigation leaked an animation timer");
+    }
+    lv_mem_monitor_t after;lv_mem_monitor(&after);
+    require(after.free_size+1024>=before.free_size,"Animation/page lifecycle leaks LVGL heap");
+    s.connected=false;monitor::apply(s);advance();
+    const std::vector<uint32_t> disconnected(pixels.begin(),pixels.end());
+    advance(5000);require(std::equal(disconnected.begin(),disconnected.end(),pixels.begin()),"Deleted characters keep redrawing disconnected page");
+    std::ofstream report(folder/"animation-checks.json");
+    report<<nlohmann::json({{"passed",true},{"tick_ms",100},{"provider_state_combinations",30},
+        {"page_cycles",40},{"timer_count",timers},{"heap_free_before",before.free_size},{"heap_free_after",after.free_size},
+        {"copilot_eye_pixels_open",maxEyes},{"copilot_eye_pixels_closed",minEyes},
+        {"checks",{"expression pairs play","all providers and all six states move","only sprite regions change",
+            "detail animates","snapshot preserves cards","settings and disconnect stop redraws","page lifecycle retains one timer and stable heap"}},
+        {"hardware_tested",false}}).dump(2);
+    std::cout<<"Character animation checks passed: 30 provider/state combinations, 40 page cycles.\n";
 }
 void renderSuite(const std::filesystem::path& folder) {
     std::filesystem::create_directories(folder);
@@ -240,6 +372,7 @@ int wmain(int argc,wchar_t** argv) {
         display.flush_cb=flush; display.draw_buf=&buffer; lv_disp_drv_register(&display);
         static lv_indev_drv_t input; lv_indev_drv_init(&input); input.type=LV_INDEV_TYPE_POINTER; input.read_cb=readPointer; lv_indev_drv_register(&input);
         if(argc>=3&&std::wstring(argv[1])==L"--render") { renderSuite(argv[2]); return 0; }
+        if(argc>=3&&std::wstring(argv[1])==L"--render-animation") { renderAnimation(argv[2]); return 0; }
         if(argc>=4&&std::wstring(argv[1])==L"--render-snapshot") {
             std::ifstream source(std::filesystem::path(argv[2]),std::ios::binary);
             auto parsed=nlohmann::json::parse(source); auto decoded=monitor::decode(parsed);

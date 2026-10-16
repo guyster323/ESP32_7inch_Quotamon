@@ -1,5 +1,7 @@
 #include "ui.h"
 #include "generated/assets.h"
+#include "character_motion.h"
+#include "sprite_decoder.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -34,6 +36,16 @@ lv_obj_t *intervalLabel=nullptr, *brightnessLabel=nullptr;
 struct Meter { lv_obj_t *outer=nullptr, *fill=nullptr, *dark=nullptr, *light=nullptr, *track=nullptr; int width=0; const lv_font_t* font=&font_pixel25; };
 struct Card { lv_obj_t* obj=nullptr; lv_obj_t* image=nullptr; lv_obj_t* note=nullptr; lv_obj_t* extra=nullptr; std::array<Meter,2> bars; };
 std::array<Card,5> cards;
+struct AnimatedCharacter {
+    lv_obj_t* image=nullptr;
+    int account=0, x=0, y=0;
+    uint32_t seed=0;
+    bool blink=false;
+};
+// Only the visible page is registered. These slots and one timer are reused.
+std::array<AnimatedCharacter,5> characters;
+size_t characterCount=0;
+lv_timer_t* characterTimer=nullptr;
 lv_color_t color(unsigned value) { return lv_color_hex(value); }
 lv_obj_t* box(lv_obj_t* parent,int x,int y,int w,int h,unsigned bg,unsigned border=0,int radius=0) {
     auto* o=lv_obj_create(parent); lv_obj_remove_style_all(o);
@@ -98,8 +110,7 @@ void setMeter(Meter& m,const Pool& p,int index,bool valid) {
     lv_obj_set_style_bg_color(m.fill,color(meterColor(value,index)),0);
     if(width==0) lv_obj_add_flag(m.fill,LV_OBJ_FLAG_HIDDEN); else lv_obj_clear_flag(m.fill,LV_OBJ_FLAG_HIDDEN);
 }
-const lv_img_dsc_t* sprite(int i,const Account& a,bool connected) {
-    (void)i;
+CharacterState characterState(const Account& a,bool connected) {
     int state=0; double minimum=100;
     for(int j=0;j<a.poolCount;j++) if(a.pools[j].remaining>=0) minimum=std::min(minimum,a.pools[j].remaining);
     if(!connected||a.state==SourceState::Unknown) state=4;
@@ -107,13 +118,75 @@ const lv_img_dsc_t* sprite(int i,const Account& a,bool connected) {
     else if(minimum==0) state=3;
     else if(minimum<=10) state=2;
     else if(minimum<=20) state=1;
+    return static_cast<CharacterState>(state);
+}
+const lv_img_dsc_t* characterFrame(const Account& a,CharacterState state,bool expression) {
+    const auto index=static_cast<unsigned>(state);
+    const unsigned frame=expression?1u:0u;
     switch(a.provider) {
-        case Provider::Cursor: return cursor_sprites[state];
-        case Provider::Claude: return claude_sprites[state];
-        case Provider::Grok: return grok_sprites[state];
-        case Provider::Copilot: return copilot_sprites[state];
-        default: return codex_sprites[state];
+        case Provider::Cursor: return cursor_animation[index][frame];
+        case Provider::Claude: return claude_animation[index][frame];
+        case Provider::Grok: return grok_animation[index][frame];
+        case Provider::Copilot: return copilot_animation[index][frame];
+        default: return codex_animation[index][frame];
     }
+}
+const lv_img_dsc_t* sprite(int,const Account& a,bool connected) {
+    return characterFrame(a,characterState(a,connected),false);
+}
+void drawCopilotBlink(lv_event_t* event) {
+    const auto& actor=*static_cast<AnimatedCharacter*>(lv_event_get_user_data(event));
+    if(!actor.blink) return;
+    auto* ctx=lv_event_get_draw_ctx(event);
+    lv_area_t bounds; lv_obj_get_coords(actor.image,&bounds);
+    const unsigned zoom=lv_img_get_zoom(actor.image);
+    // Native pixel eyelids preserve the original bitmap. Coordinates are in
+    // its 88x108 idle face; pivot (0,0) keeps card and 2x detail aligned.
+    auto rect=[&](int x,int y,int w,int h,unsigned ink) {
+        lv_area_t area={static_cast<lv_coord_t>(bounds.x1+x*zoom/256),
+                        static_cast<lv_coord_t>(bounds.y1+y*zoom/256),
+                        static_cast<lv_coord_t>(bounds.x1+(x+w)*zoom/256-1),
+                        static_cast<lv_coord_t>(bounds.y1+(y+h)*zoom/256-1)};
+        lv_draw_rect_dsc_t dsc; lv_draw_rect_dsc_init(&dsc);
+        dsc.bg_color=color(ink); dsc.bg_opa=LV_OPA_COVER;
+        lv_draw_rect(ctx,&dsc,&area);
+    };
+    rect(38,45,11,15,0x081018); rect(53,45,11,15,0x081018);
+    rect(40,53,7,2,0xd6ffff); rect(55,53,6,2,0xd6ffff);
+}
+void animateCharacters() {
+    const uint32_t now=lv_tick_get();
+    for(size_t i=0;i<characterCount;i++) {
+        auto& actor=characters[i];
+        if(actor.account<0||static_cast<size_t>(actor.account)>=current.accounts.size()) continue;
+        const auto& account=current.accounts[actor.account];
+        const auto state=characterState(account,current.connected);
+        const auto pose=characterPose(state,static_cast<unsigned>(account.provider),actor.seed,now);
+        const auto* frame=characterFrame(account,state,pose.expression);
+        if(lv_img_get_src(actor.image)!=frame) lv_img_set_src(actor.image,frame);
+        // Quantized screen pixels keep pixel art crisp at both display sizes.
+        const int scale=lv_img_get_zoom(actor.image)>=512?2:1;
+        const auto x=static_cast<lv_coord_t>(actor.x+pose.x*scale);
+        const auto y=static_cast<lv_coord_t>(actor.y+pose.y*scale);
+        if(lv_obj_get_x(actor.image)!=x||lv_obj_get_y(actor.image)!=y) lv_obj_set_pos(actor.image,x,y);
+        const bool blink=account.provider==Provider::Copilot&&state==CharacterState::Idle&&pose.expression;
+        if(actor.blink!=blink) { actor.blink=blink; lv_obj_invalidate(actor.image); }
+    }
+}
+void trackCharacter(lv_obj_t* image,int account) {
+    if(characterCount>=characters.size()) return;
+    // set_pos writes styles; coordinates are not committed until layout runs.
+    lv_obj_update_layout(image);
+    auto& actor=characters[characterCount++]; actor={};
+    actor.image=image; actor.account=account; actor.x=lv_obj_get_x(image); actor.y=lv_obj_get_y(image);
+    // Stable across snapshots, detail navigation and account reordering.
+    actor.seed=2166136261u;
+    for(unsigned char c:current.accounts[account].id) { actor.seed^=c; actor.seed*=16777619u; }
+    lv_img_set_antialias(image,false); lv_img_set_pivot(image,0,0);
+    lv_obj_clear_flag(image,LV_OBJ_FLAG_CLICKABLE);
+    if(current.accounts[account].provider==Provider::Copilot)
+        lv_obj_add_event_cb(image,drawCopilotBlink,LV_EVENT_DRAW_MAIN_END,&actor);
+    if(characterTimer) lv_timer_resume(characterTimer);
 }
 std::string resetName(const std::string& name) {
     return name=="5H"?"5":name=="WEEKLY"?"W":name;
@@ -207,14 +280,16 @@ void updateCards() {
         const bool valid=current.connected&&a.state!=SourceState::Unknown;
         updateNote(c,account);
         for(int j=0;j<std::min(a.poolCount,2);j++) setMeter(c.bars[j],a.pools[j],account,valid);
-        if(c.image) lv_img_set_src(c.image,sprite(account,a,current.connected));
         double minimum=100; for(int j=0;j<a.poolCount;j++) if(a.pools[j].remaining>=0) minimum=std::min(minimum,a.pools[j].remaining);
         unsigned ink=!valid?MUTED:a.state==SourceState::Stale?AMBER:minimum<=10?RED:minimum<=20?AMBER:MUTED;
         lv_obj_set_style_text_color(c.note,color(ink),0);
     }
     footerText();
+    animateCharacters();
 }
 void newPage() {
+    if(characterTimer) lv_timer_pause(characterTimer);
+    characterCount=0; characters={};
     lv_obj_t* old=root; root=lv_obj_create(nullptr); lv_obj_remove_style_all(root);
     lv_obj_set_style_bg_color(root,color(BG),0); lv_obj_set_style_bg_opa(root,LV_OPA_COVER,0);
     lv_obj_clear_flag(root,LV_OBJ_FLAG_SCROLLABLE); lv_scr_load(root);
@@ -229,6 +304,7 @@ void card(int slot,int i,int x,int y,int w,int h) {
     label(c.obj,10,7,w-20,a.title.c_str(),&font_ko16);
     int bodyY=std::max(34,(h-108)/2);
     c.image=lv_img_create(c.obj); lv_obj_set_pos(c.image,10,static_cast<lv_coord_t>(bodyY)); lv_img_set_pivot(c.image,0,0); lv_img_set_src(c.image,sprite(i,a,current.connected));
+    trackCharacter(c.image,i);
     const int mx=108,mw=w-118;
     for(int j=0;j<std::min(a.poolCount,2);j++) c.bars[j]=meter(c.obj,mx,bodyY+j*55,mw,51,a.pools[j],i);
     if(a.poolCount==1) {
@@ -284,7 +360,14 @@ void action(lv_event_t* e) {
     else if(id>=200&&id<300) { const size_t i=static_cast<size_t>(id-200); if(i<accountDraft.size()) accountDraft[i]=lv_obj_has_state(lv_event_get_target(e),LV_STATE_CHECKED); }
 }
 }
-void init(const Snapshot& data) { current=data; homePage=0; showHome(); }
+void init(const Snapshot& data) {
+    initSpriteDecoder();
+    if(!characterTimer) {
+        characterTimer=lv_timer_create([](lv_timer_t*) {animateCharacters();},100,nullptr);
+        lv_timer_pause(characterTimer);
+    }
+    current=data; homePage=0; showHome();
+}
 void apply(const Snapshot& data) {
     std::string selectedId=page>=0&&static_cast<size_t>(page)<current.accounts.size()?current.accounts[page].id:"";
     bool shapeChanged=data.accounts.size()!=current.accounts.size();
@@ -344,6 +427,7 @@ void showDetail(int i) {
     label(panel,20,17,720,a.profile.c_str(),&font_ko20);
     label(panel,20,51,720,a.plan.c_str(),&font_ko14,MUTED);
     auto* img=lv_img_create(panel); lv_img_set_src(img,sprite(i,a,current.connected)); lv_img_set_antialias(img,false); lv_img_set_zoom(img,512); lv_obj_set_pos(img,64,124);
+    trackCharacter(img,i); animateCharacters();
     auto* limits=box(panel,258,92,480,207,PANEL);
     detailLimits=limits;
     if(a.poolCount>2) {
