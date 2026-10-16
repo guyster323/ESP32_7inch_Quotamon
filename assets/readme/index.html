@@ -3,53 +3,60 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Quotamon · 모션 데모</title>
+  <title>Quotamon · Motion demo</title>
   <style>
     :root{color-scheme:dark;font-family:"Segoe UI","Malgun Gothic",sans-serif;background:#080e18;color:#eef7fb}
     *{box-sizing:border-box}body{margin:0}main{max-width:1240px;margin:auto;padding:28px 20px}
     header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}
     h1{font-size:24px;margin:0 0 8px;letter-spacing:-.7px}p{font-size:14px;line-height:1.7;color:#91a6b8;margin:0}
     video{display:block;width:100%;height:auto;border:1px solid #2b404b;border-radius:16px;background:#080e18}
-    .actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:18px 0}
-    button,a{font:inherit;font-size:14px;border:1px solid #31544b;background:#142b25;color:#a8e9d1;padding:10px 15px;border-radius:8px;text-decoration:none;cursor:pointer}
-    button:focus-visible,a:focus-visible{outline:2px solid #70e4bf;outline-offset:3px}
-    #status{color:#70e4bf;font-size:13px;white-space:nowrap}.note{font-size:12px}
+    .actions,.language{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:18px 0}
+    button,a,select{font:inherit;font-size:14px;border:1px solid #31544b;background:#142b25;color:#a8e9d1;padding:10px 15px;border-radius:8px;text-decoration:none;cursor:pointer}
+    button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid #70e4bf;outline-offset:3px}
+    #status{color:#70e4bf;font-size:13px}.note{font-size:12px}
     @media(max-width:600px){main{padding:20px 12px}header{display:block}#status{display:block;margin-top:12px}h1{font-size:21px}}
   </style>
 </head>
 <body>
 <main>
   <header>
-    <div>
-      <h1>Quotamon · 모션 데모</h1>
-      <p>전체 화면 → 터치 상세 → 리셋 일정 → 최근 갱신 시각</p>
-    </div>
-    <span id="status" role="status" aria-live="polite">영상 준비 중</span>
+    <div><h1 data-i18n="title"></h1><p data-i18n="description"></p></div>
+    <span id="status" role="status" aria-live="polite"></span>
   </header>
-  <video id="demo" controls autoplay muted loop playsinline preload="auto" poster="quotamon-display.png" aria-label="Quotamon 5카드 화면의 14초 모션 데모">
-    <source src="quotamon-demo.mp4" type="video/mp4">
-    <img src="quotamon-demo.gif" alt="Quotamon 모션 GIF">
-  </video>
+  <label class="language"><span data-i18n="language"></span><select id="language">
+    <option value="ko">한국어</option><option value="zh-CN">简体中文</option><option value="ja">日本語</option><option value="en">English</option><option value="de">Deutsch</option>
+  </select></label>
+  <video id="demo" controls autoplay muted loop playsinline preload="auto"></video>
   <div class="actions">
-    <button id="restart" type="button">처음부터 재생</button>
-    <a href="quotamon-demo.mp4">MP4 영상 열기</a>
-    <a href="quotamon-demo.gif">GIF 원본</a>
-    <a href="quotamon-display.png">정지 화면</a>
+    <button id="restart" type="button" data-i18n="restart"></button>
+    <a id="mp4" data-i18n="mp4"></a><a id="gif" data-i18n="gif"></a><a id="poster" data-i18n="poster"></a>
   </div>
-  <p class="note">보드와 같은 LVGL 코드로 만든 화면입니다. 수치는 공개용 예시이며 기기 프레임·강조·전환은 소개용 그래픽입니다.</p>
+  <p class="note" data-i18n="note"></p>
 </main>
 <script>
-  const video=document.getElementById('demo');
-  const status=document.getElementById('status');
-  video.muted=true;
-  video.addEventListener('playing',()=>status.textContent='재생 중 · 자동 반복');
-  video.addEventListener('pause',()=>status.textContent='일시정지');
-  video.addEventListener('error',()=>status.textContent='GIF 원본 또는 MP4 영상 열기를 선택해 주세요.');
+  const locales={"ko": {"name": "한국어", "headline": "AI 구독의 여유를 한눈에.", "steps": ["움직이는 캐릭터", "터치 상세", "다섯 가지 언어", "시간 직접 입력", "화면 끄기 예약"], "captions": [["작은 캐릭터도, 살아 있는 화면도.", "Codex 3개 · Cursor · Copilot. 눈깜박임과 호흡까지 실제 LVGL 렌더."], ["카드를 터치하면 더 자세히.", "5시간·주간 한도와 리셋 일정을 각각 확인합니다."], ["내가 편한 언어로.", "한국어 · 중국어 · 일본어 · 영어 · 독일어. 웹과 ESP32에 같은 설정."], ["시간을 누르고, 숫자 네 자리.", "2330 → 23:30. OK로 초안 반영 후 저장합니다."], ["화면만 쉬고, 연결은 계속.", "예약 저장 → 23:30 화면 끄기 → 터치로 5분 점등 · 모의 시연"]], "disclaimer": "공개용 예시 · 실제 LVGL UI · 기기 프레임과 화면 끄기는 시뮬레이션", "title": "Quotamon · 모션 데모", "description": "캐릭터 움직임 → 상세 → 언어 선택 → 시간 직접 입력 → 화면 끄기 예약", "language": "영상 언어", "restart": "처음부터 재생", "mp4": "MP4 영상 열기", "gif": "GIF 원본", "poster": "정지 화면", "loading": "영상 준비 중", "playing": "재생 중 · 자동 반복", "paused": "일시정지", "error": "GIF 원본 또는 MP4 영상 열기를 선택해 주세요.", "play": "영상의 재생 버튼을 눌러 주세요.", "note": "보드와 같은 LVGL 코드의 24초 모의 시연입니다. 실제 계정 데이터나 실물 촬영을 사용하지 않았습니다. 백라이트 끄기와 터치 점등은 시뮬레이션입니다."}, "zh-CN": {"name": "简体中文", "headline": "AI 配额，一目了然。", "steps": ["动态角色", "触摸查看详情", "五种语言", "直接输入时间", "定时息屏"], "captions": [["小小角色，让屏幕生动起来。", "3 个 Codex 账户、Cursor 和 Copilot。眨眼与呼吸均由实际 LVGL 界面渲染。"], ["轻触卡片，查看详情。", "分别查看 5 小时、每周限额和重置时间。"], ["选择熟悉的语言。", "韩语、中文、日语、英语和德语。网页与 ESP32 共享设置。"], ["轻触时间，输入四位数字。", "2330 → 23:30。按 OK 确认，再保存设置。"], ["只关闭屏幕，连接保持在线。", "保存计划 → 23:30 息屏 → 触摸点亮 5 分钟 · 模拟演示"]], "disclaimer": "示例数据 · 实际 LVGL 界面 · 设备外框与息屏均为模拟", "title": "Quotamon · 动态演示", "description": "角色动画 → 详情 → 语言选择 → 直接输入时间 → 定时息屏", "language": "视频语言", "restart": "从头播放", "mp4": "打开 MP4 视频", "gif": "原始 GIF", "poster": "静态图片", "loading": "正在准备视频", "playing": "播放中 · 自动循环", "paused": "已暂停", "error": "请选择原始 GIF 或打开 MP4 视频。", "play": "请点击视频播放按钮。", "note": "使用与设备相同的 LVGL 代码生成的 24 秒模拟演示。未使用真实账户数据或实机拍摄。背光关闭和触摸唤醒为模拟效果。"}, "ja": {"name": "日本語", "headline": "AIの利用枠を、いつも目の前に。", "steps": ["動くキャラクター", "タッチで詳細", "5つの言語", "時刻を直接入力", "画面オフ予約"], "captions": [["小さなキャラクターが、画面を生き生きと。", "Codex 3アカウント・Cursor・Copilot。まばたきや呼吸も実際のLVGLで描画。"], ["カードをタッチして、もっと詳しく。", "5時間・週間の利用枠とリセット時刻を個別に確認できます。"], ["使いやすい言語で。", "韓国語・中国語・日本語・英語・ドイツ語。WebとESP32で設定を共有。"], ["時刻をタッチして、数字を4桁。", "2330 → 23:30。OKで確定してから設定を保存します。"], ["画面だけオフ。接続はそのまま。", "予約を保存 → 23:30に画面オフ → タッチで5分点灯・シミュレーション"]], "disclaimer": "サンプルデータ・実際のLVGL UI・機器の外枠と画面オフはシミュレーション", "title": "Quotamon · 動作デモ", "description": "キャラクターの動き → 詳細 → 言語選択 → 時刻の直接入力 → 画面オフ予約", "language": "動画の言語", "restart": "最初から再生", "mp4": "MP4動画を開く", "gif": "元のGIF", "poster": "静止画", "loading": "動画を準備中", "playing": "再生中・自動ループ", "paused": "一時停止", "error": "元のGIFまたはMP4動画を開いてください。", "play": "動画の再生ボタンを押してください。", "note": "機器と同じLVGLコードによる24秒の模擬デモです。実際のアカウントデータや実機撮影は使用していません。バックライトの消灯とタッチ点灯はシミュレーションです。"}, "en": {"name": "English", "headline": "Your AI quotas. In view.", "steps": ["PIXEL COMPANIONS", "TOUCH FOR DETAILS", "FIVE LANGUAGES", "ENTER THE TIME", "SCREEN-OFF SCHEDULE"], "captions": [["Small characters. A living display.", "Three Codex accounts, Cursor and Copilot. Real LVGL blinking and breathing."], ["Touch a card. See the whole picture.", "Five-hour and weekly quotas keep their own limits and reset times."], ["In the language you prefer.", "Korean, Chinese, Japanese, English and German. Shared web and ESP32 settings."], ["Tap the time. Enter four digits.", "2330 → 23:30. Press OK, then save the schedule."], ["The screen rests. The connection stays.", "Save → screen off at 23:30 → touch to wake for five minutes · simulation"]], "disclaimer": "ILLUSTRATIVE DATA · ACTUAL LVGL UI · DEVICE BEZEL AND SCREEN-OFF SIMULATED", "title": "Quotamon · Motion demo", "description": "Pixel animation → details → language selection → direct time entry → screen-off schedule", "language": "Video language", "restart": "Play from the start", "mp4": "Open MP4 video", "gif": "Original GIF", "poster": "Still image", "loading": "Preparing video", "playing": "Playing · loop enabled", "paused": "Paused", "error": "Choose the original GIF or open the MP4 video.", "play": "Press the video's play button.", "note": "A 24-second simulation using the board's shared LVGL code. No live account data or hardware footage. Backlight-off and touch-wake behavior is simulated."}, "de": {"name": "Deutsch", "headline": "Deine KI-Kontingente im Blick.", "steps": ["PIXEL-BEGLEITER", "DETAILS ANTIPPEN", "FÜNF SPRACHEN", "ZEIT EINGEBEN", "BILDSCHIRMPAUSE"], "captions": [["Kleine Figuren. Ein lebendiges Display.", "Drei Codex-Konten, Cursor und Copilot. Blinzeln und Atmen direkt aus LVGL."], ["Karte antippen. Alle Details sehen.", "Fünf-Stunden- und Wochenkontingente mit eigenen Limits und Rücksetzzeiten."], ["In deiner bevorzugten Sprache.", "Koreanisch, Chinesisch, Japanisch, Englisch und Deutsch. Web und ESP32 gemeinsam."], ["Zeit antippen. Vier Ziffern eingeben.", "2330 → 23:30. Mit OK bestätigen und den Zeitplan speichern."], ["Display aus. Verbindung bleibt.", "Speichern → Display um 23:30 aus → per Berührung fünf Minuten an · Simulation"]], "disclaimer": "BEISPIELDATEN · ECHTE LVGL-OBERFLÄCHE · GEHÄUSE UND DISPLAYPAUSE SIMULIERT", "title": "Quotamon · Animierte Demo", "description": "Figurenanimation → Details → Sprachauswahl → direkte Zeiteingabe → Displayzeitplan", "language": "Videosprache", "restart": "Von vorn abspielen", "mp4": "MP4-Video öffnen", "gif": "Original-GIF", "poster": "Standbild", "loading": "Video wird vorbereitet", "playing": "Wiedergabe · Endlosschleife", "paused": "Pausiert", "error": "Bitte das Original-GIF oder das MP4-Video öffnen.", "play": "Bitte die Wiedergabetaste im Video drücken.", "note": "24 Sekunden Simulation mit dem gemeinsamen LVGL-Code des Geräts. Keine echten Kontodaten oder Kameraaufnahmen. Hintergrundbeleuchtung und Aufwecken per Berührung sind simuliert."}};
+  const video=document.getElementById('demo'),status=document.getElementById('status'),select=document.getElementById('language');
+  let language='ko';
+  function change(code){
+    language=Object.hasOwn(locales,code)?code:'ko';
+    const t=locales[language],base=language==='ko'?'':language+'/';
+    document.documentElement.lang=language;document.title=t.title;select.value=language;
+    document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t[el.dataset.i18n]);
+    select.setAttribute('aria-label',t.language);video.setAttribute('aria-label',t.title);
+    video.poster=base+'quotamon-display.png';video.src=base+'quotamon-demo.mp4';
+    for(const [id,name] of [['mp4','quotamon-demo.mp4'],['gif','quotamon-demo.gif'],['poster','quotamon-display.png']])document.getElementById(id).href=base+name;
+    status.textContent=t.loading;video.muted=true;video.load();
+    video.play().catch(()=>status.textContent=locales[language].play);
+    history.replaceState(null,'','?lang='+language);
+  }
+  select.addEventListener('change',()=>change(select.value));
+  video.addEventListener('playing',()=>status.textContent=locales[language].playing);
+  video.addEventListener('pause',()=>status.textContent=locales[language].paused);
+  video.addEventListener('error',()=>status.textContent=locales[language].error);
   document.getElementById('restart').addEventListener('click',()=>{
-    video.currentTime=0;
-    video.play().catch(()=>status.textContent='영상의 재생 버튼을 눌러 주세요.');
+    video.currentTime=0;video.play().catch(()=>status.textContent=locales[language].play);
   });
-  video.play().catch(()=>status.textContent='영상의 재생 버튼을 눌러 주세요.');
+  change(new URLSearchParams(location.search).get('lang'));
 </script>
 </body>
 </html>

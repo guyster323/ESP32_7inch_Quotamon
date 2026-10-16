@@ -1,0 +1,140 @@
+{
+  "checks": [
+    "0 through 5 selected",
+    "non-contiguous selections",
+    "cards in bounds and non-overlapping",
+    "quota update preserves widgets",
+    "every visible card opens correct detail",
+    "back navigation",
+    "zero-selection account picker",
+    "6 and 20 account pagination",
+    "selection shrink clamps last page"
+  ],
+  "hardware_tested": false,
+  "maximum_per_page": 5,
+  "maximum_total": 20,
+  "mock_data": true,
+  "passed": true,
+  "production_layout_changed": false,
+  "variants": [
+    {
+      "card_rectangles": [],
+      "selected_accounts": 0
+    },
+    {
+      "card_rectangles": [
+        [
+          20,
+          72,
+          760,
+          360
+        ]
+      ],
+      "selected_accounts": 1
+    },
+    {
+      "card_rectangles": [
+        [
+          20,
+          72,
+          374,
+          360
+        ],
+        [
+          406,
+          72,
+          374,
+          360
+        ]
+      ],
+      "selected_accounts": 2
+    },
+    {
+      "card_rectangles": [
+        [
+          20,
+          72,
+          245,
+          360
+        ],
+        [
+          277,
+          72,
+          245,
+          360
+        ],
+        [
+          534,
+          72,
+          245,
+          360
+        ]
+      ],
+      "selected_accounts": 3
+    },
+    {
+      "card_rectangles": [
+        [
+          20,
+          72,
+          374,
+          170
+        ],
+        [
+          406,
+          72,
+          374,
+          170
+        ],
+        [
+          20,
+          254,
+          374,
+          178
+        ],
+        [
+          406,
+          254,
+          374,
+          178
+        ]
+      ],
+      "selected_accounts": 4
+    },
+    {
+      "card_rectangles": [
+        [
+          20,
+          72,
+          245,
+          170
+        ],
+        [
+          277,
+          72,
+          245,
+          170
+        ],
+        [
+          534,
+          72,
+          246,
+          170
+        ],
+        [
+          20,
+          254,
+          374,
+          178
+        ],
+        [
+          406,
+          254,
+          374,
+          178
+        ]
+      ],
+      "selected_accounts": 5
+    }
+  ]
+}

@@ -3,7 +3,7 @@
     1200,
     900
   ],
-  "duration_ms": 14400,
+  "duration_ms": 24000,
   "loop": true,
   "native_screen_size": [
     800,
@@ -12,28 +12,210 @@
   "illustrative_data": true,
   "live_account_data_used": false,
   "native_ui_source": "native/ui.cpp",
-  "detail_source": "visuals/native/02-codex-detail.png",
+  "native_renderer": "native/simulator_win32.cpp --render-readme",
   "presentation_only": [
     "device bezel",
+    "captions",
     "touch indicator",
-    "highlights",
-    "transitions"
+    "progress rail",
+    "screen-off and touch-wake simulation"
   ],
   "regeneration": "python tools/generate_readme_media.py",
-  "files": {
-    "quotamon-demo.gif": {
-      "bytes": 695158,
-      "sha256": "b3f133c01a78e49f2dc28499b893eb8bf1eb8328e8f50520583f15a4a57b3f17"
+  "languages": {
+    "ko": {
+      "name": "\ud55c\uad6d\uc5b4",
+      "base_path": "",
+      "native_checks": {
+        "checks": [
+          "animated home",
+          "card pointer opens detail",
+          "settings navigation",
+          "language dropdown",
+          "schedule enabled",
+          "four digit keypad input",
+          "23:30 saved",
+          "screen-off pauses animation",
+          "touch wake resumes animation"
+        ],
+        "frame_ms": 100,
+        "frames": 240,
+        "hardware_capture": false,
+        "language": "ko",
+        "mock_data": true,
+        "passed": true,
+        "screen_off_touch_simulated": true
+      },
+      "native_frames_sha256": "5c98a8ee6263e5097ea3ba2fbade03994595d7f34025d2acaffe7e7fabc8e712"
     },
-    "quotamon-display.png": {
-      "bytes": 133815,
-      "sha256": "577b7e9188b8251b7fa7e9da56df932de894bd27b8eaf3ab5130b1c76e0e81a5"
+    "zh-CN": {
+      "name": "\u7b80\u4f53\u4e2d\u6587",
+      "base_path": "zh-CN/",
+      "native_checks": {
+        "checks": [
+          "animated home",
+          "card pointer opens detail",
+          "settings navigation",
+          "language dropdown",
+          "schedule enabled",
+          "four digit keypad input",
+          "23:30 saved",
+          "screen-off pauses animation",
+          "touch wake resumes animation"
+        ],
+        "frame_ms": 100,
+        "frames": 240,
+        "hardware_capture": false,
+        "language": "zh-CN",
+        "mock_data": true,
+        "passed": true,
+        "screen_off_touch_simulated": true
+      },
+      "native_frames_sha256": "1bf8796e87f9706e23e8c69d007246267135777682e59cec65f72a20be4c6aba"
     },
-    "quotamon-demo.mp4": {
-      "bytes": 366188,
-      "sha256": "0e3b64851a495f43868008c3395a1c8245364c97fd84096e2fa30176271f4b34"
+    "ja": {
+      "name": "\u65e5\u672c\u8a9e",
+      "base_path": "ja/",
+      "native_checks": {
+        "checks": [
+          "animated home",
+          "card pointer opens detail",
+          "settings navigation",
+          "language dropdown",
+          "schedule enabled",
+          "four digit keypad input",
+          "23:30 saved",
+          "screen-off pauses animation",
+          "touch wake resumes animation"
+        ],
+        "frame_ms": 100,
+        "frames": 240,
+        "hardware_capture": false,
+        "language": "ja",
+        "mock_data": true,
+        "passed": true,
+        "screen_off_touch_simulated": true
+      },
+      "native_frames_sha256": "0e25c4c5d5f2f59ff8c100805f3c9432a4869a7b1aa01f04200fd6b90b1739a5"
+    },
+    "en": {
+      "name": "English",
+      "base_path": "en/",
+      "native_checks": {
+        "checks": [
+          "animated home",
+          "card pointer opens detail",
+          "settings navigation",
+          "language dropdown",
+          "schedule enabled",
+          "four digit keypad input",
+          "23:30 saved",
+          "screen-off pauses animation",
+          "touch wake resumes animation"
+        ],
+        "frame_ms": 100,
+        "frames": 240,
+        "hardware_capture": false,
+        "language": "en",
+        "mock_data": true,
+        "passed": true,
+        "screen_off_touch_simulated": true
+      },
+      "native_frames_sha256": "d84c423c17620ad348ea142f751ef9b5a0839182fbcba82ea239e1bb825274c2"
+    },
+    "de": {
+      "name": "Deutsch",
+      "base_path": "de/",
+      "native_checks": {
+        "checks": [
+          "animated home",
+          "card pointer opens detail",
+          "settings navigation",
+          "language dropdown",
+          "schedule enabled",
+          "four digit keypad input",
+          "23:30 saved",
+          "screen-off pauses animation",
+          "touch wake resumes animation"
+        ],
+        "frame_ms": 100,
+        "frames": 240,
+        "hardware_capture": false,
+        "language": "de",
+        "mock_data": true,
+        "passed": true,
+        "screen_off_touch_simulated": true
+      },
+      "native_frames_sha256": "02a0683780ef29dd495293bb544c2f498b3ecdc25af2dda308e872c27fad65c0"
     }
   },
+  "files": {
+    "quotamon-demo.gif": {
+      "bytes": 897011,
+      "sha256": "a701d9a7463111d59330200139d04259499bdf81eefbe2db51ca0ac900e2d0ac"
+    },
+    "quotamon-demo.mp4": {
+      "bytes": 425334,
+      "sha256": "10d62c8519e04bf47c8f96eb7350f15a6984246a54cbbe9d52304e431caee73a"
+    },
+    "quotamon-display.png": {
+      "bytes": 135271,
+      "sha256": "c8f32a7f8d60027ca4edd07df9e00db255a9ae4dea3051b6ed91f03b9b04e598"
+    },
+    "zh-CN/quotamon-demo.gif": {
+      "bytes": 907151,
+      "sha256": "2916567653324d930940df3e424e8398242f83b27871b6af6fa33edb22e2a6e1"
+    },
+    "zh-CN/quotamon-demo.mp4": {
+      "bytes": 478495,
+      "sha256": "cc827ab18137563dbf3c09aa02762c171ab7bf4eb7022eb9488a161f4418996e"
+    },
+    "zh-CN/quotamon-display.png": {
+      "bytes": 144517,
+      "sha256": "a28bb85490dbcb316aada3a2e1a54215da856d6db1961e8042075e15e44c618a"
+    },
+    "ja/quotamon-demo.gif": {
+      "bytes": 909513,
+      "sha256": "83acd43536440c666f32c5d56e431cb410809d88090f7a82f368144b5b0b33d8"
+    },
+    "ja/quotamon-demo.mp4": {
+      "bytes": 450739,
+      "sha256": "2fd3089afdde8214386469dc109916e451447bf666c0f13d0767700f38b312d4"
+    },
+    "ja/quotamon-display.png": {
+      "bytes": 157919,
+      "sha256": "f13a50f6bee65011111ef5427f4106b3dcc8fe08fe4938b1b8b1adff104a1176"
+    },
+    "en/quotamon-demo.gif": {
+      "bytes": 910865,
+      "sha256": "cd4e4e278709f29bd5e313e7f9ca14720d68804136f6be4090ee0aeb872295a9"
+    },
+    "en/quotamon-demo.mp4": {
+      "bytes": 499308,
+      "sha256": "ee57d7b83c9ec2013efb742f8d89e28616d53dacc24802d44d860e711056f878"
+    },
+    "en/quotamon-display.png": {
+      "bytes": 138250,
+      "sha256": "d70ef6ca7efb0fb794ffd002ae39d2f10a61f80874015dc00c19cb09d7c95c3c"
+    },
+    "de/quotamon-demo.gif": {
+      "bytes": 911397,
+      "sha256": "95183fffc408447873d4fe2d325cb014147ecc3cef672227a293afe76307f49f"
+    },
+    "de/quotamon-demo.mp4": {
+      "bytes": 465852,
+      "sha256": "71d8618b1752e4b0668cd002859af068e296db34dfd325783ada13e7a73757f4"
+    },
+    "de/quotamon-display.png": {
+      "bytes": 140637,
+      "sha256": "ce6082251e54c75999fdfbbff7fc81b0a75556c3019cc315713093d0f1e215cd"
+    }
+  },
+  "japanese_caption_font": {
+    "name": "Noto Sans JP Medium",
+    "source": "https://github.com/google/fonts/tree/2894aab31764f10f29c421bdfd2340d3b382d384/ofl/notosansjp",
+    "variable_font_sha256": "c2f3b4d463500a2ddcd3849cded1fceeb9fd6d1c32e6cbecd568453ba50fc68f",
+    "license": "NotoSansJP-OFL.txt"
+  },
   "video_mime": "video/mp4;codecs=avc1",
-  "video_source": "quotamon-demo.gif"
+  "captions_source": "tools/readme_media_locales.json"
 }

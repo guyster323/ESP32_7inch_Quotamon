@@ -16,14 +16,20 @@ Codex · Cursor · Copilot · Claude · Grok<br>
 [English](README.en.md) · [빠른 시작](#빠른-시작) · [변경 기록](#변경-기록) · [연결 가이드](docs/PORTABLE_BRIDGE.md) · [펌웨어 업로드](docs/UPLOAD.md) · [설계 문서](docs/ARCHITECTURE.md)
 
 <a href="assets/readme/quotamon-demo.mp4">
-  <img src="assets/readme/quotamon-demo.gif" width="1000" alt="Quotamon 모션 데모: Codex 세 계정, Cursor와 Copilot의 잔여량, 터치 상세, 리셋 일정과 최근 갱신 시각">
+  <img src="assets/readme/quotamon-demo.gif" width="1000" alt="Quotamon 한국어 데모: 움직이는 캐릭터, 터치 상세, 언어 선택, 시간 숫자 키패드와 화면 끄기 예약">
 </a>
 
-<sub>현재 기기와 같은 Codex 3개 + Cursor + Copilot 구성 · 14초 반복 데모 · <a href="assets/readme/quotamon-demo.mp4">영상으로 재생</a> · <a href="assets/readme/quotamon-display.png">정지 화면</a></sub>
+<sub>Codex 3개 + Cursor + Copilot · 최신 UI의 24초 반복 데모 · <a href="assets/readme/quotamon-demo.mp4">영상으로 재생</a> · <a href="assets/readme/quotamon-display.png">정지 화면</a></sub>
 
 </div>
 
-화면 안은 보드와 공유하는 **실제 LVGL 코드로 렌더링**했습니다. 수치는 공개용 예시이며, 기기 프레임·강조 효과·화면 전환은 소개용 모션 그래픽입니다. 실제 기기 사진이나 촬영 영상은 아닙니다.
+화면과 캐릭터 움직임은 보드와 공유하는 **실제 LVGL 코드로 렌더링**했습니다. 수치는 공개용 예시이며, 기기 프레임·터치 표시·화면 끄기와 점등은 소개용 시뮬레이션입니다. 실제 기기 사진이나 촬영 영상은 아닙니다.
+
+| 한국어 | 简体中文 | 日本語 | English | Deutsch |
+|:---:|:---:|:---:|:---:|:---:|
+| [MP4](assets/readme/quotamon-demo.mp4) · [GIF](assets/readme/quotamon-demo.gif) | [MP4](assets/readme/zh-CN/quotamon-demo.mp4) · [GIF](assets/readme/zh-CN/quotamon-demo.gif) | [MP4](assets/readme/ja/quotamon-demo.mp4) · [GIF](assets/readme/ja/quotamon-demo.gif) | [MP4](assets/readme/en/quotamon-demo.mp4) · [GIF](assets/readme/en/quotamon-demo.gif) | [MP4](assets/readme/de/quotamon-demo.mp4) · [GIF](assets/readme/de/quotamon-demo.gif) |
+
+각 영상은 해당 언어의 UI·자막으로 캐릭터 움직임 → 상세 → 언어 선택 → 숫자 4자리 시간 입력 → 예약 저장·화면 끄기·터치 점등을 보여줍니다. [생성 방법·검증](docs/README_MEDIA.md)
 
 ## 한눈에 보고, 필요할 때 터치하세요
 
@@ -36,6 +42,8 @@ Codex · Cursor · Copilot · Claude · Grok<br>
 | 정상·주의·긴급·소진·연결 대기·오래된 정보의 6개 상태. | 계정별 모든 한도와 리셋, 계정 선택·표시 설정을 확인합니다. | 설치 없는 Windows 트레이 앱이 BLE로 전달합니다. Node/.NET도 포함합니다. |
 
 막대의 채워진 부분은 흰 숫자, 빈 부분은 어두운 숫자입니다. 잔여 **20% 이하**는 주의, **10% 이하**는 긴급으로 표시하고, 확인 불가·무제한은 별도 상태로 다룹니다.
+
+계정은 5개 고정이 아닙니다. **1개는 전체 폭, 2·3개는 가로 열, 4개는 2×2, 5개는 3+2**로 자동 배치합니다. 0개면 계정 선택 안내가 나오며, 6개 이상은 페이지로 이동합니다. [개수별 화면·터치 검증](docs/README_MEDIA.md#선택한-계정-수별-배치)
 
 ## 지금 디스플레이에서 읽을 수 있는 것
 

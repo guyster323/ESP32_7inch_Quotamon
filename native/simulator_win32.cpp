@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include "snapshot_json.h"
+#include "screen_schedule.h"
 #include <array>
 #include <cstdint>
 #include <filesystem>
@@ -349,6 +350,128 @@ lv_obj_t* findDropdown(lv_obj_t* object) {
         if(auto* found=findDropdown(lv_obj_get_child(object,static_cast<int32_t>(i))))return found;
     return nullptr;
 }
+void renderAccountCounts(const std::filesystem::path& folder) {
+    std::filesystem::create_directories(folder);
+    auto data=monitor::demo();monitor::init(data);
+    nlohmann::json variants=nlohmann::json::array();
+    for(int count=0;count<=5;count++) {
+        std::vector<int> selected;
+        for(int i=0;i<5;i++) {
+            data.accounts[i].enabled=(i*3)%5<count;
+            if(data.accounts[i].enabled)selected.push_back(i);
+        }
+        monitor::apply(data);monitor::showHome();advance();
+        nlohmann::json rectangles=nlohmann::json::array();
+        std::vector<lv_obj_t*> previous;
+        std::vector<lv_area_t> areas;
+        for(int slot=0;slot<5;slot++) {
+            auto* card=monitor::cardObject(slot);
+            require((card!=nullptr)==(slot<count),"Wrong visible card count");
+            if(!card)continue;
+            previous.push_back(card);lv_area_t area;lv_obj_get_coords(card,&area);
+            require(area.x1>=20&&area.x2<780&&area.y1>=72&&area.y2<432,"Account card outside content area");
+            for(const auto& other:areas)require(area.x1>other.x2||other.x1>area.x2||area.y1>other.y2||other.y1>area.y2,"Account cards overlap");
+            areas.push_back(area);rectangles.push_back({area.x1,area.y1,area.x2-area.x1+1,area.y2-area.y1+1});
+        }
+        data.accounts[0].pools[0].remaining=70-count;
+        monitor::apply(data);advance();
+        for(int slot=0;slot<count;slot++)require(monitor::cardObject(slot)==previous[slot],"Quota refresh rebuilt a card");
+        capture(folder/("home-"+std::to_string(count)+".ppm"));
+        for(int slot=0;slot<count;slot++) {
+            const auto& area=areas[slot];click((area.x1+area.x2)/2,(area.y1+area.y2)/2);
+            require(monitor::selectedAccount()==selected[slot],"Card touch opened a disabled or wrong account");
+            click(70,35);require(monitor::selectedAccount()==-1,"Account detail back navigation failed");
+        }
+        if(count==0) {
+            require(!hasNumericPercent(lv_scr_act()),"Empty selection retained quota percentages");
+            click(360,360);require(monitor::selectedAccount()==-3,"Empty selection account picker failed");
+            monitor::showHome();
+        }
+        variants.push_back({{"selected_accounts",count},{"card_rectangles",rectangles}});
+    }
+    auto original=data.accounts;
+    for(int count:{6,20}) {
+        data.accounts.clear();
+        for(int i=0;i<count;i++) {
+            auto account=original[static_cast<size_t>(i%5)];account.enabled=true;
+            account.id="public-page-"+std::to_string(i);data.accounts.push_back(account);
+        }
+        monitor::apply(data);monitor::showHome();advance();
+        for(int pageIndex=0;pageIndex<(count+4)/5;pageIndex++) {
+            const int visible=std::min(5,count-pageIndex*5);
+            for(int slot=0;slot<5;slot++)require((monitor::cardObject(slot)!=nullptr)==(slot<visible),"Page has wrong card count");
+            if(pageIndex+1<(count+4)/5)click(480,35);
+        }
+        capture(folder/("home-"+std::to_string(count)+"-last-page.ppm"));
+        auto* first=monitor::cardObject(0);lv_area_t area;lv_obj_get_coords(first,&area);click(area.x1+30,area.y1+30);
+        require(monitor::selectedAccount()==(count-1)/5*5,"Last page touch opened the wrong account");click(70,35);
+        for(size_t i=0;i<data.accounts.size();i++)data.accounts[i].enabled=i<2;
+        monitor::apply(data);advance();
+        require(monitor::cardObject(0)&&monitor::cardObject(1)&&!monitor::cardObject(2),"Selection shrink failed to clamp the page");
+    }
+    std::ofstream report(folder/"checks.json");
+    report<<nlohmann::json({{"passed",true},{"mock_data",true},{"hardware_tested",false},{"production_layout_changed",false},
+        {"maximum_per_page",5},{"maximum_total",20},{"variants",variants},
+        {"checks",{"0 through 5 selected","non-contiguous selections","cards in bounds and non-overlapping","quota update preserves widgets",
+        "every visible card opens correct detail","back navigation","zero-selection account picker","6 and 20 account pagination","selection shrink clamps last page"}}}).dump(2)<<'\n';
+    std::cout<<"Account count layouts and pointer navigation: PASS\n";
+}
+void renderReadme(const std::string& language,const std::filesystem::path& folder) {
+    require(monitor::i18n::valid(language),"Unsupported demo language");
+    std::filesystem::create_directories(folder);
+    auto data=monitor::demo();
+    const char* profiles[]={"Orca","Personal","Team","Ultra","Business"};
+    for(size_t i=0;i<data.accounts.size();i++) {
+        data.accounts[i].id="public-demo-"+std::to_string(i);
+        data.accounts[i].profile=profiles[i];
+    }
+    data.refreshed="14:33:00";
+    monitor::init(data);auto settings=monitor::settings();settings.language=language;
+    monitor::setSettings(settings);monitor::showHome();advance();
+    lv_obj_t* dimmer=nullptr;
+    for(int frame=0;frame<240;frame++) {
+        if(frame==50) {click(150,165);require(monitor::selectedAccount()==0,"Demo card touch failed");}
+        if(frame==80) {click(70,35);click(730,35);require(monitor::selectedAccount()==-2,"Demo settings touch failed");}
+        if(frame==90) {auto* dropdown=findDropdown(lv_scr_act());require(dropdown!=nullptr,"Demo language dropdown missing");lv_dropdown_open(dropdown);}
+        if(frame==100) {
+            auto* dropdown=findDropdown(lv_scr_act());lv_dropdown_close(dropdown);
+            lv_dropdown_set_selected(dropdown,static_cast<uint16_t>(monitor::i18n::index(language)));
+            lv_event_send(dropdown,LV_EVENT_VALUE_CHANGED,nullptr);
+        }
+        if(frame==110) {click(665,185);require(monitor::selectedAccount()==-7,"Demo schedule touch failed");}
+        if(frame==120) click(65,118);
+        if(frame==130) click(440,176);
+        if(frame==140) click(400,140); // 2
+        if(frame==146) click(520,140); // 3
+        if(frame==152) click(520,140); // 3
+        if(frame==158) click(400,338); // 0
+        if(frame==166) {click(520,338);require(findLabel(lv_scr_act(),"23:30")!=nullptr,"Demo keypad entry failed");}
+        if(frame==180) {
+            click(735,432);
+            require(monitor::settings().sleepEnabled&&monitor::settings().sleepStartMinute==1410,"Demo schedule save failed");
+        }
+        if(frame==200) {
+            require(monitor::screenShouldSleep(true,1410,420,23*3600+30*60,0,true,0,0),"Demo schedule fixture invalid");
+            monitor::setDisplayAwake(false);
+            dimmer=lv_obj_create(lv_layer_top());lv_obj_remove_style_all(dimmer);lv_obj_set_size(dimmer,W,H);
+            lv_obj_set_style_bg_color(dimmer,lv_color_black(),0);lv_obj_set_style_bg_opa(dimmer,LV_OPA_COVER,0);
+            lv_obj_add_event_cb(dimmer,[](lv_event_t* event) {
+                auto* overlay=lv_event_get_target(event);lv_obj_set_style_bg_opa(overlay,LV_OPA_TRANSP,0);
+                lv_obj_clear_flag(overlay,LV_OBJ_FLAG_CLICKABLE);monitor::setDisplayAwake(true);
+            },LV_EVENT_PRESSED,nullptr);
+        }
+        if(frame==220) click(400,240);
+        advance(100);
+        char filename[24];std::snprintf(filename,sizeof(filename),"frame-%03d.ppm",frame);writePixels(folder/filename);
+    }
+    if(dimmer)lv_obj_del(dimmer);
+    std::ofstream report(folder/"checks.json");
+    report<<nlohmann::json({{"passed",true},{"language",language},{"frames",240},{"frame_ms",100},
+        {"mock_data",true},{"hardware_capture",false},{"screen_off_touch_simulated",true},
+        {"checks",{"animated home","card pointer opens detail","settings navigation","language dropdown",
+                    "schedule enabled","four digit keypad input","23:30 saved","screen-off pauses animation","touch wake resumes animation"}}}).dump(2)<<'\n';
+    std::cout<<"README native frames: "<<language<<" PASS\n";
+}
 void renderLocales(const std::filesystem::path& folder) {
     std::filesystem::create_directories(folder);
     auto data=monitor::demo();monitor::init(data);
@@ -447,6 +570,11 @@ int wmain(int argc,wchar_t** argv) {
         if(argc>=3&&std::wstring(argv[1])==L"--render") { renderSuite(argv[2]); return 0; }
         if(argc>=3&&std::wstring(argv[1])==L"--render-animation") { renderAnimation(argv[2]); return 0; }
         if(argc>=3&&std::wstring(argv[1])==L"--render-locales") { renderLocales(argv[2]); return 0; }
+        if(argc>=3&&std::wstring(argv[1])==L"--render-account-counts") {renderAccountCounts(argv[2]);return 0;}
+        if(argc>=4&&std::wstring(argv[1])==L"--render-readme") {
+            std::string language;for(const auto c:std::wstring(argv[2])) {require(c<=127,"Invalid language code");language.push_back(static_cast<char>(c));}
+            renderReadme(language,argv[3]);return 0;
+        }
         if(argc>=4&&std::wstring(argv[1])==L"--render-snapshot") {
             std::ifstream source(std::filesystem::path(argv[2]),std::ios::binary);
             auto parsed=nlohmann::json::parse(source); auto decoded=monitor::decode(parsed);

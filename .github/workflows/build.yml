@@ -42,6 +42,7 @@ jobs:
       - run: build\native\quotamon_ui_fonts_test.exe
       - run: python tools/verify_localized_lcd.py
       - run: python tools/verify_native_visuals.py
+      - run: python tools/verify_account_layouts.py
       - run: python tools/verify_character_animation.py
       - run: dotnet publish orca-integration/windows/Quotamon.Ble.csproj -c Release -o dist/orca-resource
       - run: dist\orca-resource\Quotamon.Ble.exe --probe
@@ -53,6 +54,7 @@ jobs:
       - run: python -m playwright install chromium
       - run: python tools/verify_portable_ui.py
       - run: python tools/verify_localized_ui.py
+      - run: python tools/verify_readme_media.py
       - uses: actions/upload-artifact@v4
         with:
           name: localized-ui-previews

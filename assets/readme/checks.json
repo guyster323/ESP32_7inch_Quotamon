@@ -1,0 +1,49 @@
+{
+  "passed": true,
+  "mock_data": true,
+  "hardware_footage": false,
+  "languages": {
+    "ko": {
+      "gif_frames": 240,
+      "duration_ms": 24000,
+      "animated_native_pixels": true,
+      "browser_playback": true
+    },
+    "zh-CN": {
+      "gif_frames": 240,
+      "duration_ms": 24000,
+      "animated_native_pixels": true,
+      "browser_playback": true
+    },
+    "ja": {
+      "gif_frames": 240,
+      "duration_ms": 24000,
+      "animated_native_pixels": true,
+      "browser_playback": true
+    },
+    "en": {
+      "gif_frames": 240,
+      "duration_ms": 24000,
+      "animated_native_pixels": true,
+      "browser_playback": true
+    },
+    "de": {
+      "gif_frames": 240,
+      "duration_ms": 24000,
+      "animated_native_pixels": true,
+      "browser_playback": true
+    }
+  },
+  "checks": [
+    "file hashes",
+    "24-second looping GIFs",
+    "native character pixels move",
+    "screen-off and wake frames",
+    "H.264 fast-start MP4",
+    "five-language browser playback",
+    "language switch",
+    "restart",
+    "430px layout",
+    "no JavaScript errors"
+  ]
+}

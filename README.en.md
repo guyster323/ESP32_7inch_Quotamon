@@ -15,17 +15,25 @@ A 7-inch desk display with pixel companions and quota bars.
 
 [한국어](README.md) · [Quick start](#quick-start) · [Portable setup](docs/PORTABLE_BRIDGE.md) · [Firmware upload](docs/UPLOAD.md) · [Architecture](docs/ARCHITECTURE.md)
 
-<a href="assets/readme/quotamon-demo.mp4">
-  <img src="assets/readme/quotamon-demo.gif" width="1000" alt="Quotamon motion demo: three Codex accounts, Cursor and Copilot quotas, touch details, reset schedules and the latest refresh time">
+<a href="assets/readme/en/quotamon-demo.mp4">
+  <img src="assets/readme/en/quotamon-demo.gif" width="1000" alt="Quotamon English demo: animated characters, touch details, language selection, direct time-entry keypad and screen-off schedule">
 </a>
 
-<sub>Three Codex accounts + Cursor + Copilot, matching the desk setup · 14-second loop · <a href="assets/readme/quotamon-demo.mp4">Play the video</a> · <a href="assets/readme/quotamon-display.png">Still image</a></sub>
+<sub>Three Codex accounts + Cursor + Copilot · 24-second loop of the current UI · <a href="assets/readme/en/quotamon-demo.mp4">Play the video</a> · <a href="assets/readme/en/quotamon-display.png">Still image</a></sub>
 
 </div>
 
-The screen uses **the actual LVGL code shared with the board**. Values are illustrative. The device bezel, highlights and transitions are presentation graphics; this is an illustrated demo rather than footage of the hardware.
+The UI and character motion use **the actual LVGL code shared with the board**. Values are illustrative. The device bezel, touch indicators, screen-off and wake behavior are presentation simulations. This is not hardware footage.
+
+| 한국어 | 简体中文 | 日本語 | English | Deutsch |
+|:---:|:---:|:---:|:---:|:---:|
+| [MP4](assets/readme/quotamon-demo.mp4) · [GIF](assets/readme/quotamon-demo.gif) | [MP4](assets/readme/zh-CN/quotamon-demo.mp4) · [GIF](assets/readme/zh-CN/quotamon-demo.gif) | [MP4](assets/readme/ja/quotamon-demo.mp4) · [GIF](assets/readme/ja/quotamon-demo.gif) | [MP4](assets/readme/en/quotamon-demo.mp4) · [GIF](assets/readme/en/quotamon-demo.gif) | [MP4](assets/readme/de/quotamon-demo.mp4) · [GIF](assets/readme/de/quotamon-demo.gif) |
+
+Each video uses localized UI and captions: character motion → details → language selection → four-digit time entry → schedule save, screen-off and touch wake. [Generation and verification](docs/README_MEDIA.md)
 
 ## Glance first. Touch for more.
+
+Account count is flexible: **one full-width card, two or three columns, a 2×2 grid for four, and a 3+2 grid for five**. An empty selection shows setup guidance; six or more accounts use pages. [Layout previews and touch checks](docs/README_MEDIA.md#선택한-계정-수별-배치)
 
 | Five accounts at a glance | Know when quotas reset | Know how fresh the data is |
 |---|---|---|

@@ -6,6 +6,8 @@ The lavender Copilot pilot robot is original unofficial artwork. Source master, 
 
 Noto Sans KR Medium and Noto Sans SC Medium: SIL OFL 1.1, [KR notice](native/generated/NotoSansKR-OFL.txt), [SC notice](native/generated/NotoSansSC-OFL.txt). Embedded glyphs include all five-language LCD UI messages, modern Hangul, ASCII and Latin extended. Additional Chinese/Japanese account-name glyphs outside the UI subset require regenerating the fonts. Font source revision and checksum are recorded in [the asset manifest](native/generated/asset-manifest.json).
 
+README video captions also use Noto Sans JP Medium under SIL OFL 1.1. The [JP notice](assets/readme/NotoSansJP-OFL.txt) is retained; the pinned source and SHA-256 are recorded in [media metadata](assets/readme/media.json). This caption font is used during media generation and is not added to the ESP32 firmware.
+
 | Component | Version / revision | License / notice |
 |---|---|---|
 | LVGL | 8.4.0, 4495f428630cc1741bd8bfd977f080e8460e8e8d | MIT; retained by dependency bootstrap |
