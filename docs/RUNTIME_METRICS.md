@@ -2,7 +2,36 @@
 
 대상은 Waveshare ESP32-S3-Touch-LCD-7 Rev1.2, ESP32-S3 240MHz 듀얼 코어, 8MiB PSRAM, 800×480 RGB565입니다. 애니메이션과 BLE 데이터 전송이 실행 중인 보드에서 통계를 수집합니다. 펌웨어 식별자와 개별 표본은 [실측 데이터](runtime-metrics.json)에 기록합니다.
 
-## 2026-10-16 실측 결과
+## 주기적인 화면 밀림 수정
+
+계측 추가 후 사용자가 약 4초 간격의 하단 깨짐·화면 밀림을 보고했습니다. 기존 5초 주기 CPU 수집의 `uxTaskGetSystemState()`는 이 프로젝트의 ESP-IDF 5.5.3 듀얼 코어 구현에서 커널 임계 구역을 유지하며 모든 태스크의 미사용 스택까지 순회합니다. RGB 전송은 내부 RAM의 10줄 bounce buffer를 약 0.51ms마다 채워야 하므로, 평균 CPU 사용률이 낮아도 긴 인터럽트 지연은 화면을 밀리게 할 수 있습니다. 실제 중단 시간을 측정한 원인 확정은 아니며, 확인된 지연 위험을 제거한 수정입니다.
+
+CPU 수집은 `ulTaskGetIdleRunTimeCounterForCore()` 두 번과 같은 runtime clock의 차분으로 교체했습니다. 화면 잠금 안에서는 프레임 카운터·페이지 정보만 복사하고, CPU·힙 조회·JSON 생성·BLE 전송은 잠금 밖에서 실행합니다. 잠금을 즉시 얻지 못하면 다음 루프에 재시도해 현재 렌더를 기다리게 하지 않습니다. 5초 통계 주기·스키마·애니메이션·LCD 타이밍·버퍼 수는 유지했습니다.
+
+실제 펌웨어의 수집 코드를 사용하는 호스트 회귀 검사는 전체 태스크 조회 재발, 잠금 중 힙 조회·BLE 전송, 바쁜 UI에서 표본 소실, 프레임 카운터 초기화, 32비트 runtime counter 오버플로를 검사합니다. 실행 명령은 `build/native/quotamon_runtime_metrics_test.exe`입니다.
+
+구현 근거: [ESP-IDF 5.5.3 task 목록·스택 조회](https://github.com/espressif/esp-idf/blob/v5.5.3/components/freertos/FreeRTOS-Kernel/tasks.c), [코어별 idle runtime API](https://github.com/espressif/esp-idf/blob/v5.5.3/components/freertos/esp_additions/freertos_tasks_c_additions.h), [듀얼 코어 커널 임계 구역](https://github.com/espressif/esp-idf/blob/v5.5.3/components/freertos/esp_additions/include/esp_private/freertos_idf_additions_priv.h).
+
+### 수정 후 실물 검증
+
+앱 영역만 업로드한 뒤 새 이미지의 플래시 검증, 이전 앱 백업 해시 일치, 부트로더·파티션·NVS의 업로드 전후 바이트 일치를 확인했습니다. 기존 PC BLE 도우미를 재시작해 인증 연결과 실물 통계 수신을 복구했습니다. 사용자가 **“깨짐·밀림 없이 정상”**이라고 확인했습니다.
+
+홈 캐릭터 5개의 안정 구간 45.260초·9표본을 [수정 후 원시 표본](runtime-metrics-display-fix.json)에 기록했습니다. 초기 페어링 대기 표본 1개와 화면 전환이 섞인 구간 1개는 제외했습니다.
+
+| 항목 | 수정 후 홈 |
+|---|---:|
+| CPU 두 코어 평균 | 5.97% |
+| 코어 0 / 코어 1 평균 | 11.87% / 0.07% |
+| CPU 5초 구간 평균 범위 | 5.22~8.12% |
+| 실제 LVGL 갱신률 | 7.29fps |
+| 평균 / 최대 렌더·flush | 23.03ms / 191ms |
+| 현재 / 부팅 이후 최저 PSRAM 여유 | 912,772 / 912,772바이트 |
+| 가장 큰 연속 PSRAM 블록 | 884,736바이트 (864KiB) |
+| 현재 / 부팅 이후 최저 내부 RAM 여유 | 103,619 / 82,735바이트 |
+
+바이너리는 6,032,080바이트, 프로그램은 6,031,679 / 8,323,072바이트(72.5%), 정적 RAM은 54,160 / 327,680바이트(16.5%)입니다. SHA-256은 `fd9c5d4aee88d3377f45ae0214c3e4fe139088b6766beb9ad18e81fc48f443bf`이며 [현재 배포 기록](character-animation-build.json)과 일치합니다. 관측 중 재부팅이나 PSRAM 여유 감소는 없었습니다. 화면 안정성은 사용자 관찰로 확인한 결과이며 장시간 스트레스 검증은 아닙니다. 앞선 표본과의 차이만으로 성능 향상률을 계산하지 않습니다.
+
+## 2026-10-16 수정 전 실측 결과
 
 실제 Orca·포터블 중계·BLE 연결 상태에서 측정했습니다. 사용자가 연 상세 화면의 첫 전환 표본은 제외했습니다.
 

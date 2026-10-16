@@ -71,7 +71,7 @@ extern "C" void app_main() {
             }
         }
         if(current.connected&&(!transport::isConnected()||esp_timer_get_time()/1000-transport::lastContactMs()>35000)) {clear();transport::disconnect();}
-        diagnostics::tick();
         esp_lv_adapter_unlock();
+        diagnostics::tick();
     }
 }

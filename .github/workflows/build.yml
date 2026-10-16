@@ -34,6 +34,7 @@ jobs:
       - run: tools\build_native.cmd
         shell: cmd
       - run: build\native\quotamon_protocol_test.exe
+      - run: build\native\quotamon_runtime_metrics_test.exe
       - run: python tools/verify_native_visuals.py
       - run: python tools/verify_character_animation.py
       - run: dotnet publish orca-integration/windows/Quotamon.Ble.csproj -c Release -o dist/orca-resource

@@ -1,0 +1,319 @@
+{
+  "hardware_measured": true,
+  "firmware_sha256": "fd9c5d4aee88d3377f45ae0214c3e4fe139088b6766beb9ad18e81fc48f443bf",
+  "started_utc": "2026-10-16T06:55:14.618140+00:00",
+  "finished_utc": "2026-10-16T06:56:45.010060+00:00",
+  "method": {
+    "cpu": "Per-core 100 * (1 - delta idle task runtime / delta ESP timer runtime); two-core mean, with FreeRTOS runtime accounting enabled",
+    "fps": "Completed LVGL refresh cycles / wall-clock window, not LCD scan rate or a maximum-FPS benchmark",
+    "psram": "heap_caps_get_info(MALLOC_CAP_SPIRAM), after XIP/framebuffers/UI/BLE allocations",
+    "transport": "Existing authenticated BLE notification path; no additional BLE client",
+    "overhead": "Five-second sampling plus task runtime accounting; measured firmware includes this instrumentation"
+  },
+  "excluded_view_transition_windows": 1,
+  "summary": {
+    "samples": 9,
+    "measured_seconds": 45.26,
+    "cpu_core_mean_percent": [
+      11.866,
+      0.068
+    ],
+    "cpu_average_mean_percent": 5.966,
+    "cpu_average_range_percent": [
+      5.22,
+      8.12
+    ],
+    "lvgl_refresh_fps": 7.291,
+    "lvgl_refresh_fps_range": [
+      6.529,
+      7.78
+    ],
+    "render_mean_ms": 23.03,
+    "render_max_ms": 191,
+    "psram_free_range_bytes": [
+      912772,
+      912772
+    ],
+    "psram_minimum_since_boot_bytes": 912772,
+    "psram_smallest_largest_free_block_bytes": 884736,
+    "internal_free_range_bytes": [
+      103619,
+      103619
+    ],
+    "internal_minimum_since_boot_bytes": 82735
+  },
+  "scenarios": [
+    {
+      "page": -1,
+      "visible_characters": 5,
+      "samples": 9,
+      "measured_seconds": 45.26,
+      "cpu_core_mean_percent": [
+        11.866,
+        0.068
+      ],
+      "cpu_average_mean_percent": 5.966,
+      "cpu_average_range_percent": [
+        5.22,
+        8.12
+      ],
+      "lvgl_refresh_fps": 7.291,
+      "lvgl_refresh_fps_range": [
+        6.529,
+        7.78
+      ],
+      "render_mean_ms": 23.03,
+      "render_max_ms": 191,
+      "psram_free_range_bytes": [
+        912772,
+        912772
+      ],
+      "psram_minimum_since_boot_bytes": 912772,
+      "psram_smallest_largest_free_block_bytes": 884736,
+      "internal_free_range_bytes": [
+        103619,
+        103619
+      ],
+      "internal_minimum_since_boot_bytes": 82735
+    }
+  ],
+  "samples": [
+    {
+      "received_at": "2026-10-16T06:56:01.554Z",
+      "type": "runtime_stats",
+      "schema": 1,
+      "uptime_ms": 65932,
+      "window_ms": 5098,
+      "page": -1,
+      "visible_characters": 5,
+      "ble_connected": true,
+      "cpu_valid": true,
+      "cpu_percent": [
+        15.98,
+        0.26
+      ],
+      "cpu_average_percent": 8.12,
+      "refresh_frames": 38,
+      "lvgl_refresh_fps": 7.454,
+      "render_mean_ms": 27.447,
+      "render_max_ms": 191,
+      "pixels_per_refresh": 27883,
+      "psram_free_bytes": 912772,
+      "psram_minimum_free_bytes": 912772,
+      "psram_largest_free_block_bytes": 884736,
+      "internal_free_bytes": 103619,
+      "internal_minimum_free_bytes": 82735
+    },
+    {
+      "received_at": "2026-10-16T06:56:06.535Z",
+      "type": "runtime_stats",
+      "schema": 1,
+      "uptime_ms": 70945,
+      "window_ms": 5013,
+      "page": -1,
+      "visible_characters": 5,
+      "ble_connected": true,
+      "cpu_valid": true,
+      "cpu_percent": [
+        11.92,
+        0
+      ],
+      "cpu_average_percent": 5.96,
+      "refresh_frames": 38,
+      "lvgl_refresh_fps": 7.58,
+      "render_mean_ms": 21.184,
+      "render_max_ms": 45,
+      "pixels_per_refresh": 17490,
+      "psram_free_bytes": 912772,
+      "psram_minimum_free_bytes": 912772,
+      "psram_largest_free_block_bytes": 884736,
+      "internal_free_bytes": 103619,
+      "internal_minimum_free_bytes": 82735
+    },
+    {
+      "received_at": "2026-10-16T06:56:11.575Z",
+      "type": "runtime_stats",
+      "schema": 1,
+      "uptime_ms": 75999,
+      "window_ms": 5053,
+      "page": -1,
+      "visible_characters": 5,
+      "ble_connected": true,
+      "cpu_valid": true,
+      "cpu_percent": [
+        10.48,
+        0
+      ],
+      "cpu_average_percent": 5.24,
+      "refresh_frames": 33,
+      "lvgl_refresh_fps": 6.529,
+      "render_mean_ms": 22.788,
+      "render_max_ms": 38,
+      "pixels_per_refresh": 16957,
+      "psram_free_bytes": 912772,
+      "psram_minimum_free_bytes": 912772,
+      "psram_largest_free_block_bytes": 884736,
+      "internal_free_bytes": 103619,
+      "internal_minimum_free_bytes": 82735
+    },
+    {
+      "received_at": "2026-10-16T06:56:16.607Z",
+      "type": "runtime_stats",
+      "schema": 1,
+      "uptime_ms": 81005,
+      "window_ms": 5006,
+      "page": -1,
+      "visible_characters": 5,
+      "ble_connected": true,
+      "cpu_valid": true,
+      "cpu_percent": [
+        11.49,
+        0.14
+      ],
+      "cpu_average_percent": 5.81,
+      "refresh_frames": 37,
+      "lvgl_refresh_fps": 7.391,
+      "render_mean_ms": 23.216,
+      "render_max_ms": 42,
+      "pixels_per_refresh": 17322,
+      "psram_free_bytes": 912772,
+      "psram_minimum_free_bytes": 912772,
+      "psram_largest_free_block_bytes": 884736,
+      "internal_free_bytes": 103619,
+      "internal_minimum_free_bytes": 82735
+    },
+    {
+      "received_at": "2026-10-16T06:56:21.588Z",
+      "type": "runtime_stats",
+      "schema": 1,
+      "uptime_ms": 86018,
+      "window_ms": 5013,
+      "page": -1,
+      "visible_characters": 5,
+      "ble_connected": true,
+      "cpu_valid": true,
+      "cpu_percent": [
+        11.35,
+        0.01
+      ],
+      "cpu_average_percent": 5.68,
+      "refresh_frames": 39,
+      "lvgl_refresh_fps": 7.779,
+      "render_mean_ms": 20.692,
+      "render_max_ms": 37,
+      "pixels_per_refresh": 15842,
+      "psram_free_bytes": 912772,
+      "psram_minimum_free_bytes": 912772,
+      "psram_largest_free_block_bytes": 884736,
+      "internal_free_bytes": 103619,
+      "internal_minimum_free_bytes": 82735
+    },
+    {
+      "received_at": "2026-10-16T06:56:26.628Z",
+      "type": "runtime_stats",
+      "schema": 1,
+      "uptime_ms": 91025,
+      "window_ms": 5006,
+      "page": -1,
+      "visible_characters": 5,
+      "ble_connected": true,
+      "cpu_valid": true,
+      "cpu_percent": [
+        10.44,
+        0.12
+      ],
+      "cpu_average_percent": 5.28,
+      "refresh_frames": 34,
+      "lvgl_refresh_fps": 6.791,
+      "render_mean_ms": 24.118,
+      "render_max_ms": 40,
+      "pixels_per_refresh": 16790,
+      "psram_free_bytes": 912772,
+      "psram_minimum_free_bytes": 912772,
+      "psram_largest_free_block_bytes": 884736,
+      "internal_free_bytes": 103619,
+      "internal_minimum_free_bytes": 82735
+    },
+    {
+      "received_at": "2026-10-16T06:56:31.603Z",
+      "type": "runtime_stats",
+      "schema": 1,
+      "uptime_ms": 96038,
+      "window_ms": 5013,
+      "page": -1,
+      "visible_characters": 5,
+      "ble_connected": true,
+      "cpu_valid": true,
+      "cpu_percent": [
+        13.07,
+        0
+      ],
+      "cpu_average_percent": 6.53,
+      "refresh_frames": 39,
+      "lvgl_refresh_fps": 7.78,
+      "render_mean_ms": 22.769,
+      "render_max_ms": 43,
+      "pixels_per_refresh": 19127,
+      "psram_free_bytes": 912772,
+      "psram_minimum_free_bytes": 912772,
+      "psram_largest_free_block_bytes": 884736,
+      "internal_free_bytes": 103619,
+      "internal_minimum_free_bytes": 82735
+    },
+    {
+      "received_at": "2026-10-16T06:56:36.649Z",
+      "type": "runtime_stats",
+      "schema": 1,
+      "uptime_ms": 101047,
+      "window_ms": 5008,
+      "page": -1,
+      "visible_characters": 5,
+      "ble_connected": true,
+      "cpu_valid": true,
+      "cpu_percent": [
+        10.36,
+        0.08
+      ],
+      "cpu_average_percent": 5.22,
+      "refresh_frames": 34,
+      "lvgl_refresh_fps": 6.788,
+      "render_mean_ms": 23.412,
+      "render_max_ms": 43,
+      "pixels_per_refresh": 16445,
+      "psram_free_bytes": 912772,
+      "psram_minimum_free_bytes": 912772,
+      "psram_largest_free_block_bytes": 884736,
+      "internal_free_bytes": 103619,
+      "internal_minimum_free_bytes": 82735
+    },
+    {
+      "received_at": "2026-10-16T06:56:41.626Z",
+      "type": "runtime_stats",
+      "schema": 1,
+      "uptime_ms": 106098,
+      "window_ms": 5050,
+      "page": -1,
+      "visible_characters": 5,
+      "ble_connected": true,
+      "cpu_valid": true,
+      "cpu_percent": [
+        11.64,
+        0
+      ],
+      "cpu_average_percent": 5.82,
+      "refresh_frames": 38,
+      "lvgl_refresh_fps": 7.523,
+      "render_mean_ms": 21.842,
+      "render_max_ms": 37,
+      "pixels_per_refresh": 16886,
+      "psram_free_bytes": 912772,
+      "psram_minimum_free_bytes": 912772,
+      "psram_largest_free_block_bytes": 884736,
+      "internal_free_bytes": 103619,
+      "internal_minimum_free_bytes": 82735
+    }
+  ],
+  "excluded_non_home_samples": 1,
+  "display_stability_user_confirmed": true,
+  "cpu_sampling": "Two direct per-core idle runtime counter reads; no system task enumeration or stack scan"
+}
