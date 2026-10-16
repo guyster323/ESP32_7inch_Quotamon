@@ -1,7 +1,7 @@
 {
   "hardware_measured": true,
   "firmware_sha256": "136829f752277a196542a41a8f564a34de9237976655dec9c168436c28ab7322",
-  "recorded_utc": "2026-10-16T07:53:32.812825+00:00",
+  "recorded_utc": "2026-10-16T07:59:09.177097+00:00",
   "schedule": {
     "timezone": "Asia/Seoul",
     "utc_offset_minutes": 540,
@@ -9,7 +9,7 @@
     "sleep_end_minute": 1012
   },
   "physical_off_on_user_confirmed": true,
-  "device_settings_save_user_confirmed": false,
+  "device_settings_save_user_confirmed": true,
   "backlight_off_on_commands_succeeded": true,
   "no_unexpected_reboot_observed": true,
   "measurement": "Existing authenticated BLE runtime samples and numeric firmware transition logs; no second BLE client",
@@ -68,6 +68,14 @@
     {
       "observed_utc": "2026-10-16T07:52:01.910646+00:00",
       "line": "I (155705) quotamon-ui: Backlight on: ESP_OK"
+    },
+    {
+      "observed_utc": "2026-10-16T07:57:42.944840+00:00",
+      "line": "I (496727) quotamon-ui: Display saved: language=ko schedule=0 start=1011 end=1012"
+    },
+    {
+      "observed_utc": "2026-10-16T07:58:51.387634+00:00",
+      "line": "I (565169) quotamon-ui: Display saved: language=ko schedule=0 start=1380 end=420"
     }
   ],
   "samples": [
@@ -1059,5 +1067,22 @@
       "internal_free_bytes": 103327,
       "internal_minimum_free_bytes": 82131
     }
-  ]
+  ],
+  "device_settings_sync_to_pc_verified": true,
+  "device_save_validation": {
+    "pc_config_revision": 5,
+    "no_reboot_user_confirmed": true,
+    "saved_schedule_enabled": false,
+    "device_nvs_save_logged": true,
+    "uptime_before_ms": 492801,
+    "uptime_after_ms": 512941
+  },
+  "post_test_restoration": {
+    "sleep_enabled": false,
+    "sleep_start_minute": 1380,
+    "sleep_end_minute": 420,
+    "pc_config_revision": 6,
+    "device_nvs_save_logged": true,
+    "accounts_pairing_preferences_preserved": true
+  }
 }

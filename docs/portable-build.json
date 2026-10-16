@@ -161,6 +161,6 @@
     "hardware_screen_schedule_user_confirmed": true,
     "firmware_record": "docs/character-animation-build.json",
     "hardware_screen_schedule_record": "docs/screen-schedule-hardware.json",
-    "hardware_device_save_user_confirmed": false
+    "hardware_device_save_user_confirmed": true
   }
 }

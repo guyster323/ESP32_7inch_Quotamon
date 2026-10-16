@@ -34,10 +34,11 @@
   "hardware_backlight_off_on_commands_verified": true,
   "hardware_schedule_backlight_touch_user_confirmed": false,
   "hardware_screen_schedule_off_on_user_confirmed": true,
-  "hardware_device_settings_save_user_confirmed": false,
+  "hardware_device_settings_save_user_confirmed": true,
   "hardware_screen_schedule_record": "docs/screen-schedule-hardware.json",
   "screen_schedule_logic_test_passed": true,
   "language_checks": "visuals/locales/lcd-checks.json",
   "runtime_metrics_record": "docs/screen-schedule-hardware.json",
-  "runtime_metrics_samples": 38
+  "runtime_metrics_samples": 38,
+  "hardware_device_settings_sync_to_pc_verified": true
 }
