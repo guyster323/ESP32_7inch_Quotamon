@@ -22,6 +22,8 @@
 
 ## 설정 화면
 
+**설정 → 언어**에서 한국어·중국어 간체·일본어·영어·독일어를 선택합니다. 웹의 언어 미리 보기 후 저장하면 ESP32와 동기화됩니다. **화면 끄기 예약**은 기본 해제 상태이며, 매일 반복·자정 경과·5분 터치 점등을 지원합니다. [사용법과 시간 기준](LANGUAGES_AND_SCREEN_SCHEDULE.md)
+
 | 대시보드 | 계정 선택 |
 |---|---|
 | ![대시보드](../visuals/portable/01-dashboard-mock.png) | ![계정 선택](../visuals/portable/02-accounts-mock.png) |

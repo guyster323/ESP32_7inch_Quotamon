@@ -1,0 +1,1328 @@
+{
+  "설정": {
+    "en": "Settings",
+    "zh-CN": "设置",
+    "ja": "設定",
+    "de": "Einstellungen"
+  },
+  "언어": {
+    "en": "Language",
+    "zh-CN": "语言",
+    "ja": "言語",
+    "de": "Sprache"
+  },
+  "저장": {
+    "en": "Save",
+    "zh-CN": "保存",
+    "ja": "保存",
+    "de": "Speichern"
+  },
+  "취소": {
+    "en": "Cancel",
+    "zh-CN": "取消",
+    "ja": "キャンセル",
+    "de": "Abbrechen"
+  },
+  "뒤로": {
+    "en": "Back",
+    "zh-CN": "返回",
+    "ja": "戻る",
+    "de": "Zurück"
+  },
+  "새로고침": {
+    "en": "Refresh",
+    "zh-CN": "刷新",
+    "ja": "更新",
+    "de": "Aktualisieren"
+  },
+  "연결": {
+    "en": "Connect",
+    "zh-CN": "连接",
+    "ja": "接続",
+    "de": "Verbinden"
+  },
+  "연결됨": {
+    "en": "Connected",
+    "zh-CN": "已连接",
+    "ja": "接続済み",
+    "de": "Verbunden"
+  },
+  "연결 중": {
+    "en": "Connecting",
+    "zh-CN": "连接中",
+    "ja": "接続中",
+    "de": "Verbindung läuft"
+  },
+  "연결 대기": {
+    "en": "Waiting for connection",
+    "zh-CN": "等待连接",
+    "ja": "接続待ち",
+    "de": "Warte auf Verbindung"
+  },
+  "확인 중": {
+    "en": "Checking",
+    "zh-CN": "检查中",
+    "ja": "確認中",
+    "de": "Wird geprüft"
+  },
+  "사용 가능": {
+    "en": "Available",
+    "zh-CN": "可用",
+    "ja": "利用可能",
+    "de": "Verfügbar"
+  },
+  "사용할 수 없음": {
+    "en": "Unavailable",
+    "zh-CN": "不可用",
+    "ja": "利用不可",
+    "de": "Nicht verfügbar"
+  },
+  "무제한": {
+    "en": "Unlimited",
+    "zh-CN": "无限制",
+    "ja": "無制限",
+    "de": "Unbegrenzt"
+  },
+  "미확인": {
+    "en": "Unknown",
+    "zh-CN": "未知",
+    "ja": "不明",
+    "de": "Unbekannt"
+  },
+  "시각 미확인": {
+    "en": "Time unknown",
+    "zh-CN": "时间未知",
+    "ja": "時刻不明",
+    "de": "Zeit unbekannt"
+  },
+  "요금제 미확인": {
+    "en": "Plan unknown",
+    "zh-CN": "套餐未知",
+    "ja": "プラン不明",
+    "de": "Tarif unbekannt"
+  },
+  "리셋 후 확인 대기": {
+    "en": "Awaiting update after reset",
+    "zh-CN": "重置后等待更新",
+    "ja": "リセット後の更新待ち",
+    "de": "Update nach Zurücksetzen ausstehend"
+  },
+  "Reset W 미확인": {
+    "en": "Reset W unknown",
+    "zh-CN": "周重置时间未知",
+    "ja": "週リセット時刻不明",
+    "de": "Reset W unbekannt"
+  },
+  "일부 잔여량 미확인": {
+    "en": "Some quotas unknown",
+    "zh-CN": "部分余额未知",
+    "ja": "一部の残量は不明",
+    "de": "Einige Kontingente unbekannt"
+  },
+  "무제한 · 제공된 정책 기준": {
+    "en": "Unlimited · per provider policy",
+    "zh-CN": "无限制 · 以服务政策为准",
+    "ja": "無制限 · 提供元の方針による",
+    "de": "Unbegrenzt · laut Anbieter"
+  },
+  "연결 대기 · 데이터 없음": {
+    "en": "Waiting · no data",
+    "zh-CN": "等待连接 · 无数据",
+    "ja": "接続待ち · データなし",
+    "de": "Warte auf Verbindung · keine Daten"
+  },
+  "확인 불가 · 수집 상태 확인": {
+    "en": "Unavailable · check source",
+    "zh-CN": "无法确认 · 请检查数据源",
+    "ja": "確認不可 · 取得状況を確認",
+    "de": "Nicht verfügbar · Quelle prüfen"
+  },
+  "오래된 정보 · 마지막 수집 확인": {
+    "en": "Stale data · check last update",
+    "zh-CN": "数据已过期 · 请检查更新时间",
+    "ja": "古い情報 · 最終取得を確認",
+    "de": "Veraltete Daten · letztes Update prüfen"
+  },
+  "%.1f / %.1f AIC 남음": {
+    "en": "%.1f / %.1f AIC left",
+    "zh-CN": "剩余 %.1f / %.1f AIC",
+    "ja": "残り %.1f / %.1f AIC",
+    "de": "%.1f / %.1f AIC übrig"
+  },
+  "Orca · BLE 연결 · %d초 갱신": {
+    "en": "Orca · BLE connected · %ds",
+    "zh-CN": "Orca · BLE 已连接 · 每%d秒更新",
+    "ja": "Orca · BLE接続 · %d秒ごと",
+    "de": "Orca · BLE verbunden · %d s"
+  },
+  "Orca 연결 대기 · 표시 데이터 삭제됨": {
+    "en": "Waiting for Orca · data cleared",
+    "zh-CN": "等待 Orca · 已清除显示数据",
+    "ja": "Orca接続待ち · 表示データ消去済み",
+    "de": "Warte auf Orca · Daten gelöscht"
+  },
+  "예시 데이터": {
+    "en": "Sample data",
+    "zh-CN": "示例数据",
+    "ja": "サンプルデータ",
+    "de": "Beispieldaten"
+  },
+  "최근 갱신": {
+    "en": "Last refresh",
+    "zh-CN": "最近刷新",
+    "ja": "最終更新",
+    "de": "Letzte Aktualisierung"
+  },
+  "계정 수집": {
+    "en": "Account update",
+    "zh-CN": "账户数据更新",
+    "ja": "アカウント取得",
+    "de": "Kontodaten"
+  },
+  "첫 카드 수집": {
+    "en": "First account update",
+    "zh-CN": "首个账户更新",
+    "ja": "先頭アカウント取得",
+    "de": "Erstes Konto"
+  },
+  "터치해서 상세 확인": {
+    "en": "Tap for details",
+    "zh-CN": "点击查看详情",
+    "ja": "タップして詳細",
+    "de": "Für Details antippen"
+  },
+  "추가 %d개 한도 · 상세에서 확인": {
+    "en": "%d more limits · tap for details",
+    "zh-CN": "另有%d项限额 · 点击详情",
+    "ja": "他%d件の上限 · 詳細を確認",
+    "de": "%d weitere Limits · Details öffnen"
+  },
+  "%d초": {
+    "en": "%d s",
+    "zh-CN": "%d秒",
+    "ja": "%d秒",
+    "de": "%d s"
+  },
+  "Orca에 새로고침 요청됨": {
+    "en": "Refresh requested from Orca",
+    "zh-CN": "已请求 Orca 刷新",
+    "ja": "Orcaに更新を要求しました",
+    "de": "Aktualisierung bei Orca angefordert"
+  },
+  "저장된 PC 페어링을 지울까요?": {
+    "en": "Remove the saved PC pairing?",
+    "zh-CN": "删除已保存的电脑配对？",
+    "ja": "保存済みPCのペアリングを削除しますか？",
+    "de": "Gespeicherte PC-Kopplung löschen?"
+  },
+  "현재 연결이 끊어지고 Windows에서도 기존 장치를 제거해야 합니다.": {
+    "en": "Disconnects now. Also remove the device in Windows.",
+    "zh-CN": "将断开连接。也请在 Windows 中删除此设备。",
+    "ja": "接続を切断します。Windows側でもデバイスを削除してください。",
+    "de": "Verbindung wird getrennt. Gerät auch in Windows entfernen."
+  },
+  "페어링 지우기": {
+    "en": "Delete pairing",
+    "zh-CN": "删除配对",
+    "ja": "ペアリング削除",
+    "de": "Kopplung löschen"
+  },
+  "QUOTA  /  구독 잔여량": {
+    "en": "QUOTA  /  Remaining usage",
+    "zh-CN": "QUOTA  /  订阅余额",
+    "ja": "QUOTA  /  利用可能な残量",
+    "de": "QUOTA  /  Verfügbares Kontingent"
+  },
+  "나만의 구독 모니터를 시작하세요": {
+    "en": "Set up your subscription monitor",
+    "zh-CN": "设置您的订阅监视器",
+    "ja": "サブスクモニターを始めましょう",
+    "de": "Abomonitor einrichten"
+  },
+  "Orca 연결을 기다리고 있습니다": {
+    "en": "Waiting for Orca",
+    "zh-CN": "正在等待 Orca",
+    "ja": "Orcaの接続を待っています",
+    "de": "Warte auf Orca"
+  },
+  "Orca에서 표시할 계정을 선택하세요.": {
+    "en": "Choose accounts to display in Orca.",
+    "zh-CN": "请在 Orca 中选择要显示的账户。",
+    "ja": "Orcaで表示するアカウントを選んでください。",
+    "de": "Anzuzeigende Konten in Orca wählen."
+  },
+  "Orca 실행 상태를 확인하거나 BLE로 새로 연결하세요.": {
+    "en": "Check Orca or reconnect over BLE.",
+    "zh-CN": "请检查 Orca 或重新连接 BLE。",
+    "ja": "Orcaの起動を確認するかBLEで再接続してください。",
+    "de": "Orca prüfen oder per BLE neu verbinden."
+  },
+  "Orca 사용자는 기존 로그인과 사용량을 그대로 연결할 수 있습니다.": {
+    "en": "Use your existing Orca accounts and usage.",
+    "zh-CN": "可直接使用现有 Orca 登录和使用量。",
+    "ja": "Orcaの既存のログインと使用量を利用できます。",
+    "de": "Vorhandene Orca-Konten und Nutzungsdaten verwenden."
+  },
+  "BLE 연결 시작": {
+    "en": "Start BLE connection",
+    "zh-CN": "开始 BLE 连接",
+    "ja": "BLE接続を開始",
+    "de": "BLE-Verbindung starten"
+  },
+  "계정 선택": {
+    "en": "Select accounts",
+    "zh-CN": "选择账户",
+    "ja": "アカウント選択",
+    "de": "Konten wählen"
+  },
+  "%d개 한도 · 막대 영역을 위아래로 스크롤": {
+    "en": "%d limits · scroll the bars",
+    "zh-CN": "%d项限额 · 上下滚动查看",
+    "ja": "%d件の上限 · バーを上下にスクロール",
+    "de": "%d Limits · Balkenbereich scrollen"
+  },
+  "확인 불가": {
+    "en": "Unavailable",
+    "zh-CN": "无法确认",
+    "ja": "確認不可",
+    "de": "Nicht verfügbar"
+  },
+  "무제한 · 비율 계산 없음": {
+    "en": "Unlimited · no percentage",
+    "zh-CN": "无限制 · 无百分比",
+    "ja": "無制限 · 割合なし",
+    "de": "Unbegrenzt · ohne Prozentwert"
+  },
+  "잔여량 확인 불가": {
+    "en": "Remaining quota unavailable",
+    "zh-CN": "无法确认余额",
+    "ja": "残量を確認できません",
+    "de": "Restkontingent nicht verfügbar"
+  },
+  "월간 %.1f / %.1f AIC 사용": {
+    "en": "Monthly %.1f / %.1f AIC used",
+    "zh-CN": "月度已用 %.1f / %.1f AIC",
+    "ja": "月間 %.1f / %.1f AIC 使用",
+    "de": "Monatlich %.1f / %.1f AIC verbraucht"
+  },
+  "월간 사용량 --": {
+    "en": "Monthly usage --",
+    "zh-CN": "月度使用量 --",
+    "ja": "月間使用量 --",
+    "de": "Monatliche Nutzung --"
+  },
+  "Session %.1f AIC 사용 · 월간 한도와 별도": {
+    "en": "Session %.1f AIC used · separate from monthly",
+    "zh-CN": "会话已用 %.1f AIC · 与月度限额分开",
+    "ja": "セッション %.1f AIC 使用 · 月間枠とは別",
+    "de": "Sitzung %.1f AIC · separat vom Monatslimit"
+  },
+  "Session -- · 원천 제공 없음": {
+    "en": "Session -- · not provided",
+    "zh-CN": "会话 -- · 数据源未提供",
+    "ja": "セッション -- · 提供なし",
+    "de": "Sitzung -- · nicht bereitgestellt"
+  },
+  "계정 관리": {
+    "en": "Accounts",
+    "zh-CN": "账户管理",
+    "ja": "アカウント管理",
+    "de": "Konten"
+  },
+  "BLE 연결": {
+    "en": "BLE connection",
+    "zh-CN": "BLE 连接",
+    "ja": "BLE接続",
+    "de": "BLE-Verbindung"
+  },
+  "데이터 갱신 주기": {
+    "en": "Refresh interval",
+    "zh-CN": "数据更新间隔",
+    "ja": "データ更新間隔",
+    "de": "Aktualisierungsintervall"
+  },
+  "화면 밝기": {
+    "en": "Brightness",
+    "zh-CN": "屏幕亮度",
+    "ja": "画面の明るさ",
+    "de": "Helligkeit"
+  },
+  "리셋까지 남은 시간 표시": {
+    "en": "Time until reset",
+    "zh-CN": "显示重置剩余时间",
+    "ja": "リセットまでの時間",
+    "de": "Zeit bis zum Zurücksetzen"
+  },
+  "마지막 갱신 시각 표시": {
+    "en": "Last update time",
+    "zh-CN": "显示最后更新时间",
+    "ja": "最終更新時刻",
+    "de": "Letzte Aktualisierung anzeigen"
+  },
+  "Copilot 월간 AIC 표시": {
+    "en": "Copilot monthly AIC",
+    "zh-CN": "Copilot 月度 AIC",
+    "ja": "Copilot 月間AIC",
+    "de": "Copilot Monats-AIC"
+  },
+  "Copilot Session AIC 표시": {
+    "en": "Copilot session AIC",
+    "zh-CN": "Copilot 会话 AIC",
+    "ja": "Copilot セッションAIC",
+    "de": "Copilot Sitzungs-AIC"
+  },
+  "저장한 설정은 연결된 Orca와 동기화됩니다.": {
+    "en": "Saved settings sync with the connected PC.",
+    "zh-CN": "保存的设置将同步到已连接的电脑。",
+    "ja": "保存した設定は接続中のPCと同期します。",
+    "de": "Gespeicherte Einstellungen werden mit dem PC synchronisiert."
+  },
+  "Orca와 연결": {
+    "en": "Connect to Orca",
+    "zh-CN": "连接 Orca",
+    "ja": "Orcaに接続",
+    "de": "Mit Orca verbinden"
+  },
+  "Orca 설정에서 디스플레이를 찾아 선택하세요.": {
+    "en": "Find and select the display in PC settings.",
+    "zh-CN": "请在电脑设置中查找并选择显示器。",
+    "ja": "PCの設定でディスプレイを検索して選んでください。",
+    "de": "Display in den PC-Einstellungen suchen und wählen."
+  },
+  "이름: Quotamon · 연결 허용 시간: 2분": {
+    "en": "Name: Quotamon · pairing window: 2 minutes",
+    "zh-CN": "名称：Quotamon · 允许连接时间：2分钟",
+    "ja": "名前：Quotamon · 接続許可：2分間",
+    "de": "Name: Quotamon · Kopplungsfenster: 2 Minuten"
+  },
+  "두 화면의 6자리 번호가 일치할 때만 승인하세요.": {
+    "en": "Approve only if both six-digit codes match.",
+    "zh-CN": "仅在两端六位数字相同时批准。",
+    "ja": "両画面の6桁の番号が一致する場合のみ承認してください。",
+    "de": "Nur bestätigen, wenn beide sechsstelligen Codes übereinstimmen."
+  },
+  "페어링 초기화": {
+    "en": "Reset pairing",
+    "zh-CN": "重置配对",
+    "ja": "ペアリング初期化",
+    "de": "Kopplung zurücksetzen"
+  },
+  "Orca와 같은 번호인가요?": {
+    "en": "Does the code match the PC?",
+    "zh-CN": "与电脑上的数字相同吗？",
+    "ja": "PCと同じ番号ですか？",
+    "de": "Stimmt der Code mit dem PC überein?"
+  },
+  "Orca와 이 화면에서 각각 승인해야 연결됩니다.": {
+    "en": "Approve on both the PC and this display.",
+    "zh-CN": "需要在电脑和此显示器上分别批准。",
+    "ja": "PCとこの画面の両方で承認してください。",
+    "de": "Am PC und auf diesem Display bestätigen."
+  },
+  "요청하지 않은 연결이거나 번호가 다르면 거절하세요.": {
+    "en": "Reject unexpected requests or mismatched codes.",
+    "zh-CN": "未请求的连接或数字不同请拒绝。",
+    "ja": "心当たりのない接続や番号が違う場合は拒否してください。",
+    "de": "Unerwartete Anfragen oder abweichende Codes ablehnen."
+  },
+  "다름 · 거절": {
+    "en": "Different · reject",
+    "zh-CN": "不同 · 拒绝",
+    "ja": "不一致 · 拒否",
+    "de": "Abweichend · ablehnen"
+  },
+  "일치 · 승인": {
+    "en": "Matches · approve",
+    "zh-CN": "相同 · 批准",
+    "ja": "一致 · 承認",
+    "de": "Stimmt überein · bestätigen"
+  },
+  "표시할 구독 계정 선택": {
+    "en": "Choose subscription accounts",
+    "zh-CN": "选择要显示的订阅账户",
+    "ja": "表示するアカウントを選択",
+    "de": "Anzuzeigende Abokonten wählen"
+  },
+  "Orca 설정에서 먼저 계정을 선택하세요.": {
+    "en": "Select accounts in the PC settings first.",
+    "zh-CN": "请先在电脑设置中选择账户。",
+    "ja": "先にPCの設定でアカウントを選んでください。",
+    "de": "Zuerst Konten in den PC-Einstellungen wählen."
+  },
+  "표시 순서와 계정 이름은 Orca 설정에서 변경합니다.": {
+    "en": "Change account names and order on the PC.",
+    "zh-CN": "账户名称和顺序可在电脑端修改。",
+    "ja": "表示順とアカウント名はPCで変更できます。",
+    "de": "Kontonamen und Reihenfolge am PC ändern."
+  },
+  "설정이 변경되어 저장하지 않았습니다. 다시 확인하세요.": {
+    "en": "Settings changed elsewhere. Reload before saving.",
+    "zh-CN": "设置已在其他位置更改，请重新确认。",
+    "ja": "他の画面で設定が変わりました。再確認してください。",
+    "de": "Einstellungen wurden geändert. Vor dem Speichern neu laden."
+  },
+  "Orca에 설정 저장 요청됨": {
+    "en": "Settings save requested from the PC",
+    "zh-CN": "已请求电脑保存设置",
+    "ja": "PCに設定の保存を要求しました",
+    "de": "Speichern der Einstellungen am PC angefordert"
+  },
+  "기기에 임시 적용됨 · Orca 연결 후 다시 저장하세요.": {
+    "en": "Applied locally · save again after connecting the PC.",
+    "zh-CN": "已临时应用到设备 · 连接电脑后请再次保存。",
+    "ja": "端末に一時適用 · PC接続後に再度保存してください。",
+    "de": "Lokal angewendet · nach PC-Verbindung erneut speichern."
+  },
+  "대시보드": {
+    "en": "Dashboard",
+    "zh-CN": "仪表盘",
+    "ja": "ダッシュボード",
+    "de": "Übersicht"
+  },
+  "디스플레이 연결": {
+    "en": "Display connection",
+    "zh-CN": "显示器连接",
+    "ja": "ディスプレイ接続",
+    "de": "Display verbinden"
+  },
+  "구독을 한눈에.": {
+    "en": "Your subscriptions at a glance.",
+    "zh-CN": "订阅一目了然。",
+    "ja": "サブスクをひと目で。",
+    "de": "Ihre Abos auf einen Blick."
+  },
+  "페이지": {
+    "en": "Pages",
+    "zh-CN": "页面",
+    "ja": "ページ",
+    "de": "Seiten"
+  },
+  "Quotamon · 설정": {
+    "en": "Quotamon · Settings",
+    "zh-CN": "Quotamon · 设置",
+    "ja": "Quotamon · 設定",
+    "de": "Quotamon · Einstellungen"
+  },
+  "Orca 확인 중": {
+    "en": "Checking Orca",
+    "zh-CN": "正在检查 Orca",
+    "ja": "Orcaを確認中",
+    "de": "Orca wird geprüft"
+  },
+  "인증정보는 PC에 유지됩니다.": {
+    "en": "Credentials stay on the PC.",
+    "zh-CN": "凭据保留在电脑上。",
+    "ja": "認証情報はPCに保持されます。",
+    "de": "Zugangsdaten bleiben auf dem PC."
+  },
+  "구독의 여유를 확인하세요.": {
+    "en": "See what is left in your subscriptions.",
+    "zh-CN": "查看您的订阅余额。",
+    "ja": "サブスクの残量を確認しましょう。",
+    "de": "Verbleibendes Abokontingent prüfen."
+  },
+  "Orca에 연결된 계정을 책상 위 화면으로.": {
+    "en": "Your Orca accounts on your desk display.",
+    "zh-CN": "将 Orca 账户带到桌面显示器。",
+    "ja": "Orcaのアカウントをデスクの画面へ。",
+    "de": "Ihre Orca-Konten auf dem Tischdisplay."
+  },
+  "나의 계정, 나의 순서.": {
+    "en": "Your accounts, your order.",
+    "zh-CN": "您的账户，您的顺序。",
+    "ja": "自分のアカウントを、好きな順番で。",
+    "de": "Ihre Konten, Ihre Reihenfolge."
+  },
+  "표시할 구독과 계정을 선택하세요.": {
+    "en": "Choose subscriptions and accounts to display.",
+    "zh-CN": "选择要显示的订阅和账户。",
+    "ja": "表示するサブスクとアカウントを選びましょう。",
+    "de": "Anzuzeigende Abos und Konten wählen."
+  },
+  "책상 위 화면과 연결하세요.": {
+    "en": "Connect your desk display.",
+    "zh-CN": "连接您的桌面显示器。",
+    "ja": "デスクの画面につなぎましょう。",
+    "de": "Tischdisplay verbinden."
+  },
+  "가까운 디스플레이를 Bluetooth로 연결합니다.": {
+    "en": "Connect a nearby display over Bluetooth.",
+    "zh-CN": "通过蓝牙连接附近的显示器。",
+    "ja": "近くのディスプレイにBluetoothで接続します。",
+    "de": "Display in der Nähe per Bluetooth verbinden."
+  },
+  "내게 맞는 화면으로.": {
+    "en": "Make the display your own.",
+    "zh-CN": "让显示器更适合您。",
+    "ja": "自分に合った画面に。",
+    "de": "Das Display nach Ihren Wünschen."
+  },
+  "갱신 주기와 표시 항목을 조정하세요.": {
+    "en": "Adjust refresh timing and displayed information.",
+    "zh-CN": "调整更新间隔和显示内容。",
+    "ja": "更新間隔と表示内容を調整しましょう。",
+    "de": "Aktualisierungsintervall und Anzeige anpassen."
+  },
+  "연결을 확인해주세요.": {
+    "en": "Please check the connection.",
+    "zh-CN": "请检查连接。",
+    "ja": "接続を確認してください。",
+    "de": "Bitte die Verbindung prüfen."
+  },
+  "저장하지 않은 변경 사항이 있습니다.": {
+    "en": "You have unsaved changes.",
+    "zh-CN": "有未保存的更改。",
+    "ja": "未保存の変更があります。",
+    "de": "Nicht gespeicherte Änderungen vorhanden."
+  },
+  "최신 설정을 불러왔습니다.": {
+    "en": "Loaded the latest settings.",
+    "zh-CN": "已加载最新设置。",
+    "ja": "最新の設定を読み込みました。",
+    "de": "Aktuelle Einstellungen geladen."
+  },
+  "Orca를 켜면 선택할 계정이 나타납니다.": {
+    "en": "Start Orca to see available accounts.",
+    "zh-CN": "启动 Orca 后将显示可选账户。",
+    "ja": "Orcaを起動すると選択できるアカウントが表示されます。",
+    "de": "Orca starten, um verfügbare Konten zu sehen."
+  },
+  "표시": {
+    "en": "Show",
+    "zh-CN": "显示",
+    "ja": "表示",
+    "de": "Anzeigen"
+  },
+  "표시 이름": {
+    "en": "Display name",
+    "zh-CN": "显示名称",
+    "ja": "表示名",
+    "de": "Anzeigename"
+  },
+  "요금제": {
+    "en": "Plan",
+    "zh-CN": "套餐",
+    "ja": "プラン",
+    "de": "Tarif"
+  },
+  "위로": {
+    "en": "Move up",
+    "zh-CN": "上移",
+    "ja": "上へ",
+    "de": "Nach oben"
+  },
+  "아래로": {
+    "en": "Move down",
+    "zh-CN": "下移",
+    "ja": "下へ",
+    "de": "Nach unten"
+  },
+  "오래된 정보 · 다시 확인 필요": {
+    "en": "Stale data · please check again",
+    "zh-CN": "数据已过期 · 请重新确认",
+    "ja": "古い情報 · 再確認が必要",
+    "de": "Veraltete Daten · erneut prüfen"
+  },
+  "사용량 확인 불가": {
+    "en": "Usage unavailable",
+    "zh-CN": "无法获取使用量",
+    "ja": "使用量を確認できません",
+    "de": "Nutzungsdaten nicht verfügbar"
+  },
+  "표시 선택 전": {
+    "en": "Not selected for display",
+    "zh-CN": "尚未选择显示",
+    "ja": "表示対象外",
+    "de": "Nicht zur Anzeige ausgewählt"
+  },
+  "Windows에 페어링된 디스플레이": {
+    "en": "Display paired with Windows",
+    "zh-CN": "已与 Windows 配对的显示器",
+    "ja": "Windowsとペアリング済み",
+    "de": "Mit Windows gekoppeltes Display"
+  },
+  "신호": {
+    "en": "Signal",
+    "zh-CN": "信号",
+    "ja": "信号",
+    "de": "Signal"
+  },
+  "연결 중입니다. 양쪽의 번호를 확인해주세요.": {
+    "en": "Connecting. Check the codes on both screens.",
+    "zh-CN": "正在连接。请确认两端的数字。",
+    "ja": "接続中です。両画面の番号を確認してください。",
+    "de": "Verbindung läuft. Codes auf beiden Bildschirmen prüfen."
+  },
+  "Orca 연결됨": {
+    "en": "Orca connected",
+    "zh-CN": "Orca 已连接",
+    "ja": "Orca接続済み",
+    "de": "Orca verbunden"
+  },
+  "Orca 연결 대기": {
+    "en": "Waiting for Orca",
+    "zh-CN": "等待 Orca 连接",
+    "ja": "Orca接続待ち",
+    "de": "Warte auf Orca"
+  },
+  "디스플레이와 동기화 중": {
+    "en": "Syncing with display",
+    "zh-CN": "正在与显示器同步",
+    "ja": "ディスプレイと同期中",
+    "de": "Synchronisierung mit Display"
+  },
+  "디스플레이 연결 중": {
+    "en": "Connecting to display",
+    "zh-CN": "正在连接显示器",
+    "ja": "ディスプレイに接続中",
+    "de": "Verbindung zum Display läuft"
+  },
+  "디스플레이 연결 대기": {
+    "en": "Waiting for display",
+    "zh-CN": "等待显示器连接",
+    "ja": "ディスプレイ接続待ち",
+    "de": "Warte auf Display"
+  },
+  "선택한 계정만 기기에 전달합니다.": {
+    "en": "Only selected accounts are sent to the display.",
+    "zh-CN": "仅将选中的账户传送到设备。",
+    "ja": "選択したアカウントだけを端末に送信します。",
+    "de": "Nur gewählte Konten werden an das Display gesendet."
+  },
+  "계정을 고르고 기기에서 BLE 연결 시작을 눌러주세요.": {
+    "en": "Choose accounts and tap Start BLE connection on the display.",
+    "zh-CN": "请选择账户，并在设备上点击开始 BLE 连接。",
+    "ja": "アカウントを選び、端末でBLE接続を開始してください。",
+    "de": "Konten wählen und am Display BLE-Verbindung starten."
+  },
+  "Orca를 켜주세요": {
+    "en": "Please start Orca",
+    "zh-CN": "请启动 Orca",
+    "ja": "Orcaを起動してください",
+    "de": "Bitte Orca starten"
+  },
+  "PC 확인": {
+    "en": "PC checked",
+    "zh-CN": "电脑确认",
+    "ja": "PC確認",
+    "de": "PC geprüft"
+  },
+  "다른 화면에서 설정이 변경되었습니다. 최신 설정 읽기로 다시 확인하세요.": {
+    "en": "Settings changed elsewhere. Reload the latest settings.",
+    "zh-CN": "设置已在其他位置更改，请重新加载。",
+    "ja": "他の画面で設定が変わりました。最新の設定を読み込んでください。",
+    "de": "Einstellungen wurden anderswo geändert. Bitte neu laden."
+  },
+  "Orca 사용량 정보 대기 중": {
+    "en": "Waiting for Orca usage data",
+    "zh-CN": "等待 Orca 使用量数据",
+    "ja": "Orcaの使用量データ待ち",
+    "de": "Warte auf Orca-Nutzungsdaten"
+  },
+  "주변 기기를 20초 동안 찾고 있습니다.": {
+    "en": "Searching for nearby displays for 20 seconds.",
+    "zh-CN": "正在搜索附近的设备，持续20秒。",
+    "ja": "近くの端末を20秒間検索しています。",
+    "de": "Suche 20 Sekunden lang nach Displays in der Nähe."
+  },
+  "기기를 찾지 못했습니다. 펌웨어와 BLE 연결 시작을 확인하세요.": {
+    "en": "No display found. Check the firmware and start BLE pairing.",
+    "zh-CN": "未找到设备。请检查固件并启动 BLE 连接。",
+    "ja": "端末が見つかりません。ファームウェアとBLE接続開始を確認してください。",
+    "de": "Kein Display gefunden. Firmware prüfen und BLE-Kopplung starten."
+  },
+  "중계 프로그램 연결이 끊겼습니다. 트레이에서 설정을 다시 열어주세요.": {
+    "en": "Bridge disconnected. Reopen settings from the tray.",
+    "zh-CN": "中继程序已断开。请从托盘重新打开设置。",
+    "ja": "中継プログラムが切断されました。トレイから設定を開き直してください。",
+    "de": "Verbindung zur Bridge getrennt. Einstellungen im Infobereich neu öffnen."
+  },
+  "사용량 갱신을 요청했습니다.": {
+    "en": "Usage refresh requested.",
+    "zh-CN": "已请求更新使用量。",
+    "ja": "使用量の更新を要求しました。",
+    "de": "Aktualisierung der Nutzungsdaten angefordert."
+  },
+  "자동 연결을 해제했습니다.": {
+    "en": "Automatic connection disabled.",
+    "zh-CN": "已关闭自动连接。",
+    "ja": "自動接続を解除しました。",
+    "de": "Automatische Verbindung deaktiviert."
+  },
+  "설정을 저장했습니다.": {
+    "en": "Settings saved.",
+    "zh-CN": "设置已保存。",
+    "ja": "設定を保存しました。",
+    "de": "Einstellungen gespeichert."
+  },
+  "PC 설정을 저장했습니다.": {
+    "en": "PC settings saved.",
+    "zh-CN": "电脑设置已保存。",
+    "ja": "PC設定を保存しました。",
+    "de": "PC-Einstellungen gespeichert."
+  },
+  "트레이에서 설정 페이지를 다시 열어주세요.": {
+    "en": "Reopen the settings page from the tray.",
+    "zh-CN": "请从托盘重新打开设置页面。",
+    "ja": "トレイから設定ページを開き直してください。",
+    "de": "Einstellungen im Infobereich erneut öffnen."
+  },
+  "중계 프로그램 연결을 확인하고 있습니다.": {
+    "en": "Checking the bridge connection.",
+    "zh-CN": "正在检查中继程序连接。",
+    "ja": "中継プログラムの接続を確認しています。",
+    "de": "Verbindung zur Bridge wird geprüft."
+  },
+  "사용량 새로고침": {
+    "en": "Refresh usage",
+    "zh-CN": "刷新使用量",
+    "ja": "使用量を更新",
+    "de": "Nutzungsdaten aktualisieren"
+  },
+  "처음이라면 계정을 고르고 디스플레이를 연결하세요.": {
+    "en": "Choose accounts and connect your display to get started.",
+    "zh-CN": "首次使用时，请选择账户并连接显示器。",
+    "ja": "初めての方はアカウントを選びディスプレイを接続してください。",
+    "de": "Zum Start Konten wählen und Display verbinden."
+  },
+  "연결하기 →": {
+    "en": "Connect →",
+    "zh-CN": "连接 →",
+    "ja": "接続する →",
+    "de": "Verbinden →"
+  },
+  "Orca를 켜면 계정이 나타납니다.": {
+    "en": "Start Orca to see your accounts.",
+    "zh-CN": "启动 Orca 后将显示账户。",
+    "ja": "Orcaを起動するとアカウントが表示されます。",
+    "de": "Orca starten, um Ihre Konten zu sehen."
+  },
+  "기존 Orca의 로그인과 사용량 설정을 그대로 사용합니다.": {
+    "en": "Uses your existing Orca login and usage settings.",
+    "zh-CN": "直接使用现有 Orca 登录和使用量设置。",
+    "ja": "既存のOrcaのログインと使用量設定を利用します。",
+    "de": "Verwendet die vorhandene Orca-Anmeldung und Nutzungseinstellungen."
+  },
+  "첫 연결은 세 단계": {
+    "en": "Three steps to connect",
+    "zh-CN": "三步完成首次连接",
+    "ja": "初回接続は3ステップ",
+    "de": "In drei Schritten verbinden"
+  },
+  "선택하고, 연결하고, 확인하세요.": {
+    "en": "Choose, connect and confirm.",
+    "zh-CN": "选择、连接、确认。",
+    "ja": "選んで、つないで、確認。",
+    "de": "Wählen, verbinden und bestätigen."
+  },
+  "표시할 계정만 체크하세요.": {
+    "en": "Select only the accounts to display.",
+    "zh-CN": "仅勾选要显示的账户。",
+    "ja": "表示するアカウントだけを選択してください。",
+    "de": "Nur anzuzeigende Konten auswählen."
+  },
+  "디스플레이 찾기": {
+    "en": "Find display",
+    "zh-CN": "查找显示器",
+    "ja": "ディスプレイを検索",
+    "de": "Display suchen"
+  },
+  "기기에서 BLE 연결 시작을 누르세요.": {
+    "en": "Tap Start BLE connection on the display.",
+    "zh-CN": "请在设备上点击开始 BLE 连接。",
+    "ja": "端末でBLE接続を開始してください。",
+    "de": "Am Display BLE-Verbindung starten."
+  },
+  "번호 확인": {
+    "en": "Check the code",
+    "zh-CN": "确认数字",
+    "ja": "番号を確認",
+    "de": "Code prüfen"
+  },
+  "양쪽의 6자리 번호를 승인하세요.": {
+    "en": "Approve the six-digit code on both devices.",
+    "zh-CN": "请在两端批准相同的六位数字。",
+    "ja": "両方で6桁の番号を承認してください。",
+    "de": "Sechsstelligen Code auf beiden Geräten bestätigen."
+  },
+  "어떤 계정을 표시할까요?": {
+    "en": "Which accounts should appear?",
+    "zh-CN": "要显示哪些账户？",
+    "ja": "どのアカウントを表示しますか？",
+    "de": "Welche Konten sollen angezeigt werden?"
+  },
+  "선택·이름·요금제·순서는 디스플레이에 함께 적용됩니다.": {
+    "en": "Selection, names, plans and order also apply to the display.",
+    "zh-CN": "选择、名称、套餐及顺序会同步到显示器。",
+    "ja": "選択・名前・プラン・順序はディスプレイにも適用されます。",
+    "de": "Auswahl, Namen, Tarife und Reihenfolge gelten auch am Display."
+  },
+  "최신 설정 읽기": {
+    "en": "Reload settings",
+    "zh-CN": "加载最新设置",
+    "ja": "最新の設定を読み込む",
+    "de": "Einstellungen neu laden"
+  },
+  "조회할 수 없는 서비스는 기존 Orca에서 로그인하세요. Copilot은 이 PC의 기존 CLI 계정을 사용합니다.": {
+    "en": "Sign into unavailable services in Orca. Copilot uses this PC's existing CLI account.",
+    "zh-CN": "无法查询的服务请在 Orca 中登录。Copilot 使用此电脑现有的 CLI 账户。",
+    "ja": "取得できないサービスにはOrcaでログインしてください。CopilotはこのPCの既存CLIアカウントを使います。",
+    "de": "Bei nicht verfügbaren Diensten in Orca anmelden. Copilot nutzt das vorhandene CLI-Konto dieses PCs."
+  },
+  "표시할 계정을 선택하세요.": {
+    "en": "Choose accounts to display.",
+    "zh-CN": "请选择要显示的账户。",
+    "ja": "表示するアカウントを選んでください。",
+    "de": "Anzuzeigende Konten wählen."
+  },
+  "계정 설정 저장": {
+    "en": "Save account settings",
+    "zh-CN": "保存账户设置",
+    "ja": "アカウント設定を保存",
+    "de": "Kontoeinstellungen speichern"
+  },
+  "책상 위 디스플레이와 연결": {
+    "en": "Connect your desk display",
+    "zh-CN": "连接桌面显示器",
+    "ja": "デスクのディスプレイに接続",
+    "de": "Tischdisplay verbinden"
+  },
+  "기기의": {
+    "en": "On the display, tap",
+    "zh-CN": "请在设备上点击",
+    "ja": "端末で",
+    "de": "Am Display"
+  },
+  "을 누른 뒤 검색하세요. 처음 연결할 때는 양쪽의 같은 번호를 승인해야 합니다.": {
+    "en": "then search here. Approve matching codes on both devices when pairing.",
+    "zh-CN": "然后搜索。首次连接时须在两端批准相同数字。",
+    "ja": "を押してから検索してください。初回は両方で同じ番号を承認します。",
+    "de": "starten und hier suchen. Bei der ersten Kopplung identische Codes auf beiden Geräten bestätigen."
+  },
+  "번호 확인 화면이 나오지 않으면": {
+    "en": "If the code dialog does not appear, use",
+    "zh-CN": "如果未显示数字确认界面，请打开",
+    "ja": "番号確認画面が出ない場合は",
+    "de": "Falls kein Code angezeigt wird, unter"
+  },
+  "Windows Bluetooth 설정": {
+    "en": "Windows Bluetooth settings",
+    "zh-CN": "Windows 蓝牙设置",
+    "ja": "Windows Bluetooth設定",
+    "de": "Windows-Bluetooth-Einstellungen"
+  },
+  "에서 Quotamon을 먼저 페어링한 뒤 다시 연결하세요. 양쪽의 같은 번호를 승인해야 합니다. 이미 페어링한 기기는 재부팅 없이 찾을 수 있습니다.": {
+    "en": "to pair Quotamon first, then reconnect here. Approve matching codes. Saved devices can be found without rebooting.",
+    "zh-CN": "先配对 Quotamon，再返回连接。请批准两端相同数字。已配对的设备无需重启即可找到。",
+    "ja": "で先にQuotamonをペアリングしてから再接続してください。同じ番号を承認します。ペアリング済み端末は再起動不要です。",
+    "de": "zuerst Quotamon koppeln, dann hier verbinden. Identische Codes bestätigen. Gekoppelte Geräte werden ohne Neustart gefunden."
+  },
+  "연결 상태": {
+    "en": "Connection status",
+    "zh-CN": "连接状态",
+    "ja": "接続状態",
+    "de": "Verbindungsstatus"
+  },
+  "디스플레이": {
+    "en": "Display",
+    "zh-CN": "显示器",
+    "ja": "ディスプレイ",
+    "de": "Display"
+  },
+  "자동 연결 해제": {
+    "en": "Disable automatic connection",
+    "zh-CN": "关闭自动连接",
+    "ja": "自動接続を解除",
+    "de": "Automatische Verbindung deaktivieren"
+  },
+  "페어링을 완전히 지우려면 기기와 Windows Bluetooth 설정에서도 기존 연결을 삭제하세요.": {
+    "en": "To remove pairing, delete the saved connection on the display and in Windows Bluetooth settings.",
+    "zh-CN": "要完全删除配对，请在设备及 Windows 蓝牙设置中删除现有连接。",
+    "ja": "ペアリングを完全に削除するには端末とWindowsのBluetooth設定でも削除してください。",
+    "de": "Zum vollständigen Entkoppeln die Verbindung am Display und in Windows entfernen."
+  },
+  "디스플레이 설정": {
+    "en": "Display settings",
+    "zh-CN": "显示器设置",
+    "ja": "ディスプレイ設定",
+    "de": "Displayeinstellungen"
+  },
+  "전송 간격": {
+    "en": "Update interval",
+    "zh-CN": "传送间隔",
+    "ja": "送信間隔",
+    "de": "Übertragungsintervall"
+  },
+  "초": {
+    "en": "seconds",
+    "zh-CN": "秒",
+    "ja": "秒",
+    "de": "Sekunden"
+  },
+  "표시할 정보": {
+    "en": "Displayed information",
+    "zh-CN": "显示信息",
+    "ja": "表示する情報",
+    "de": "Angezeigte Informationen"
+  },
+  "리셋까지 남은 시간": {
+    "en": "Time until reset",
+    "zh-CN": "重置剩余时间",
+    "ja": "リセットまでの時間",
+    "de": "Zeit bis zum Zurücksetzen"
+  },
+  "마지막 수집 시각": {
+    "en": "Last source update",
+    "zh-CN": "最后采集时间",
+    "ja": "最終取得時刻",
+    "de": "Letzte Datenerfassung"
+  },
+  "크레딧·금액": {
+    "en": "Credits and amounts",
+    "zh-CN": "额度和金额",
+    "ja": "クレジット・金額",
+    "de": "Guthaben und Beträge"
+  },
+  "원천이 제공하는 경우": {
+    "en": "If provided by the source",
+    "zh-CN": "数据源提供时",
+    "ja": "提供元に情報がある場合",
+    "de": "Falls von der Quelle bereitgestellt"
+  },
+  "세션 사용량": {
+    "en": "Session usage",
+    "zh-CN": "会话使用量",
+    "ja": "セッション使用量",
+    "de": "Sitzungsnutzung"
+  },
+  "PC 연결이 끊기면 값은 삭제됩니다. 오래된 사용량은 별도 표시됩니다.": {
+    "en": "Values clear when the PC disconnects. Stale usage is marked separately.",
+    "zh-CN": "电脑断开连接时会清除数值。过期数据将单独标记。",
+    "ja": "PC接続が切れると値を消去します。古い情報は別途表示します。",
+    "de": "Bei getrennter PC-Verbindung werden Werte gelöscht. Veraltete Daten werden markiert."
+  },
+  "취소 · 최신 설정 읽기": {
+    "en": "Cancel · reload settings",
+    "zh-CN": "取消 · 加载最新设置",
+    "ja": "キャンセル · 最新設定を読み込む",
+    "de": "Abbrechen · Einstellungen neu laden"
+  },
+  "디스플레이 설정 저장": {
+    "en": "Save display settings",
+    "zh-CN": "保存显示器设置",
+    "ja": "ディスプレイ設定を保存",
+    "de": "Displayeinstellungen speichern"
+  },
+  "중계 프로그램": {
+    "en": "PC bridge",
+    "zh-CN": "电脑中继程序",
+    "ja": "中継プログラム",
+    "de": "PC-Bridge"
+  },
+  "Windows 로그인 시 실행": {
+    "en": "Start when signing into Windows",
+    "zh-CN": "登录 Windows 时启动",
+    "ja": "Windowsログイン時に起動",
+    "de": "Bei Windows-Anmeldung starten"
+  },
+  "트레이에서 조용히 시작합니다.": {
+    "en": "Starts quietly in the system tray.",
+    "zh-CN": "在系统托盘中静默启动。",
+    "ja": "システムトレイで静かに起動します。",
+    "de": "Startet unauffällig im Infobereich."
+  },
+  "Copilot CLI 사용량 읽기": {
+    "en": "Read Copilot CLI usage",
+    "zh-CN": "读取 Copilot CLI 使用量",
+    "ja": "Copilot CLIの使用量を取得",
+    "de": "Copilot-CLI-Nutzung lesen"
+  },
+  "기존 로그인 계정만 사용합니다.": {
+    "en": "Uses only your existing signed-in account.",
+    "zh-CN": "仅使用现有已登录账户。",
+    "ja": "既存のログイン済みアカウントのみ使用します。",
+    "de": "Verwendet nur das bereits angemeldete Konto."
+  },
+  "PC 설정 저장": {
+    "en": "Save PC settings",
+    "zh-CN": "保存电脑设置",
+    "ja": "PC設定を保存",
+    "de": "PC-Einstellungen speichern"
+  },
+  "Orca는 그대로 둡니다.": {
+    "en": "Your Orca installation stays as it is.",
+    "zh-CN": "保持现有 Orca 不变。",
+    "ja": "Orcaはそのまま使えます。",
+    "de": "Ihre Orca-Installation bleibt erhalten."
+  },
+  "Orca 설치 파일이나 로그인 설정을 바꾸지 않습니다. 디스플레이에는 선택한 계정의 표시 정보만 전달합니다.": {
+    "en": "Orca files and sign-in settings stay intact. Only selected account display data is sent to the device.",
+    "zh-CN": "不修改 Orca 安装或登录设置。仅将所选账户的显示信息传送到设备。",
+    "ja": "Orcaのインストールやログイン設定は変更しません。選択したアカウントの表示情報だけを端末に送ります。",
+    "de": "Orca-Dateien und Anmeldedaten bleiben erhalten. Nur Anzeigedaten gewählter Konten gehen an das Gerät."
+  },
+  "Quotamon · Orca 무수정 BLE 중계": {
+    "en": "Quotamon · BLE bridge for Orca",
+    "zh-CN": "Quotamon · Orca BLE 中继",
+    "ja": "Quotamon · Orca用BLE中継",
+    "de": "Quotamon · BLE-Bridge für Orca"
+  },
+  "연결 확인 중": {
+    "en": "Checking connection",
+    "zh-CN": "正在检查连接",
+    "ja": "接続を確認中",
+    "de": "Verbindung wird geprüft"
+  },
+  "번호가 일치하나요?": {
+    "en": "Do the codes match?",
+    "zh-CN": "数字相同吗？",
+    "ja": "番号は一致していますか？",
+    "de": "Stimmen die Codes überein?"
+  },
+  "양쪽 화면의 번호를 확인하세요.": {
+    "en": "Check the code on both screens.",
+    "zh-CN": "请确认两端屏幕上的数字。",
+    "ja": "両画面の番号を確認してください。",
+    "de": "Code auf beiden Bildschirmen prüfen."
+  },
+  "디스플레이에서도 같은 번호를 승인하세요.": {
+    "en": "Approve the same code on the display too.",
+    "zh-CN": "请在显示器上也批准相同数字。",
+    "ja": "ディスプレイ側でも同じ番号を承認してください。",
+    "de": "Denselben Code auch am Display bestätigen."
+  },
+  "요청하지 않은 연결이면 거절하세요.": {
+    "en": "Reject requests you did not initiate.",
+    "zh-CN": "未请求的连接请拒绝。",
+    "ja": "心当たりのない接続は拒否してください。",
+    "de": "Nicht selbst angeforderte Verbindungen ablehnen."
+  },
+  "거절": {
+    "en": "Reject",
+    "zh-CN": "拒绝",
+    "ja": "拒否",
+    "de": "Ablehnen"
+  },
+  "같은 번호 · 승인": {
+    "en": "Same code · approve",
+    "zh-CN": "相同数字 · 批准",
+    "ja": "同じ番号 · 承認",
+    "de": "Gleicher Code · bestätigen"
+  },
+  "설정 페이지를 트레이에서 다시 열어주세요.": {
+    "en": "Reopen settings from the tray.",
+    "zh-CN": "请从托盘重新打开设置。",
+    "ja": "トレイから設定を開き直してください。",
+    "de": "Einstellungen im Infobereich erneut öffnen."
+  },
+  "Windows Bluetooth 설정에서 Quotamon을 먼저 페어링한 뒤 이 화면에서 다시 연결하세요. 양쪽의 같은 6자리 번호를 승인해야 합니다.": {
+    "en": "Pair Quotamon in Windows Bluetooth settings, then reconnect here. Approve matching six-digit codes.",
+    "zh-CN": "请先在 Windows 蓝牙设置中配对 Quotamon，再返回连接。须在两端批准相同六位数字。",
+    "ja": "WindowsのBluetooth設定で先にペアリングし、ここから再接続してください。両方で同じ6桁の番号を承認します。",
+    "de": "Quotamon zuerst in Windows koppeln, dann hier verbinden. Identische sechsstellige Codes bestätigen."
+  },
+  "연결하지 못했습니다. 기기의 BLE 연결 시작과 양쪽 번호 승인을 확인하세요.": {
+    "en": "Connection failed. Start BLE pairing on the display and approve both codes.",
+    "zh-CN": "连接失败。请在设备上启动 BLE 连接并在两端批准数字。",
+    "ja": "接続できませんでした。端末のBLE接続開始と両方の番号承認を確認してください。",
+    "de": "Verbindung fehlgeschlagen. BLE-Kopplung starten und beide Codes bestätigen."
+  },
+  "사용량 갱신을 확인할 수 없습니다.": {
+    "en": "Could not confirm the usage refresh.",
+    "zh-CN": "无法确认使用量更新。",
+    "ja": "使用量の更新を確認できません。",
+    "de": "Aktualisierung der Nutzungsdaten konnte nicht bestätigt werden."
+  },
+  "처리하지 못했습니다. 최신 상태와 연결을 확인한 뒤 다시 시도하세요.": {
+    "en": "Request failed. Check the latest settings and connection, then try again.",
+    "zh-CN": "操作失败。请检查最新状态及连接后重试。",
+    "ja": "処理できませんでした。最新の状態と接続を確認して再試行してください。",
+    "de": "Anfrage fehlgeschlagen. Aktuelle Einstellungen und Verbindung prüfen und erneut versuchen."
+  },
+  "설정이 변경되었습니다. 최신 값을 다시 확인하세요.": {
+    "en": "Settings changed. Please reload.",
+    "zh-CN": "设置已更改，请重新确认。",
+    "ja": "設定が変わりました。最新の値を確認してください。",
+    "de": "Einstellungen geändert. Bitte neu laden."
+  },
+  "화면 끄기 예약": {
+    "en": "Screen-off schedule",
+    "zh-CN": "定时关闭屏幕",
+    "ja": "画面オフ予約",
+    "de": "Bildschirm-Zeitplan"
+  },
+  "예약 사용": {
+    "en": "Enable schedule",
+    "zh-CN": "启用定时",
+    "ja": "予約を有効にする",
+    "de": "Zeitplan aktivieren"
+  },
+  "끄는 시각": {
+    "en": "Screen off at",
+    "zh-CN": "关闭时间",
+    "ja": "消灯時刻",
+    "de": "Ausschalten um"
+  },
+  "켜는 시각": {
+    "en": "Screen on at",
+    "zh-CN": "开启时间",
+    "ja": "点灯時刻",
+    "de": "Einschalten um"
+  },
+  "PC 현지 시각 기준 · BLE 연결과 수신은 유지됩니다.": {
+    "en": "Uses PC local time. BLE stays connected and receives data.",
+    "zh-CN": "使用电脑本地时间，BLE 连接及数据接收保持运行。",
+    "ja": "PCの現地時刻を使用します。BLE接続と受信は続きます。",
+    "de": "Verwendet die PC-Ortszeit. BLE-Verbindung und Datenempfang bleiben aktiv."
+  },
+  "화면을 터치하면 5분 동안 켜집니다.": {
+    "en": "Touch the display to wake it for five minutes.",
+    "zh-CN": "触摸屏幕可唤醒5分钟。",
+    "ja": "画面をタッチすると5分間点灯します。",
+    "de": "Antippen schaltet das Display für fünf Minuten ein."
+  },
+  "시작과 종료 시각은 달라야 합니다.": {
+    "en": "Start and end times must differ.",
+    "zh-CN": "开始和结束时间必须不同。",
+    "ja": "開始時刻と終了時刻は異なる必要があります。",
+    "de": "Start- und Endzeit müssen verschieden sein."
+  },
+  "설정에서 언어를 선택하세요.": {
+    "en": "Choose a language in Settings.",
+    "zh-CN": "请在设置中选择语言。",
+    "ja": "設定で言語を選んでください。",
+    "de": "Sprache in den Einstellungen wählen."
+  },
+  "사용량 원천 미연결": {
+    "en": "Usage source disconnected",
+    "zh-CN": "使用量数据源未连接",
+    "ja": "使用量データ未接続",
+    "de": "Nutzungsquelle nicht verbunden"
+  },
+  "비선택 계정 · 수치 전송 없음": {
+    "en": "Unselected account · no quota sent",
+    "zh-CN": "未选择的账户 · 不传送数值",
+    "ja": "未選択アカウント · 数値送信なし",
+    "de": "Nicht gewähltes Konto · keine Kontingente übertragen"
+  },
+  "Copilot 조회 실패": {
+    "en": "Copilot query failed",
+    "zh-CN": "Copilot 查询失败",
+    "ja": "Copilotの取得に失敗",
+    "de": "Copilot-Abfrage fehlgeschlagen"
+  },
+  "Copilot SDK · 단위 확인 필요": {
+    "en": "Copilot SDK · verify units",
+    "zh-CN": "Copilot SDK · 需确认单位",
+    "ja": "Copilot SDK · 単位の確認が必要",
+    "de": "Copilot SDK · Einheit prüfen"
+  },
+  "Copilot 사용량 원천 미연결": {
+    "en": "Copilot usage source disconnected",
+    "zh-CN": "Copilot 使用量数据源未连接",
+    "ja": "Copilot使用量データ未接続",
+    "de": "Copilot-Nutzungsquelle nicht verbunden"
+  },
+  "조회한 사용량": {
+    "en": "Observed usage",
+    "zh-CN": "已获取的使用量",
+    "ja": "取得した使用量",
+    "de": "Erfasste Nutzung"
+  },
+  "오래된 사용량": {
+    "en": "Stale usage",
+    "zh-CN": "过期使用量",
+    "ja": "古い使用量",
+    "de": "Veraltete Nutzung"
+  },
+  "BLE 재연결 대기": {
+    "en": "Waiting to reconnect BLE",
+    "zh-CN": "等待 BLE 重新连接",
+    "ja": "BLE再接続待ち",
+    "de": "Warte auf BLE-Wiederverbindung"
+  },
+  "Bluetooth 중계 연결 대기": {
+    "en": "Waiting for Bluetooth bridge",
+    "zh-CN": "等待蓝牙中继连接",
+    "ja": "Bluetooth中継の接続待ち",
+    "de": "Warte auf Bluetooth-Bridge"
+  },
+  "Orca 갱신 응답 대기": {
+    "en": "Waiting for Orca refresh",
+    "zh-CN": "等待 Orca 更新响应",
+    "ja": "Orcaの更新応答待ち",
+    "de": "Warte auf Orca-Aktualisierung"
+  },
+  "Orca 사용량 응답을 확인할 수 없습니다.": {
+    "en": "Could not read Orca usage data.",
+    "zh-CN": "无法读取 Orca 使用量数据。",
+    "ja": "Orcaの使用量データを確認できません。",
+    "de": "Orca-Nutzungsdaten konnten nicht gelesen werden."
+  },
+  "기본 계정 변경됨": {
+    "en": "Default account changed",
+    "zh-CN": "默认账户已更改",
+    "ja": "既定のアカウントが変更されました",
+    "de": "Standardkonto geändert"
+  },
+  "마지막 확인값": {
+    "en": "Last known value",
+    "zh-CN": "最后已知数值",
+    "ja": "最後に確認した値",
+    "de": "Letzter bekannter Wert"
+  },
+  "사용량 갱신 실패": {
+    "en": "Usage refresh failed",
+    "zh-CN": "使用量更新失败",
+    "ja": "使用量の更新に失敗",
+    "de": "Aktualisierung der Nutzungsdaten fehlgeschlagen"
+  },
+  "오래된 정보": {
+    "en": "Stale data",
+    "zh-CN": "过期数据",
+    "ja": "古い情報",
+    "de": "Veraltete Daten"
+  },
+  "중계 종료": {
+    "en": "Bridge stopped",
+    "zh-CN": "中继已停止",
+    "ja": "中継終了",
+    "de": "Bridge beendet"
+  },
+  "시작하지 못했습니다. 포터블 폴더와 설정 파일을 확인하세요.": {
+    "en": "Could not start. Check the portable folder and settings file.",
+    "zh-CN": "无法启动。请检查便携版文件夹及设置文件。",
+    "ja": "起動できませんでした。ポータブルフォルダーと設定ファイルを確認してください。",
+    "de": "Start fehlgeschlagen. Portablen Ordner und Einstellungsdatei prüfen."
+  },
+  "YOUR DESK, IN SYNC": {
+    "en": "YOUR DESK, IN SYNC",
+    "zh-CN": "桌面，同步相伴",
+    "ja": "デスクと、いつも同期",
+    "de": "IHR SCHREIBTISCH, SYNCHRON"
+  },
+  "DISPLAY": {
+    "en": "DISPLAY",
+    "zh-CN": "显示器",
+    "ja": "ディスプレイ",
+    "de": "DISPLAY"
+  },
+  "ON THIS PC": {
+    "en": "ON THIS PC",
+    "zh-CN": "此电脑",
+    "ja": "このPC",
+    "de": "AUF DIESEM PC"
+  },
+  "BLE PAIRING": {
+    "en": "BLE PAIRING",
+    "zh-CN": "BLE 配对",
+    "ja": "BLEペアリング",
+    "de": "BLE-KOPPLUNG"
+  },
+  "시간은 24시간제 HH:MM 형식으로 입력하세요.": {
+    "en": "Enter times in 24-hour HH:MM format.",
+    "zh-CN": "请使用24小时制 HH:MM 格式输入时间。",
+    "ja": "時刻は24時間制のHH:MM形式で入力してください。",
+    "de": "Zeiten im 24-Stunden-Format HH:MM eingeben."
+  }
+}

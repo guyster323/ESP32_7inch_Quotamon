@@ -82,7 +82,10 @@
     "applied_local": "2026-10-15T05:48:10+00:00",
     "active_folder": "dist/Quotamon-Portable",
     "source_tests_passed": 34,
-    "changed_files": ["bridge.cjs", "build-manifest.json"],
+    "changed_files": [
+      "bridge.cjs",
+      "build-manifest.json"
+    ],
     "bridge_sha256": "2b8e3528b3e649a8f7ca64ad144f51e65ec36d687aab2f2634fbc043baf234b8",
     "archive": "Quotamon-Portable-account-identity-win-x64.zip",
     "archive_bytes": 86973754,
@@ -110,7 +113,11 @@
     "schedule_resynced_after_ack": true,
     "status_changes_update_immediately": true,
     "source_cache_changes_wait_for_send_interval": true,
-    "changed_files": ["bridge.cjs", "web/app.js", "build-manifest.json"],
+    "changed_files": [
+      "bridge.cjs",
+      "web/app.js",
+      "build-manifest.json"
+    ],
     "bridge_sha256": "0ab024eb8cde5456ed6be5efe78c1046cd0507c425a4c32e1d8d2c0ebe37ade5",
     "archive": "Quotamon-Portable-web-schedule-win-x64.zip",
     "archive_bytes": 86974631,
@@ -123,5 +130,35 @@
     "installed_ui_source_connected": true,
     "physical_lcd_observed": false,
     "backup": ".local/before-web-schedule-20261015-150200"
+  },
+  "languages_and_screen_schedule_update": {
+    "applied_utc": "2026-10-16T07:33:06.669835+00:00",
+    "active_folder": "dist/Quotamon-Portable",
+    "languages": [
+      "ko",
+      "zh-CN",
+      "ja",
+      "en",
+      "de"
+    ],
+    "screen_schedule_default_enabled": false,
+    "source_tests_passed": 42,
+    "web_languages_mock_test_passed": true,
+    "native_locales_test_passed": true,
+    "native_fonts_test_passed": true,
+    "screen_schedule_boundary_tests_passed": true,
+    "payload_files": 20,
+    "bridge_sha256": "83afcb402a1ba7d2001c4c4dff0c9df53250442613257d71eebe9e070a8b9dae",
+    "archive": "Quotamon-Portable-languages-win-x64.zip",
+    "archive_bytes": 86991461,
+    "archive_sha256": "0d44b03103722f91e41ab42e34e742f9e21b15f2976327a3333e45966a2a758f",
+    "settings_accounts_order_preserved": true,
+    "pairing_address_preserved": true,
+    "runtime_binaries_unchanged": true,
+    "startup_registration_preserved": true,
+    "orca_unchanged": true,
+    "hardware_language_change_user_confirmed": true,
+    "hardware_screen_schedule_user_confirmed": false,
+    "firmware_record": "docs/character-animation-build.json"
   }
 }

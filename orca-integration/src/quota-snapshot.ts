@@ -1,6 +1,12 @@
 import { createHash } from 'node:crypto'
+import { languages } from './languages.js'
+export type Language = typeof languages[number]
 export type Provider = 'codex' | 'cursor' | 'claude' | 'grok' | 'copilot'
 export interface DisplaySettings {
+  language: Language
+  sleep_enabled: boolean
+  sleep_start_minute: number
+  sleep_end_minute: number
   poll_seconds: number
   brightness_percent: number
   show_reset: boolean
@@ -24,6 +30,10 @@ export const defaultConfig = (): Config => ({
   revision: 0,
   address: null,
   display: {
+    language: 'ko',
+    sleep_enabled: false,
+    sleep_start_minute: 23 * 60,
+    sleep_end_minute: 7 * 60,
     poll_seconds: 60,
     brightness_percent: 70,
     show_reset: true,
@@ -57,6 +67,7 @@ export interface DisplayAccount {
   monthly_limit?: number
 }
 export interface Snapshot {
+  utc_offset_minutes: number
   protocol: 'quotamon.v1'
   produced_at: number
   refreshed: string
@@ -458,6 +469,14 @@ export function validateConfig(value: unknown): Config {
   )
     throw Error('Invalid settings')
   const d = value.display
+  const language = d.language === undefined ? 'ko' : d.language
+  if (!languages.some(code => code === language)) throw Error('Unsupported language')
+  const sleepEnabled = d.sleep_enabled === undefined ? false : d.sleep_enabled
+  const sleepStart = d.sleep_start_minute === undefined ? 1380 : d.sleep_start_minute
+  const sleepEnd = d.sleep_end_minute === undefined ? 420 : d.sleep_end_minute
+  if (typeof sleepEnabled !== 'boolean' || !Number.isInteger(sleepStart) || !finite(sleepStart) ||
+      sleepStart < 0 || sleepStart > 1439 || !Number.isInteger(sleepEnd) || !finite(sleepEnd) ||
+      sleepEnd < 0 || sleepEnd > 1439 || (sleepEnabled && sleepStart === sleepEnd)) throw Error('Screen schedule bounds')
   if (
     !Number.isInteger(d.poll_seconds) ||
     !finite(d.poll_seconds) ||
@@ -511,6 +530,10 @@ export function validateConfig(value: unknown): Config {
     address: value.address,
     accounts,
     display: {
+      language: language as Language,
+      sleep_enabled: sleepEnabled,
+      sleep_start_minute: sleepStart,
+      sleep_end_minute: sleepEnd,
       poll_seconds: d.poll_seconds,
       brightness_percent: d.brightness_percent,
       show_reset: d.show_reset === true,
@@ -584,6 +607,7 @@ export function makeSnapshot(
   }))
   return {
     protocol: 'quotamon.v1',
+    utc_offset_minutes: -new Date(now * 1000).getTimezoneOffset(),
     produced_at: now,
     refreshed: new Date(now * 1000).toLocaleTimeString('ko-KR', { hour12: false }),
     config_revision: config.revision,

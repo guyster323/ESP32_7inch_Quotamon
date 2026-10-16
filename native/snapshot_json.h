@@ -1,12 +1,13 @@
 #pragma once
 #include "ui.h"
+#include "generated/translations.h"
 #include <algorithm>
 #include <cmath>
 #include "../third_party/nlohmann/json.hpp"
 #include <stdexcept>
 
 namespace monitor {
-struct DecodedSnapshot { Snapshot data; Settings settings; int revision=0; double producedAt=0; };
+struct DecodedSnapshot { Snapshot data; Settings settings; int revision=0; double producedAt=0; int utcOffsetMinutes=0; };
 inline Provider decodeProvider(const std::string& name) {
     if(name=="codex") return Provider::Codex;
     if(name=="cursor") return Provider::Cursor;
@@ -21,6 +22,8 @@ inline DecodedSnapshot decode(const nlohmann::json& json) {
     out.producedAt=json.at("produced_at").get<double>();
     if(!std::isfinite(out.producedAt)||out.producedAt<0||out.producedAt>4102444800.0) throw std::runtime_error("Invalid heartbeat timestamp");
     out.revision=json.at("config_revision").get<int>(); if(out.revision<0) throw std::runtime_error("Invalid config revision");
+    out.utcOffsetMinutes=json.value("utc_offset_minutes",0);
+    if(out.utcOffsetMinutes< -840||out.utcOffsetMinutes>840)throw std::runtime_error("UTC offset bounds");
     out.data.connected=json.at("connected").get<bool>(); out.data.mock=json.at("mock").get<bool>();
     out.data.refreshed=json.value("refreshed",std::string("미확인"));
     if(out.data.refreshed.size()>64) throw std::runtime_error("Refresh label size bound");
@@ -62,6 +65,13 @@ inline DecodedSnapshot decode(const nlohmann::json& json) {
     if(out.settings.pollSeconds<15||out.settings.pollSeconds>3600||out.settings.brightnessPercent<10||out.settings.brightnessPercent>100) throw std::runtime_error("Settings bounds");
     out.settings.showReset=d.at("show_reset").get<bool>(); out.settings.showUpdated=d.at("show_updated").get<bool>();
     out.settings.showCredits=d.at("show_credits").get<bool>(); out.settings.showSession=d.at("show_session").get<bool>();
+    out.settings.language=d.value("language",std::string("ko"));
+    if(!i18n::valid(out.settings.language))throw std::runtime_error("Unsupported language");
+    out.settings.sleepEnabled=d.value("sleep_enabled",false);
+    out.settings.sleepStartMinute=d.value("sleep_start_minute",1380);
+    out.settings.sleepEndMinute=d.value("sleep_end_minute",420);
+    if(out.settings.sleepStartMinute<0||out.settings.sleepStartMinute>1439||out.settings.sleepEndMinute<0||out.settings.sleepEndMinute>1439||
+       (out.settings.sleepEnabled&&out.settings.sleepStartMinute==out.settings.sleepEndMinute))throw std::runtime_error("Screen schedule bounds");
     return out;
 }
 }

@@ -88,6 +88,15 @@ esp_err_t waveshare_rgb_lcd_backlight_on(void)
     return i2c_master_write_to_device(I2C_MASTER_NUM, 0x38, &write_buf, 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
 }
 
+esp_err_t waveshare_rgb_lcd_backlight_off(void)
+{
+    // CH422G EXIO2 is DISP/backlight enable on LCD-7 Rev1.2. Preserve the
+    // normal output latch bits (touch reset, LCD reset and USB selection).
+    uint8_t write_buf = 0x1E & ~(1U << 2);
+    ESP_ERROR_CHECK(i2c_master_init_if_needed());
+    return i2c_master_write_to_device(I2C_MASTER_NUM, 0x38, &write_buf, 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
+}
+
 esp_err_t waveshare_esp32_s3_rgb_lcd_init(esp_lv_adapter_tear_avoid_mode_t tear_mode,
                                           esp_lv_adapter_rotation_t rotation,
                                           esp_lcd_panel_handle_t *panel_handle,

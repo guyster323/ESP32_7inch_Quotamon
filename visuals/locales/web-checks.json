@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "languages": [
+    "ko",
+    "zh-CN",
+    "ja",
+    "en",
+    "de"
+  ],
+  "mock_source": true,
+  "mock_ble": true,
+  "checks": [
+    "instant preview",
+    "save and reload",
+    "all pages translated",
+    "overnight schedule persistence",
+    "equal-time and malformed-time rejection",
+    "cancel restores settings",
+    "430px layout",
+    "no JavaScript errors"
+  ]
+}

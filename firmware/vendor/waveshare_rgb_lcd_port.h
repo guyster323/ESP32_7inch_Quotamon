@@ -68,5 +68,6 @@ esp_err_t waveshare_esp32_s3_rgb_lcd_init(esp_lv_adapter_tear_avoid_mode_t tear_
                                           esp_lcd_touch_handle_t *touch_handle);
 
 esp_err_t waveshare_rgb_lcd_backlight_on(void);
+esp_err_t waveshare_rgb_lcd_backlight_off(void);
 
 #endif

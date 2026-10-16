@@ -311,7 +311,12 @@ export class QuotamonController extends EventEmitter {
           plan: this.config.accounts.find((s) => s.id === a.id)?.plan ?? '',
           enabled: selections.get(a.id) === true
         }))
-        this.save({ ...this.config, display: request.display, accounts })
+        // Older firmware omits the optional locale/schedule fields. Preserve
+        // them when that firmware changes an existing display preference.
+        const { language, sleep_enabled, sleep_start_minute, sleep_end_minute } = this.config.display
+        this.save({ ...this.config, display: {
+          language, sleep_enabled, sleep_start_minute, sleep_end_minute, ...request.display
+        }, accounts })
       } else if (request.type === 'settings') {
         this.dirty = true
         this.fault = '설정이 변경되었습니다. 최신 값을 다시 확인하세요.'

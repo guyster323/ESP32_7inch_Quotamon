@@ -227,6 +227,10 @@ export async function startPortableServer(ui: PortableUi, port = 0) {
           file: join(ui.webRoot, 'app.js'),
           type: 'text/javascript; charset=utf-8'
         },
+        '/locales.js': {
+          file: join(ui.webRoot, 'locales.js'),
+          type: 'text/javascript; charset=utf-8'
+        },
         '/style.css': {
           file: join(ui.webRoot, 'style.css'),
           type: 'text/css; charset=utf-8'

@@ -93,7 +93,8 @@ def generate(sprites_only=False):
                              'expression_frames': 2, 'copilot': 'Shared base bitmap + native LVGL eyelid drawing; no duplicate raster',
                              'motion': 'native/character_motion.h; bounded integer poses, account-specific phase'}
     if sprites_only:
-        for key in ['korean_font', 'copilot']:
+        for key in ['korean_font', 'copilot', 'ui_languages']:
+            if key not in previous:continue
             manifest[key] = previous[key]
         (OUT / 'asset-manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
         print(f"Compiled {len(manifest['sprites'])} sprites ({manifest['animation']['raster_bytes']} bytes); existing fonts preserved.")
@@ -130,6 +131,8 @@ def generate(sprites_only=False):
     manifest['copilot']='Original imagegen lavender pilot robot; assets/copilot/provenance.json'
     (OUT / 'asset-manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
     print('Generated 54 provider sprites, split-meter pixel fonts and Korean/Latin fonts.')
+    if (OUT/'translations.h').exists():
+        subprocess.run([sys.executable,str(ROOT/'tools/generate_language_fonts.py')],check=True,cwd=ROOT)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)

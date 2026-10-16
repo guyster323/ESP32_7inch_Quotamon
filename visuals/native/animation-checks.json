@@ -11,7 +11,7 @@
   "copilot_eye_pixels_closed": 26,
   "copilot_eye_pixels_open": 135,
   "hardware_tested": false,
-  "heap_free_after": 482896,
+  "heap_free_after": 482904,
   "heap_free_before": 482872,
   "page_cycles": 40,
   "passed": true,

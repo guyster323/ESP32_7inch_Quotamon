@@ -33,6 +33,9 @@ struct Snapshot {
     std::string refreshed = "미확인";
 };
 struct Settings {
+    std::string language="ko";
+    bool sleepEnabled=false;
+    int sleepStartMinute=23*60, sleepEndMinute=7*60;
     int pollSeconds = 60;
     int brightnessPercent = 70;
     bool showReset = true;
@@ -45,7 +48,9 @@ void init(const Snapshot& data);
 void apply(const Snapshot& data);
 void showHome();
 void showDetail(int account);
-void showSettings();
+void showSettings(bool keepDraft=false);
+void showScreenSchedule();
+void setDisplayAwake(bool awake);
 void showAccounts();
 void setSettings(const Settings& value);
 using CommitCallback = void(*)(const Settings&, const Snapshot&);

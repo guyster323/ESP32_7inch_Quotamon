@@ -2,6 +2,7 @@
 #include "generated/assets.h"
 #include "character_motion.h"
 #include "sprite_decoder.h"
+#include "generated/translations.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -46,6 +47,10 @@ struct AnimatedCharacter {
 std::array<AnimatedCharacter,5> characters;
 size_t characterCount=0;
 lv_timer_t* characterTimer=nullptr;
+bool displayAwake=true;
+const char* tr(const char* key) { return i18n::text(key,(page==-2||page==-7)?draft.language:committed.language); }
+std::string translated(const std::string& key) { return tr(key.c_str()); }
+std::string formatted(const char* key,int value) { char b[160];std::snprintf(b,sizeof(b),tr(key),value);return b; }
 lv_color_t color(unsigned value) { return lv_color_hex(value); }
 lv_obj_t* box(lv_obj_t* parent,int x,int y,int w,int h,unsigned bg,unsigned border=0,int radius=0) {
     auto* o=lv_obj_create(parent); lv_obj_remove_style_all(o);
@@ -67,7 +72,8 @@ lv_obj_t* button(lv_obj_t* parent,int x,int y,int w,const char* text,int actionI
     auto* o=box(parent,x,y,w,48,PANEL,BORDER,8);
     lv_obj_add_flag(o,LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_style_bg_color(o,color(0x223949),LV_STATE_PRESSED);
-    auto* t=label(o,0,0,w,text,&font_ko16); lv_obj_center(t);
+    const auto* font=lv_txt_get_width(text,static_cast<uint32_t>(std::strlen(text)),&font_ko16,0,LV_TEXT_FLAG_NONE)>w-12?&font_ko14:&font_ko16;
+    auto* t=label(o,0,0,w,text,font); lv_obj_center(t);
     lv_obj_set_style_text_align(t,LV_TEXT_ALIGN_CENTER,0);
     lv_obj_add_event_cb(o,action,LV_EVENT_CLICKED,reinterpret_cast<void*>(static_cast<intptr_t>(actionId)));
     return o;
@@ -101,7 +107,7 @@ void setMeter(Meter& m,const Pool& p,int index,bool valid) {
     char buf[24]; double value=valid?p.remaining:-1;
     if(value>0&&value<1) std::snprintf(buf,sizeof(buf),"<1%%");
     else if(value>=0) std::snprintf(buf,sizeof(buf),"%d%%",static_cast<int>(std::floor(std::clamp(value,0.0,100.0))));
-    else std::snprintf(buf,sizeof(buf),"%s",value==-2?"무제한":"--");
+    else std::snprintf(buf,sizeof(buf),"%s",value==-2?tr("무제한"):"--");
     auto* f=value==-2||(value>0&&value<1)?&font_ko20:m.font;
     lv_obj_set_style_text_font(m.dark,f,0); lv_obj_set_style_text_font(m.light,f,0);
     lv_label_set_text(m.dark,buf); lv_label_set_text(m.light,buf);
@@ -155,6 +161,7 @@ void drawCopilotBlink(lv_event_t* event) {
     rect(40,53,7,2,0xd6ffff); rect(55,53,6,2,0xd6ffff);
 }
 void animateCharacters() {
+    if(!displayAwake)return;
     const uint32_t now=lv_tick_get();
     for(size_t i=0;i<characterCount;i++) {
         auto& actor=characters[i];
@@ -186,19 +193,19 @@ void trackCharacter(lv_obj_t* image,int account) {
     lv_obj_clear_flag(image,LV_OBJ_FLAG_CLICKABLE);
     if(current.accounts[account].provider==Provider::Copilot)
         lv_obj_add_event_cb(image,drawCopilotBlink,LV_EVENT_DRAW_MAIN_END,&actor);
-    if(characterTimer) lv_timer_resume(characterTimer);
+    if(characterTimer&&displayAwake) lv_timer_resume(characterTimer);
 }
 std::string resetName(const std::string& name) {
     return name=="5H"?"5":name=="WEEKLY"?"W":name;
 }
 std::string resetTime(const Pool& pool) {
-    return pool.reset.empty()?"미확인":pool.reset;
+    return pool.reset.empty()?tr("미확인"):translated(pool.reset);
 }
 std::string resetSchedule(const Account& a) {
     if(a.provider==Provider::Cursor) {
         for(int j=0;j<a.poolCount;j++) if(!a.pools[j].reset.empty()&&a.pools[j].reset!="시각 미확인")
             return "Reset W "+resetTime(a.pools[j]);
-        return "Reset W 미확인";
+        return tr("Reset W 미확인");
     }
     const Pool *five=nullptr,*weekly=nullptr;
     for(int j=0;j<a.poolCount;j++) {
@@ -210,31 +217,31 @@ std::string resetSchedule(const Account& a) {
     int selected=0;
     for(int j=0;j<a.poolCount;j++) if(a.pools[j].remaining>=0&&(a.pools[selected].remaining<0||a.pools[j].remaining<a.pools[selected].remaining)) selected=j;
     const auto& p=a.pools[selected];
-    if(p.remaining==-1) return "일부 잔여량 미확인";
-    if(p.remaining==-2) return "무제한 · 제공된 정책 기준";
+    if(p.remaining==-1) return tr("일부 잔여량 미확인");
+    if(p.remaining==-2) return tr("무제한 · 제공된 정책 기준");
     return "Reset "+resetName(p.name)+" "+resetTime(p);
 }
 std::string note(int index) {
     const auto& a=current.accounts[index];
-    if(!current.connected) return "연결 대기 · 데이터 없음";
-    if(a.state==SourceState::Unknown) return a.sourceNote.empty()?"확인 불가 · 수집 상태 확인":a.sourceNote;
-    if(a.state==SourceState::Stale) return "오래된 정보 · 마지막 수집 확인";
-    if(a.provider==Provider::Copilot&&committed.showCredits&&a.hasAmounts) { char b[96]; std::snprintf(b,sizeof(b),"%.1f / %.1f AIC 남음",std::max(0.0,a.monthlyLimit-a.monthlyUsed),a.monthlyLimit); return b; }
-    if(!committed.showReset) return a.plan;
+    if(!current.connected) return tr("연결 대기 · 데이터 없음");
+    if(a.state==SourceState::Unknown) return a.sourceNote.empty()?tr("확인 불가 · 수집 상태 확인"):translated(a.sourceNote);
+    if(a.state==SourceState::Stale) return tr("오래된 정보 · 마지막 수집 확인");
+    if(a.provider==Provider::Copilot&&committed.showCredits&&a.hasAmounts) { char b[96]; std::snprintf(b,sizeof(b),tr("%.1f / %.1f AIC 남음"),std::max(0.0,a.monthlyLimit-a.monthlyUsed),a.monthlyLimit); return b; }
+    if(!committed.showReset) return translated(a.plan);
     return resetSchedule(a);
 }
 void footerText() {
     if(!footer) return;
-    std::string text=current.connected?"Orca · BLE 연결 · "+std::to_string(committed.pollSeconds)+"초 갱신":"Orca 연결 대기 · 표시 데이터 삭제됨";
-    if(current.mock) text="예시 데이터 · "+text;
+    std::string text=current.connected?formatted("Orca · BLE 연결 · %d초 갱신",committed.pollSeconds):tr("Orca 연결 대기 · 표시 데이터 삭제됨");
+    if(current.mock) text=std::string(tr("예시 데이터"))+" · "+text;
     int enabled=0; for(const auto& a:current.accounts) if(a.enabled) ++enabled;
     if(enabled>5) text+="   |   "+std::to_string(homePage+1)+" / "+std::to_string((enabled+4)/5);
     if(!feedback.empty()&&lv_tick_get()-feedbackAt<8000) text=feedback;
     if(current.connected&&committed.showUpdated) {
-        text+="\n최근 갱신 "+current.refreshed;
+        text+="\n"+std::string(tr("최근 갱신"))+" "+translated(current.refreshed);
         int source=page>=0?page:visible[0]>=0?visible[0]:-1;
         if(source>=0&&static_cast<size_t>(source)<current.accounts.size())
-            text+=(page>=0?"   |   계정 수집 ":"   |   첫 카드 수집 ")+current.accounts[source].updated;
+            text+="   |   "+std::string(tr(page>=0?"계정 수집":"첫 카드 수집"))+" "+translated(current.accounts[source].updated);
     }
     lv_label_set_text(footer,text.c_str());
 }
@@ -308,26 +315,29 @@ void card(int slot,int i,int x,int y,int w,int h) {
     const int mx=108,mw=w-118;
     for(int j=0;j<std::min(a.poolCount,2);j++) c.bars[j]=meter(c.obj,mx,bodyY+j*55,mw,51,a.pools[j],i);
     if(a.poolCount==1) {
-        label(c.obj,mx,bodyY+62,mw,a.plan.c_str(),&font_ko14,MUTED);
-        label(c.obj,mx,bodyY+85,mw,"터치해서 상세 확인",&font_ko14,MUTED);
+        label(c.obj,mx,bodyY+62,mw,tr(a.plan.c_str()),&font_ko14,MUTED);
+        label(c.obj,mx,bodyY+85,mw,tr("터치해서 상세 확인"),&font_ko14,MUTED);
     } else if(a.poolCount>2) {
-        c.extra=label(c.obj,10,h-44,w-20,("추가 "+std::to_string(a.poolCount-2)+"개 한도 · 상세에서 확인").c_str(),&font_ko14,MUTED);
+        c.extra=label(c.obj,10,h-44,w-20,formatted("추가 %d개 한도 · 상세에서 확인",a.poolCount-2).c_str(),&font_ko14,MUTED);
     }
     c.note=label(c.obj,10,h-23,w-20,"",&font_ko14,MUTED);
     lv_label_set_long_mode(c.note,LV_LABEL_LONG_WRAP);
     lv_obj_set_style_text_line_space(c.note,0,0);
 }
 void settingsLabels() {
-    lv_label_set_text_fmt(intervalLabel,"%d초",draft.pollSeconds);
+    lv_label_set_text_fmt(intervalLabel,tr("%d초"),draft.pollSeconds);
     lv_label_set_text_fmt(brightnessLabel,"%d%%",draft.brightnessPercent);
 }
 void action(lv_event_t* e) {
     const int id=static_cast<int>(reinterpret_cast<intptr_t>(lv_event_get_user_data(e)));
     if(id>=100&&id<200) showDetail(id-100);
     else if(id==1) showHome();
-    else if(id==2) { ++refreshCount; if(onRefresh) onRefresh(); notify("Orca에 새로고침 요청됨"); }
+    else if(id==2) { ++refreshCount; if(onRefresh) onRefresh(); notify(tr("Orca에 새로고침 요청됨")); }
     else if(id==3) showSettings();
     else if(id==4) {
+        if(draft.sleepEnabled&&draft.sleepStartMinute==draft.sleepEndMinute) {
+            showScreenSchedule();label(root,20,384,760,tr("시작과 종료 시각은 달라야 합니다."),&font_ko14,RED);return;
+        }
         committed=draft;
         if(page==-3) for(auto& a:current.accounts) {
             auto found=std::find(accountDraftIds.begin(),accountDraftIds.end(),a.id);
@@ -352,9 +362,21 @@ void action(lv_event_t* e) {
     else if(id==17) { if(onPairingStart) onPairingStart(); showPairingWait(); }
     else if(id==18||id==19) { if(onPairingConfirm) onPairingConfirm(id==18); showHome(); }
     else if(id==20) {
-        page=-6;newPage();label(root,40,40,720,"저장된 PC 페어링을 지울까요?",&font_ko20);
-        label(root,40,130,720,"현재 연결이 끊어지고 Windows에서도 기존 장치를 제거해야 합니다.",&font_ko16,MUTED);
-        button(root,40,340,344,"취소",1);button(root,416,340,344,"페어링 지우기",21);
+        page=-6;newPage();label(root,40,40,720,tr("저장된 PC 페어링을 지울까요?"),&font_ko20);
+        label(root,40,130,720,tr("현재 연결이 끊어지고 Windows에서도 기존 장치를 제거해야 합니다."),&font_ko16,MUTED);
+        button(root,40,340,344,tr("취소"),1);button(root,416,340,344,tr("페어링 지우기"),21);
+    }
+    else if(id==22) {
+        draft.language=i18n::languages[std::min<unsigned>(4,lv_dropdown_get_selected(lv_event_get_target(e)))];
+        showSettings(true);
+    }
+    else if(id==23) showScreenSchedule();
+    else if(id==24) showSettings(true);
+    else if(id==25) draft.sleepEnabled=lv_obj_has_state(lv_event_get_target(e),LV_STATE_CHECKED);
+    else if(id>=26&&id<=29) {
+        int& minute=id<28?draft.sleepStartMinute:draft.sleepEndMinute;
+        minute=(minute+((id%2)==0?-15:15)+1440)%1440;
+        showScreenSchedule();
     }
     else if(id==21) {if(onPairingForget)onPairingForget();if(onPairingStart)onPairingStart();showPairingWait();}
     else if(id>=200&&id<300) { const size_t i=static_cast<size_t>(id-200); if(i<accountDraft.size()) accountDraft[i]=lv_obj_has_state(lv_event_get_target(e),LV_STATE_CHECKED); }
@@ -390,8 +412,8 @@ void apply(const Snapshot& data) {
 }
 void showHome() {
     page=-1; newPage();
-    label(root,20,17,340,"QUOTA  /  구독 잔여량",&font_ko20);
-    button(root,570,12,100,"새로고침",2); button(root,682,12,98,"설정",3);
+    label(root,20,17,340,tr("QUOTA  /  구독 잔여량"),&font_ko20);
+    button(root,570,12,100,tr("새로고침"),2); button(root,682,12,98,tr("설정"),3);
     std::vector<int> selected;
     for(size_t i=0;i<current.accounts.size();i++) if(current.accounts[i].enabled) selected.push_back(static_cast<int>(i));
     homePage=std::clamp(homePage,0,std::max(0,(static_cast<int>(selected.size())-1)/5));
@@ -400,12 +422,12 @@ void showHome() {
     int count=std::min(5,static_cast<int>(selected.size())-homePage*5);
     if(count==0) {
         auto* p=box(root,20,72,760,360,PANEL,BORDER,8);
-        label(p,32,48,680,current.connected?"나만의 구독 모니터를 시작하세요":"Orca 연결을 기다리고 있습니다",&font_ko20);
-        label(p,32,104,680,current.connected?"Orca에서 표시할 계정을 선택하세요.":"Orca 실행 상태를 확인하거나 BLE로 새로 연결하세요.",&font_ko16,MUTED);
+        label(p,32,48,680,current.connected?tr("나만의 구독 모니터를 시작하세요"):tr("Orca 연결을 기다리고 있습니다"),&font_ko20);
+        label(p,32,104,680,current.connected?tr("Orca에서 표시할 계정을 선택하세요."):tr("Orca 실행 상태를 확인하거나 BLE로 새로 연결하세요."),&font_ko16,MUTED);
         label(p,32,149,680,"Codex · Cursor · Copilot · Claude · Grok",&font_ko16,GREEN);
-        label(p,32,201,680,"Orca 사용자는 기존 로그인과 사용량을 그대로 연결할 수 있습니다.",&font_ko14,MUTED);
-        button(p,32,264,200,"BLE 연결 시작",17);
-        button(p,248,264,200,"계정 선택",14);
+        label(p,32,201,680,tr("Orca 사용자는 기존 로그인과 사용량을 그대로 연결할 수 있습니다."),&font_ko14,MUTED);
+        button(p,32,264,200,tr("BLE 연결 시작"),17);
+        button(p,248,264,200,tr("계정 선택"),14);
     }
     for(int slot=0;slot<count;slot++) {
         int i=selected[homePage*5+slot]; visible[slot]=i;
@@ -421,11 +443,11 @@ void showDetail(int i) {
     if(i<0||static_cast<size_t>(i)>=current.accounts.size()) return;
     int scroll=(page==i&&detailLimits)?lv_obj_get_scroll_y(detailLimits):0;
     page=i; newPage(); const auto& a=current.accounts[i];
-    back=button(root,20,12,100,"뒤로",1); label(root,140,22,500,a.title.c_str(),&font_ko20);
-    button(root,680,12,100,"새로고침",2);
+    back=button(root,20,12,100,tr("뒤로"),1); label(root,140,22,500,a.title.c_str(),&font_ko20);
+    button(root,680,12,100,tr("새로고침"),2);
     auto* panel=box(root,20,80,760,350,PANEL,BORDER,8);
     label(panel,20,17,720,a.profile.c_str(),&font_ko20);
-    label(panel,20,51,720,a.plan.c_str(),&font_ko14,MUTED);
+    label(panel,20,51,720,tr(a.plan.c_str()),&font_ko14,MUTED);
     auto* img=lv_img_create(panel); lv_img_set_src(img,sprite(i,a,current.connected)); lv_img_set_antialias(img,false); lv_img_set_zoom(img,512); lv_obj_set_pos(img,64,124);
     trackCharacter(img,i); animateCharacters();
     auto* limits=box(panel,258,92,480,207,PANEL);
@@ -436,40 +458,50 @@ void showDetail(int i) {
         lv_obj_set_style_bg_color(limits,color(MUTED),LV_PART_SCROLLBAR);
         lv_obj_set_style_bg_opa(limits,LV_OPA_70,LV_PART_SCROLLBAR);
         lv_obj_set_style_width(limits,4,LV_PART_SCROLLBAR);
-        label(panel,260,51,475,(std::to_string(a.poolCount)+"개 한도 · 막대 영역을 위아래로 스크롤").c_str(),&font_ko14,MUTED);
+        label(panel,260,51,475,formatted("%d개 한도 · 막대 영역을 위아래로 스크롤",a.poolCount).c_str(),&font_ko14,MUTED);
     }
     for(int j=0;j<a.poolCount;j++) {
         auto m=meter(limits,2,j*98,465,66,a.pools[j],i);
         setMeter(m,a.pools[j],i,current.connected&&a.state!=SourceState::Unknown);
-        const std::string reset=!current.connected?"연결 대기":a.state==SourceState::Unknown?"확인 불가":a.pools[j].remaining==-2?"무제한 · 비율 계산 없음":a.pools[j].remaining==-1?"잔여량 확인 불가":committed.showReset&&a.provider!=Provider::Cursor?"Reset "+resetName(a.pools[j].name)+" "+resetTime(a.pools[j]):"";
+        const std::string reset=!current.connected?tr("연결 대기"):a.state==SourceState::Unknown?tr("확인 불가"):a.pools[j].remaining==-2?tr("무제한 · 비율 계산 없음"):a.pools[j].remaining==-1?tr("잔여량 확인 불가"):committed.showReset&&a.provider!=Provider::Cursor?"Reset "+resetName(a.pools[j].name)+" "+resetTime(a.pools[j]):"";
         label(limits,8,69+j*98,450,reset.c_str(),&font_ko14,MUTED);
     }
     if(a.provider==Provider::Copilot) {
         char b[180];
         bool valid=current.connected&&a.state!=SourceState::Unknown;
-        if(valid&&a.hasAmounts) std::snprintf(b,sizeof(b),"월간 %.1f / %.1f AIC 사용",a.monthlyUsed,a.monthlyLimit);
-        else std::snprintf(b,sizeof(b),"월간 사용량 --");
+        if(valid&&a.hasAmounts) std::snprintf(b,sizeof(b),tr("월간 %.1f / %.1f AIC 사용"),a.monthlyUsed,a.monthlyLimit);
+        else std::snprintf(b,sizeof(b),tr("월간 사용량 --"));
         if(committed.showCredits) label(limits,8,109,450,b,&font_ko16);
-        if(valid&&a.hasSession) std::snprintf(b,sizeof(b),"Session %.1f AIC 사용 · 월간 한도와 별도",a.sessionUsed);
-        else std::snprintf(b,sizeof(b),"Session -- · 원천 제공 없음");
+        if(valid&&a.hasSession) std::snprintf(b,sizeof(b),tr("Session %.1f AIC 사용 · 월간 한도와 별도"),a.sessionUsed);
+        else std::snprintf(b,sizeof(b),tr("Session -- · 원천 제공 없음"));
         if(committed.showSession) label(limits,8,149,450,b,&font_ko16);
     }
     label(panel,260,303,474,note(i).c_str(),&font_ko14,MUTED);
     lv_obj_update_layout(limits); if(scroll>0) lv_obj_scroll_to_y(limits,static_cast<lv_coord_t>(scroll),LV_ANIM_OFF);
     createFooter(); footerText();
 }
-void showSettings() {
-    if(onEditing)onEditing();
-    page=-2; draft=committed; newPage();
-    label(root,20,22,540,"설정",&font_ko20); button(root,630,12,150,"계정 관리",14);
-    button(root,490,12,128,"BLE 연결",17);
+void showSettings(bool keepDraft) {
+    if(!keepDraft) {if(onEditing)onEditing();draft=committed;}
+    page=-2; newPage();
+    label(root,20,22,540,tr("설정"),&font_ko20); button(root,630,12,150,tr("계정 관리"),14);
+    button(root,490,12,128,tr("BLE 연결"),17);
     auto* panel=box(root,20,80,760,300,PANEL,BORDER,8);
-    label(panel,20,22,220,"데이터 갱신 주기",&font_ko16);
+    label(panel,20,22,220,tr("데이터 갱신 주기"),&font_ko16);
     intervalLabel=label(panel,354,23,130,"",&font_ko20);
     button(panel,280,12,60,"−",6); button(panel,480,12,60,"+",7);
-    label(panel,20,92,220,"화면 밝기",&font_ko16);
+    label(panel,20,92,220,tr("화면 밝기"),&font_ko16);
     brightnessLabel=label(panel,354,93,130,"",&font_ko20);
     button(panel,280,82,60,"−",8); button(panel,480,82,60,"+",9);
+    label(panel,558,3,180,tr("언어"),&font_ko14);
+    auto* languages=lv_dropdown_create(panel);
+    lv_obj_set_pos(languages,550,30);lv_obj_set_size(languages,190,42);
+    lv_dropdown_set_options(languages,"한국어\n简体中文\n日本語\nEnglish\nDeutsch");
+    lv_obj_set_style_text_font(languages,&lv_font_montserrat_14,LV_PART_INDICATOR);
+    lv_obj_set_style_text_font(languages,&font_ko16,0);
+    lv_obj_set_style_text_font(lv_dropdown_get_list(languages),&font_ko16,0);
+    lv_dropdown_set_selected(languages,static_cast<uint16_t>(i18n::index(draft.language)));
+    lv_obj_add_event_cb(languages,action,LV_EVENT_VALUE_CHANGED,reinterpret_cast<void*>(22));
+    button(panel,550,84,190,tr("화면 끄기 예약"),23);
     auto check=[panel](int x,int y,const char* text,bool value,int id) {
         auto* cb=lv_checkbox_create(panel); lv_obj_set_pos(cb,static_cast<lv_coord_t>(x),static_cast<lv_coord_t>(y)); lv_checkbox_set_text(cb,text);
         lv_obj_set_style_text_font(cb,&font_ko16,0); lv_obj_set_style_text_color(cb,color(TEXT),0);
@@ -477,16 +509,47 @@ void showSettings() {
         if(value) lv_obj_add_state(cb,LV_STATE_CHECKED);
         lv_obj_add_event_cb(cb,action,LV_EVENT_VALUE_CHANGED,reinterpret_cast<void*>(static_cast<intptr_t>(id)));
     };
-    check(20,146,"리셋까지 남은 시간 표시",draft.showReset,10);
-    check(390,146,"마지막 갱신 시각 표시",draft.showUpdated,11);
-    check(20,212,"Copilot 월간 AIC 표시",draft.showCredits,12);
-    check(390,212,"Copilot Session AIC 표시",draft.showSession,13);
+    check(20,146,tr("리셋까지 남은 시간 표시"),draft.showReset,10);
+    check(390,146,tr("마지막 갱신 시각 표시"),draft.showUpdated,11);
+    check(20,212,tr("Copilot 월간 AIC 표시"),draft.showCredits,12);
+    check(390,212,tr("Copilot Session AIC 표시"),draft.showSession,13);
     settingsLabels();
-    cancel=button(root,548,408,108,"취소",5); save=button(root,672,408,108,"저장",4);
-    label(root,20,422,510,"저장한 설정은 연결된 Orca와 동기화됩니다.",&font_ko14,MUTED);
+    cancel=button(root,548,408,108,tr("취소"),5); save=button(root,672,408,108,tr("저장"),4);
+    label(root,20,422,510,tr("저장한 설정은 연결된 Orca와 동기화됩니다."),&font_ko14,MUTED);
+}
+void showScreenSchedule() {
+    page=-7;newPage();
+    label(root,20,22,760,tr("화면 끄기 예약"),&font_ko20);
+    auto* panel=box(root,20,80,760,300,PANEL,BORDER,8);
+    auto* enabled=lv_checkbox_create(panel);lv_obj_set_pos(enabled,20,12);
+    lv_checkbox_set_text(enabled,tr("예약 사용"));lv_obj_set_style_text_font(enabled,&font_ko16,0);
+    lv_obj_set_style_text_color(enabled,color(TEXT),0);lv_obj_set_style_pad_all(enabled,12,0);
+    if(draft.sleepEnabled)lv_obj_add_state(enabled,LV_STATE_CHECKED);
+    lv_obj_add_event_cb(enabled,action,LV_EVENT_VALUE_CHANGED,reinterpret_cast<void*>(25));
+    for(int row=0;row<2;row++) {
+        const int minute=row?draft.sleepEndMinute:draft.sleepStartMinute;
+        label(panel,20,83+row*68,240,tr(row?"켜는 시각":"끄는 시각"),&font_ko16);
+        char time[8];std::snprintf(time,sizeof(time),"%02d:%02d",minute/60,minute%60);
+        label(panel,354,83+row*68,130,time,&font_ko20);
+        button(panel,280,72+row*68,60,"−",26+row*2);button(panel,480,72+row*68,60,"+",27+row*2);
+    }
+    label(panel,20,216,720,tr("PC 현지 시각 기준 · BLE 연결과 수신은 유지됩니다."),&font_ko14,MUTED);
+    label(panel,20,250,720,tr("화면을 터치하면 5분 동안 켜집니다."),&font_ko14,MUTED);
+    button(root,20,408,140,tr("뒤로"),24);
+    cancel=button(root,548,408,108,tr("취소"),5);save=button(root,672,408,108,tr("저장"),4);
+}
+void setDisplayAwake(bool awake) {
+    if(displayAwake==awake)return;
+    displayAwake=awake;
+    if(characterTimer) {if(awake&&characterCount)lv_timer_resume(characterTimer);else lv_timer_pause(characterTimer);}
+    if(awake)animateCharacters();
 }
 const Settings& settings() { return committed; }
-void setSettings(const Settings& value) { committed=value; if(page==-1) updateCards(); }
+void setSettings(const Settings& value) {
+    bool languageChanged=committed.language!=value.language;
+    committed=value;
+    if(page==-1) {if(languageChanged)showHome();else updateCards();}
+}
 void setCommitCallback(CommitCallback callback) { onCommit=callback; }
 void setRefreshCallback(ActionCallback callback) { onRefresh=callback; }
 void setEditingCallback(ActionCallback callback) { onEditing=callback; }
@@ -494,31 +557,31 @@ void notify(const char* message) {feedback=message;feedbackAt=lv_tick_get();foot
 void setPairingCallbacks(ActionCallback start, PairingCallback confirm, ActionCallback forget) { onPairingStart=start; onPairingConfirm=confirm; onPairingForget=forget; }
 void showPairingWait() {
     page=-4; newPage();
-    label(root,40,36,720,"Orca와 연결",&font_ko20);
+    label(root,40,36,720,tr("Orca와 연결"),&font_ko20);
     auto* panel=box(root,40,92,720,280,PANEL,BORDER,8);
-    label(panel,32,38,656,"Orca 설정에서 디스플레이를 찾아 선택하세요.",&font_ko20);
-    label(panel,32,98,656,"이름: Quotamon · 연결 허용 시간: 2분",&font_ko16,GREEN);
-    label(panel,32,150,656,"두 화면의 6자리 번호가 일치할 때만 승인하세요.",&font_ko16,MUTED);
-    back=button(root,40,404,120,"뒤로",1);
-    button(root,560,404,200,"페어링 초기화",20);
+    label(panel,32,38,656,tr("Orca 설정에서 디스플레이를 찾아 선택하세요."),&font_ko20);
+    label(panel,32,98,656,tr("이름: Quotamon · 연결 허용 시간: 2분"),&font_ko16,GREEN);
+    label(panel,32,150,656,tr("두 화면의 6자리 번호가 일치할 때만 승인하세요."),&font_ko16,MUTED);
+    back=button(root,40,404,120,tr("뒤로"),1);
+    button(root,560,404,200,tr("페어링 초기화"),20);
 }
 void showPairing(uint32_t passkey) {
     page=-5; newPage();
-    label(root,40,32,720,"Orca와 같은 번호인가요?",&font_ko20);
+    label(root,40,32,720,tr("Orca와 같은 번호인가요?"),&font_ko20);
     auto* panel=box(root,40,92,720,252,PANEL,BORDER,8);
     char digits[8]; std::snprintf(digits,sizeof(digits),"%06u",static_cast<unsigned>(passkey%1000000));
     auto* pin=label(panel,32,52,656,digits,&font_pixel40,GREEN); lv_obj_set_style_text_align(pin,LV_TEXT_ALIGN_CENTER,0);
-    label(panel,32,134,656,"Orca와 이 화면에서 각각 승인해야 연결됩니다.",&font_ko16,MUTED);
-    label(panel,32,178,656,"요청하지 않은 연결이거나 번호가 다르면 거절하세요.",&font_ko14,MUTED);
-    button(root,40,380,344,"다름 · 거절",19); button(root,416,380,344,"일치 · 승인",18);
+    label(panel,32,134,656,tr("Orca와 이 화면에서 각각 승인해야 연결됩니다."),&font_ko16,MUTED);
+    label(panel,32,178,656,tr("요청하지 않은 연결이거나 번호가 다르면 거절하세요."),&font_ko14,MUTED);
+    button(root,40,380,344,tr("다름 · 거절"),19); button(root,416,380,344,tr("일치 · 승인"),18);
 }
 void showAccounts() {
     if(onEditing)onEditing();
     page=-3; draft=committed; newPage(); accountDraft.clear(); accountDraftIds.clear();
-    label(root,20,22,760,"표시할 구독 계정 선택",&font_ko20);
+    label(root,20,22,760,tr("표시할 구독 계정 선택"),&font_ko20);
     auto* panel=box(root,20,80,760,300,PANEL,BORDER,8);
     lv_obj_add_flag(panel,LV_OBJ_FLAG_SCROLLABLE); lv_obj_set_scroll_dir(panel,LV_DIR_VER);
-    if(current.accounts.empty()) label(panel,20,30,710,"Orca 설정에서 먼저 계정을 선택하세요.",&font_ko16,MUTED);
+    if(current.accounts.empty()) label(panel,20,30,710,tr("Orca 설정에서 먼저 계정을 선택하세요."),&font_ko16,MUTED);
     for(size_t i=0;i<current.accounts.size();i++) {
         const auto& a=current.accounts[i]; accountDraft.push_back(a.enabled); accountDraftIds.push_back(a.id);
         auto* cb=lv_checkbox_create(panel); lv_obj_set_pos(cb,20,static_cast<lv_coord_t>(12+i*56));
@@ -527,8 +590,8 @@ void showAccounts() {
         if(a.enabled) lv_obj_add_state(cb,LV_STATE_CHECKED);
         lv_obj_add_event_cb(cb,action,LV_EVENT_VALUE_CHANGED,reinterpret_cast<void*>(static_cast<intptr_t>(200+i)));
     }
-    cancel=button(root,548,408,108,"취소",5); save=button(root,672,408,108,"저장",4);
-    label(root,20,422,510,"표시 순서와 계정 이름은 Orca 설정에서 변경합니다.",&font_ko14,MUTED);
+    cancel=button(root,548,408,108,tr("취소"),5); save=button(root,672,408,108,tr("저장"),4);
+    label(root,20,422,510,tr("표시 순서와 계정 이름은 Orca 설정에서 변경합니다."),&font_ko14,MUTED);
 }
 int selectedAccount() { return page; }
 int refreshRequests() { return refreshCount; }

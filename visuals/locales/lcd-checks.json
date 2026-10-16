@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "mock_data": true,
+  "hardware_tested": false,
+  "languages": [
+    "ko",
+    "zh-CN",
+    "ja",
+    "en",
+    "de"
+  ],
+  "checks": [
+    "real language selector event",
+    "unsaved interval survives language switch",
+    "language save",
+    "schedule navigation and cancel",
+    "home/settings/schedule/detail/pairing rendered",
+    "legacy snapshot",
+    "invalid language and schedule rejected",
+    "screen-off pauses animation; wake resumes"
+  ]
+}

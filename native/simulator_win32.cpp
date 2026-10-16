@@ -29,6 +29,7 @@ double unixSeconds() { return std::chrono::duration<double>(std::chrono::system_
 void saveIntent(const monitor::Settings& settings,const monitor::Snapshot& data) {
     if(snapshotFile.empty()) return;
     nlohmann::json display={{"poll_seconds",settings.pollSeconds},{"brightness_percent",settings.brightnessPercent},
+        {"language",settings.language},{"sleep_enabled",settings.sleepEnabled},{"sleep_start_minute",settings.sleepStartMinute},{"sleep_end_minute",settings.sleepEndMinute},
         {"show_reset",settings.showReset},{"show_updated",settings.showUpdated},{"show_credits",settings.showCredits},{"show_session",settings.showSession}};
     std::vector<std::string> enabled; for(const auto& a:data.accounts) if(a.enabled) enabled.push_back(a.id);
     nlohmann::json intent={{"id",std::to_string(unixSeconds())},{"config_revision",configurationRevision},{"display",display},{"enabled_ids",enabled}};
@@ -342,6 +343,56 @@ void renderSuite(const std::filesystem::path& folder) {
     result<<R"({"passed":true,"resolution":[800,480],"checks":["five fixed cards inside screen","home not scrollable","snapshot preserves card objects","pointer opens detail through meter","back pointer navigation","Copilot monthly detail","settings pointer navigation","cancel discards draft","save commits interval","display field toggles commit and restore","refresh intent","0/8/20/100 percent","unknown and unlimited","stale source","disconnect clears numeric display","offline home and detail have no numeric percentages","long Korean label ellipsizes"],"hardware_tested":false,"mock_data":true})";
     std::cout<<"Native LVGL checks passed. Screenshots: "<<folder.string()<<"\n";
 }
+lv_obj_t* findDropdown(lv_obj_t* object) {
+    if(lv_obj_check_type(object,&lv_dropdown_class))return object;
+    for(uint32_t i=0;i<lv_obj_get_child_cnt(object);i++)
+        if(auto* found=findDropdown(lv_obj_get_child(object,static_cast<int32_t>(i))))return found;
+    return nullptr;
+}
+void renderLocales(const std::filesystem::path& folder) {
+    std::filesystem::create_directories(folder);
+    auto data=monitor::demo();monitor::init(data);
+    for(int index=0;index<5;index++) {
+        monitor::showSettings();click(530,116); // Keep an unsaved interval while translating.
+        auto* dropdown=findDropdown(lv_scr_act());require(dropdown!=nullptr,"Language selector missing");
+        lv_dropdown_set_selected(dropdown,static_cast<uint16_t>(index));
+        lv_event_send(dropdown,LV_EVENT_VALUE_CHANGED,nullptr);advance();
+        const std::string code=monitor::i18n::languages[index];
+        const auto* title=monitor::i18n::text("설정",code);
+        require(findLabel(lv_scr_act(),title)!=nullptr,"Settings language did not change");
+        capture(folder/("lcd-"+code+"-settings.ppm"));
+        click(735,432);require(monitor::settings().language==code,"Language save failed");
+        require(monitor::settings().pollSeconds==60+15*(index+1),"Language switch lost another draft field");
+        capture(folder/("lcd-"+code+"-home.ppm"));
+        monitor::showSettings();click(665,185);require(monitor::selectedAccount()==-7,"Schedule button failed");
+        capture(folder/("lcd-"+code+"-schedule.ppm"));
+        click(600,432);require(!monitor::settings().sleepEnabled,"Cancel changed the screen schedule");
+        monitor::showPairingWait();capture(folder/("lcd-"+code+"-pairing.ppm"));
+        monitor::showPairing(632814);capture(folder/("lcd-"+code+"-code.ppm"));
+        monitor::showHome();monitor::showDetail(0);capture(folder/("lcd-"+code+"-detail.ppm"));
+    }
+    monitor::showHome();advance();
+    monitor::setDisplayAwake(false);const std::vector<uint32_t> sleepingPixels(pixels.begin(),pixels.end());advance(2000);
+    require(std::equal(pixels.begin(),pixels.end(),sleepingPixels.begin()),"Sleeping display kept animating");
+    monitor::setDisplayAwake(true);advance(1500);
+    require(!std::equal(pixels.begin(),pixels.end(),sleepingPixels.begin()),"Character animation did not resume after waking");
+    // Invalid language/settings must fail before they can change the screen.
+    auto fixture=nlohmann::json{{"protocol","quotamon.v1"},{"produced_at",1800000000},
+        {"config_revision",0},{"connected",true},{"mock",true},{"accounts",nlohmann::json::array()},
+        {"display",{{"poll_seconds",60},{"brightness_percent",70},{"show_reset",true},
+                    {"show_updated",true},{"show_credits",true},{"show_session",true}}}};
+    require(monitor::decode(fixture).settings.language=="ko","Legacy language default failed");
+    fixture["display"]["language"]="fr";bool rejected=false;
+    try {monitor::decode(fixture);}catch(const std::exception&){rejected=true;}
+    require(rejected,"Unsupported language accepted");
+    fixture["display"]["language"]="de";fixture["display"]["sleep_enabled"]=true;
+    fixture["display"]["sleep_start_minute"]=600;fixture["display"]["sleep_end_minute"]=600;rejected=false;
+    try {monitor::decode(fixture);}catch(const std::exception&){rejected=true;}
+    require(rejected,"Equal sleep endpoints accepted");
+    std::ofstream result(folder/"lcd-checks.json");
+    result<<R"({"passed":true,"mock_data":true,"hardware_tested":false,"languages":["ko","zh-CN","ja","en","de"],"checks":["real language selector event","unsaved interval survives language switch","language save","schedule navigation and cancel","home/settings/schedule/detail/pairing rendered","legacy snapshot","invalid language and schedule rejected"]})";
+    std::cout<<"Localized LCD UI: PASS\n";
+}
 LRESULT CALLBACK wndProc(HWND hwnd,UINT msg,WPARAM w,LPARAM l) {
     if(msg==WM_PAINT) {
         PAINTSTRUCT ps; HDC dc=BeginPaint(hwnd,&ps); BITMAPINFO info{};
@@ -373,6 +424,7 @@ int wmain(int argc,wchar_t** argv) {
         static lv_indev_drv_t input; lv_indev_drv_init(&input); input.type=LV_INDEV_TYPE_POINTER; input.read_cb=readPointer; lv_indev_drv_register(&input);
         if(argc>=3&&std::wstring(argv[1])==L"--render") { renderSuite(argv[2]); return 0; }
         if(argc>=3&&std::wstring(argv[1])==L"--render-animation") { renderAnimation(argv[2]); return 0; }
+        if(argc>=3&&std::wstring(argv[1])==L"--render-locales") { renderLocales(argv[2]); return 0; }
         if(argc>=4&&std::wstring(argv[1])==L"--render-snapshot") {
             std::ifstream source(std::filesystem::path(argv[2]),std::ios::binary);
             auto parsed=nlohmann::json::parse(source); auto decoded=monitor::decode(parsed);

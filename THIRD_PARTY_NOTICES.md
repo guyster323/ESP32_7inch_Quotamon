@@ -4,7 +4,7 @@ Codex, Cursor, Claude and Grok sprites, numeric pixel glyph shapes and split-met
 
 The lavender Copilot pilot robot is original unofficial artwork. Source master, exact prompts and conversion record: [assets/copilot](assets/copilot). No official vendor mascot or logo is claimed.
 
-Noto Sans KR Medium: SIL OFL 1.1, [full notice](native/generated/NotoSansKR-OFL.txt). Embedded glyphs include modern Hangul, ASCII and Latin extended; other scripts require additional coverage.
+Noto Sans KR Medium and Noto Sans SC Medium: SIL OFL 1.1, [KR notice](native/generated/NotoSansKR-OFL.txt), [SC notice](native/generated/NotoSansSC-OFL.txt). Embedded glyphs include all five-language LCD UI messages, modern Hangul, ASCII and Latin extended. Additional Chinese/Japanese account-name glyphs outside the UI subset require regenerating the fonts. Font source revision and checksum are recorded in [the asset manifest](native/generated/asset-manifest.json).
 
 | Component | Version / revision | License / notice |
 |---|---|---|

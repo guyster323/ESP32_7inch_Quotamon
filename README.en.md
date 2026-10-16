@@ -85,6 +85,14 @@ Default snapshot interval: **60 seconds**. Heartbeat: **10 seconds**. A disconne
 
 Requires Windows 10 2004 or later / Windows 11, x64 and Bluetooth LE. Keep the portable folder intact. Enable Windows login startup in tray settings. If pairing fails before showing numbers, use the [Windows native pairing recovery steps](docs/PORTABLE_BRIDGE.md).
 
+## Languages and scheduled screen-off
+
+The web UI and ESP32 support **Korean, Simplified Chinese, Japanese, English and German**. Choose **Settings → Language → Save** to synchronize the language between the PC and display.
+
+Under **Settings → Screen-off schedule**, set daily off/on times. The default is **disabled, 23:00–07:00**. The schedule uses the PC's local time and switches off the backlight while BLE and data reception continue. Touch the dark display to wake it for **five minutes**.
+
+[Settings, clock sync, fonts and verification](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md) · [English web settings](visuals/locales/web-en.png) · [Japanese LCD preview](visuals/locales/lcd-ja-home.png)
+
 ## Meet the pixel crew
 
 | Codex | Cursor | Copilot | Claude | Grok |
@@ -104,17 +112,15 @@ Companions blink, breathe and make small gestures on both home cards and account
 
 Restored 24 additional F108pro expressions and added native LVGL eyelids for Copilot. **Lossless palette storage expands the set from 30 to 54 images while reducing asset bytes from 855,360 to 521,289—about 39%.** One 100ms timer updates visible characters; settings and pairing pages pause it.
 
-The current instrumented ESP32 application uses **72.5% of its flash partition** and **16.5% of static RAM capacity**. The following physical-board measurements predate the periodic screen-shift fix, with the existing BLE connection and animations running. See [sampling latency fix and follow-up verification](docs/RUNTIME_METRICS.md).
+The current firmware uses **74.9% of its flash partition** and **16.6% of static RAM capacity**. After adding languages and screen scheduling, the physical board was measured with BLE and animations running.
 
-| Hardware measurement | Home: five characters, 100.5s | Detail: one character at 2×, 80.5s |
-|---|---:|---:|
-| CPU utilization: two-core mean | **6.10%** | **6.08%** |
-| Actual LVGL refresh rate | **7.43fps** | **2.57fps** |
-| Current free PSRAM | **About 891KiB** | **About 891KiB** |
+| Hardware measurement | Home: five characters, 60.27s |
+|---|---:|
+| CPU utilization: two-core mean | **6.23%** |
+| Actual LVGL refresh rate | **7.48fps** |
+| Current free PSRAM | **About 636KiB** |
 
-Free PSRAM stayed at 912,804 bytes in both windows; the largest contiguous free block was 864KiB. FPS counts actual updates caused by changing content, not LCD scan frequency or maximum throughput. See [methods, per-core CPU, memory low-water marks and raw samples](docs/RUNTIME_METRICS.md). The GIFs use illustrative usage data and are renderer output, not hardware footage.
-
-After the fix, the user confirmed the periodic corruption and screen shifting were gone. A 45.26-second home measurement recorded **5.97% mean CPU, 7.29fps and about 891KiB free PSRAM**. [Post-fix samples](docs/runtime-metrics-display-fix.json)
+Free PSRAM stayed at 651,272 bytes; the largest contiguous block was 608KiB. FPS counts actual content updates, not LCD scan frequency or maximum throughput. [Latest samples](docs/runtime-metrics-languages.json) · [Methods and earlier firmware measurements](docs/RUNTIME_METRICS.md). The GIFs use illustrative data and are renderer output, not hardware footage.
 
 [Detail GIF](visuals/native/character-detail-animation.gif) · [State GIF](visuals/native/character-states-animation.gif) · [Implementation, resources and hardware rollout](docs/CHARACTER_ANIMATION.md)
 
@@ -143,6 +149,12 @@ This is a **development preview**. Beyond the shared LVGL UI and portable bridge
 Refresh timestamps and compact reset layouts were checked in the native renderer. Individual on-device text layouts, extended operation and every recovery scenario have not all been verified. The [verification record](docs/VERIFICATION.md) separates these boundaries.
 
 ## Changelog
+
+### 2026-10-16 — Languages and scheduled screen-off
+
+- Added Korean, Simplified Chinese, Japanese, English and German selection, synchronized between the web UI and ESP32.
+- Added a daily backlight-off schedule, overnight ranges and five-minute touch wake. BLE and incoming data remain active.
+- Added a shared translation catalog, complete UI glyph subsets and settings, time-boundary and rendering checks. [Usage and verification](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md)
 
 ### 2026-10-16 — Pixel character animation
 

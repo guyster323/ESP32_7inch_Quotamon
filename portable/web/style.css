@@ -592,6 +592,17 @@ dialog p {
     width: 30px;
   }
 }
+select {
+  max-width: 100%;
+  background: var(--panel, #101c29);
+  color: var(--text, #f7fbf7);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 10px;
+  font: inherit;
+}
+.sleep-schedule .field { display: flex; justify-content: space-between; gap: 12px; }
+.sleep-schedule input[type=text] { width: 130px; }
 @media (max-width: 680px) {
   body {
     display: block;

@@ -24,16 +24,51 @@ const pages = {
   ],
   settings: ['내게 맞는 화면으로.', '갱신 주기와 표시 항목을 조정하세요.']
 }
+const localeData = globalThis.QuotamonI18n
+let language = 'ko', currentPage = 'overview'
+const staticNodes = []
+const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+while (walker.nextNode()) {
+  const node = walker.currentNode, source = node.textContent.trim().replace(/\s+/g, ' ')
+  if (source && localeData.messages[source]) staticNodes.push([node, source])
+}
+const staticAttributes = [...document.querySelectorAll('[aria-label]')].map(el => [el, el.getAttribute('aria-label')])
+function t(source) {
+  if (typeof source !== 'string' || language === 'ko') return source
+  const normalized = source.trim().replace(/\s+/g, ' ')
+  const translated = localeData.messages[normalized]?.[language]
+  if (translated) return source.replace(source.trim(), translated)
+  // Preserve separators in short dynamic labels without translating user data.
+  const prefix = /^(\s*[·|]?\s*)(.+)$/.exec(source)
+  const value = prefix && localeData.messages[prefix[2]]?.[language]
+  return value ? prefix[1] + value : source
+}
+function setLanguage(code) {
+  language = localeData.languages.includes(code) ? code : 'ko'
+  document.documentElement.lang = language
+  document.title = t('Quotamon · 설정')
+  for (const [node, source] of staticNodes) node.textContent = t(source)
+  for (const [el, source] of staticAttributes) el.setAttribute('aria-label', t(source))
+  page(currentPage)
+  if (dirty) $('account-dirty').textContent = t('저장하지 않은 변경 사항이 있습니다.')
+}
+function minutes(value) {
+  const match = /^(\d{2}):(\d{2})$/.exec(value)
+  return match && Number(match[1]) < 24 && Number(match[2]) < 60 ? Number(match[1]) * 60 + Number(match[2]) : NaN
+}
+function timeValue(value) { return String(Math.floor(value / 60)).padStart(2, '0') + ':' + String(value % 60).padStart(2, '0') }
+
 function page(name) {
   if (!pages[name]) return
+  currentPage = name
   document.querySelectorAll('.page').forEach((el) => {
     el.hidden = el.id !== name
   })
   document
     .querySelectorAll('[data-page]')
     .forEach((el) => el.classList.toggle('active', el.dataset.page === name))
-  $('page-title').textContent = pages[name][0]
-  $('page-subtitle').textContent = pages[name][1]
+  $('page-title').textContent = t(pages[name][0])
+  $('page-subtitle').textContent = t(pages[name][1])
 }
 document
   .querySelectorAll('[data-page],[data-go]')
@@ -54,7 +89,7 @@ async function api(action, value) {
     body: value === undefined ? undefined : JSON.stringify(value)
   })
   const result = await response.json()
-  if (!response.ok) throw Error(result.error || '연결을 확인해주세요.')
+  if (!response.ok) throw Error(result.error || t('연결을 확인해주세요.'))
   return result
 }
 function notice(message) {
@@ -64,7 +99,7 @@ function notice(message) {
 }
 function changed() {
   dirty = true
-  $('account-dirty').textContent = '저장하지 않은 변경 사항이 있습니다.'
+  $('account-dirty').textContent = t('저장하지 않은 변경 사항이 있습니다.')
 }
 function image(provider) {
   const img = document.createElement('img')
@@ -101,6 +136,11 @@ function ordered() {
 function loadDraft() {
   draft = structuredClone(state.config)
   dirty = false
+  setLanguage(draft.display.language || 'ko')
+  $('language').value = language
+  $('sleep-enabled').checked = draft.display.sleep_enabled === true
+  $('sleep-start').value = timeValue(draft.display.sleep_start_minute ?? 1380)
+  $('sleep-end').value = timeValue(draft.display.sleep_end_minute ?? 420)
   $('poll').value = draft.display.poll_seconds
   $('brightness').value = draft.display.brightness_percent
   for (const name of ['reset', 'updated', 'credits', 'session'])
@@ -110,7 +150,7 @@ function loadDraft() {
     $('copilot').checked = state.preferences.copilot
   }
   renderAccounts()
-  $('account-dirty').textContent = '최신 설정을 불러왔습니다.'
+  $('account-dirty').textContent = t('최신 설정을 불러왔습니다.')
 }
 let accountIds = ''
 function renderAccounts() {
@@ -118,7 +158,7 @@ function renderAccounts() {
   accountIds = state.accounts.map((a) => a.id).join(',')
   if (!state.accounts.length) {
     $('account-list').append(
-      text('p', 'Orca를 켜면 선택할 계정이 나타납니다.', 'hint')
+      text('p', t('Orca를 켜면 선택할 계정이 나타납니다.'), 'hint')
     )
     return
   }
@@ -130,30 +170,30 @@ function renderAccounts() {
     const check = document.createElement('input')
     check.type = 'checkbox'
     check.checked = selected.enabled
-    check.setAttribute('aria-label', a.title + ' 표시')
+    check.setAttribute('aria-label', a.title + t(' 표시'))
     check.addEventListener('change', () => {
       selected.enabled = check.checked
       changed()
     })
-    const aliasLabel = text('label', a.provider.toUpperCase() + ' · 표시 이름'),
+    const aliasLabel = text('label', a.provider.toUpperCase() + t(' · 표시 이름')),
       alias = document.createElement('input')
     alias.type = 'text'
     alias.maxLength = 64
     alias.value = selected.alias
     alias.placeholder = a.profile
-    alias.setAttribute('aria-label', a.provider + ' 표시 이름')
+    alias.setAttribute('aria-label', a.provider + t(' 표시 이름'))
     alias.addEventListener('input', () => {
       selected.alias = alias.value
       changed()
     })
     aliasLabel.append(alias)
-    const planLabel = text('label', '요금제'),
+    const planLabel = text('label', t('요금제')),
       plan = document.createElement('input')
     plan.type = 'text'
     plan.maxLength = 64
     plan.value = selected.plan
     plan.placeholder = a.plan
-    plan.setAttribute('aria-label', a.provider + ' 요금제')
+    plan.setAttribute('aria-label', a.provider + t(' 요금제'))
     plan.addEventListener('input', () => {
       selected.plan = plan.value
       changed()
@@ -165,7 +205,7 @@ function renderAccounts() {
       const button = text('button', offset < 0 ? '↑' : '↓')
       button.setAttribute(
         'aria-label',
-        a.title + (offset < 0 ? ' 위로' : ' 아래로')
+        a.title + (offset < 0 ? t(' 위로') : t(' 아래로'))
       )
       button.disabled = index + offset < 0 || index + offset >= rows.length
       button.addEventListener('click', () => {
@@ -196,7 +236,7 @@ function renderCards() {
     name.append(
       text('div', a.provider, 'provider'),
       text('div', a.profile, 'card-profile'),
-      text('div', a.plan, 'card-plan')
+      text('div', t(a.plan), 'card-plan')
     )
     top.append(name, image(a.provider))
     card.append(top)
@@ -211,7 +251,7 @@ function renderCards() {
         text(
           'span',
           value === -2
-            ? '무제한'
+            ? t('무제한')
             : value < 0
               ? '?'
               : (value > 0 && value < 1 ? '<1' : Math.round(value)) + '%',
@@ -228,16 +268,16 @@ function renderCards() {
       bar.append(fill)
       const note =
         a.state === 'stale'
-          ? '오래된 정보 · 다시 확인 필요'
+          ? t('오래된 정보 · 다시 확인 필요')
           : a.state === 'unknown'
-            ? '사용량 확인 불가'
-            : pool.reset
+            ? t('사용량 확인 불가')
+            : t(pool.reset)
       card.append(
         label,
         bar,
         text(
           'div',
-          note + (a.enabled ? '' : ' · 표시 선택 전'),
+          note + (a.enabled ? '' : t(' · 표시 선택 전')),
           'card-note' + (a.state === 'stale' ? ' stale' : '')
         )
       )
@@ -253,15 +293,15 @@ function renderDevices() {
     const label = document.createElement('div')
     label.append(
       text('strong', device.name),
-      text('small', device.paired ? 'Windows에 페어링된 디스플레이' : '신호 ' + device.rssi + ' dBm')
+      text('small', device.paired ? t('Windows에 페어링된 디스플레이') : t('신호 ') + device.rssi + ' dBm')
     )
-    const button = text('button', '연결', 'secondary')
+    const button = text('button', t('연결'), 'secondary')
     button.disabled = state.connecting || !state.source_available
     button.addEventListener('click', () =>
       action(
         'connect',
         { address: device.address },
-        '연결 중입니다. 양쪽의 번호를 확인해주세요.'
+        t('연결 중입니다. 양쪽의 번호를 확인해주세요.')
       )
     )
     row.append(label, button)
@@ -269,48 +309,47 @@ function renderDevices() {
   }
 }
 function render() {
+  if (!draft || (!dirty && draft.revision !== state.config.revision)) loadDraft()
   $('source-label').textContent = state.source_available
-    ? 'Orca 연결됨'
-    : 'Orca 연결 대기'
+    ? t('Orca 연결됨')
+    : t('Orca 연결 대기')
   $('source-dot').classList.toggle('good', state.source_available)
   $('connection-dot').classList.toggle('good', state.connected)
   $('connection-label').textContent = state.connected
-    ? '디스플레이와 동기화 중'
+    ? t('디스플레이와 동기화 중')
     : state.connecting
-      ? '디스플레이 연결 중'
-      : '디스플레이 연결 대기'
+      ? t('디스플레이 연결 중')
+      : t('디스플레이 연결 대기')
   $('connection-note').textContent = state.connected
-    ? '선택한 계정만 기기에 전달합니다.'
-    : '계정을 고르고 기기에서 BLE 연결 시작을 눌러주세요.'
+    ? t('선택한 계정만 기기에 전달합니다.')
+    : t('계정을 고르고 기기에서 BLE 연결 시작을 눌러주세요.')
   $('device-source').textContent = state.source_available
-    ? '연결됨'
-    : 'Orca를 켜주세요'
+    ? t('연결됨')
+    : t('Orca를 켜주세요')
   $('device-radio').textContent =
     state.radio_available === null
-      ? '확인 중'
+      ? t('확인 중')
       : state.radio_available
-        ? '사용 가능'
-        : '사용할 수 없음'
+        ? t('사용 가능')
+        : t('사용할 수 없음')
   $('device-link').textContent = state.connected
-    ? '연결됨'
+    ? t('연결됨')
     : state.connecting
-      ? '연결 중'
-      : '연결 대기'
+      ? t('연결 중')
+      : t('연결 대기')
   renderScanStatus()
   $('disconnect').disabled = !state.config.address && !state.connected
   $('last-poll').textContent =
-    'PC 확인 ' + new Date().toLocaleTimeString('ko-KR', { hour12: false })
-  if (!draft || (!dirty && draft.revision !== state.config.revision))
-    loadDraft()
-  else if (accountIds !== state.accounts.map((a) => a.id).join(',') && !dirty)
+    t('PC 확인 ') + new Date().toLocaleTimeString(language, { hour12: false })
+  if (accountIds !== state.accounts.map((a) => a.id).join(',') && !dirty)
     renderAccounts()
   if (dirty && draft.revision !== state.config.revision)
     notice(
-      '다른 화면에서 설정이 변경되었습니다. 최신 설정 읽기로 다시 확인하세요.'
+      t('다른 화면에서 설정이 변경되었습니다. 최신 설정 읽기로 다시 확인하세요.')
     )
-  else if (state.ui_error) notice(state.ui_error)
-  else if (state.error && state.error !== 'Orca 사용량 정보 대기 중')
-    notice(state.error)
+  else if (state.ui_error) notice(t(state.ui_error))
+  else if (state.error && state.error !== t('Orca 사용량 정보 대기 중'))
+    notice(t(state.error))
   else if (!localNotice) notice('')
   renderCards()
   renderDevices()
@@ -324,9 +363,9 @@ function renderScanStatus() {
   $('scan').disabled = Date.now() < scanUntil
   $('scan-status').textContent =
     Date.now() < scanUntil
-      ? '주변 기기를 20초 동안 찾고 있습니다.'
+      ? t('주변 기기를 20초 동안 찾고 있습니다.')
       : scanUntil && !state.devices.length
-        ? '기기를 찾지 못했습니다. 펌웨어와 BLE 연결 시작을 확인하세요.'
+        ? t('기기를 찾지 못했습니다. 펌웨어와 BLE 연결 시작을 확인하세요.')
         : ''
 }
 async function poll() {
@@ -340,7 +379,7 @@ async function poll() {
     render()
   } catch {
     notice(
-      '중계 프로그램 연결이 끊겼습니다. 트레이에서 설정을 다시 열어주세요.'
+      t('중계 프로그램 연결이 끊겼습니다. 트레이에서 설정을 다시 열어주세요.')
     )
   } finally {
     busyPoll = false
@@ -356,11 +395,11 @@ async function action(name, value = {}, success = '') {
     notice(success)
     await poll()
   } catch (error) {
-    notice(error.message)
+    notice(t(error.message))
   }
 }
 $('refresh').addEventListener('click', () =>
-  action('refresh', {}, '사용량 갱신을 요청했습니다.')
+  action('refresh', {}, t('사용량 갱신을 요청했습니다.'))
 )
 $('scan').addEventListener('click', async () => {
   scanUntil = Date.now() + 20000
@@ -369,15 +408,25 @@ $('scan').addEventListener('click', async () => {
   render()
 })
 $('disconnect').addEventListener('click', () =>
-  action('disconnect', { forget: true }, '자동 연결을 해제했습니다.')
+  action('disconnect', { forget: true }, t('자동 연결을 해제했습니다.'))
 )
 $('reload-accounts').addEventListener('click', () => {
   loadDraft()
-  notice('최신 설정을 불러왔습니다.')
+  notice(t('최신 설정을 불러왔습니다.'))
 })
 async function saveDisplay() {
   if (!draft) return
+  if (!Number.isFinite(minutes($('sleep-start').value)) || !Number.isFinite(minutes($('sleep-end').value))) {
+    notice(t('시간은 24시간제 HH:MM 형식으로 입력하세요.')); return
+  }
+  if ($('sleep-enabled').checked && ($('sleep-start').value === $('sleep-end').value)) {
+    notice(t('시작과 종료 시각은 달라야 합니다.')); return
+  }
   draft.display = {
+    language: $('language').value,
+    sleep_enabled: $('sleep-enabled').checked,
+    sleep_start_minute: minutes($('sleep-start').value),
+    sleep_end_minute: minutes($('sleep-end').value),
     poll_seconds: Number($('poll').value),
     brightness_percent: Number($('brightness').value),
     show_reset: $('show-reset').checked,
@@ -389,19 +438,20 @@ async function saveDisplay() {
     await api('save', draft)
     dirty = false
     draft = undefined
-    notice('설정을 저장했습니다.')
+    notice(t('설정을 저장했습니다.'))
     await poll()
   } catch (error) {
-    notice(error.message)
+    notice(t(error.message))
   }
 }
 $('save-accounts').addEventListener('click', saveDisplay)
 $('save-display').addEventListener('click', saveDisplay)
 $('cancel-display').addEventListener('click', () => {
   loadDraft()
-  notice('최신 설정을 불러왔습니다.')
+  notice(t('최신 설정을 불러왔습니다.'))
 })
 for (const id of [
+  'language', 'sleep-enabled', 'sleep-start', 'sleep-end',
   'poll',
   'brightness',
   'show-reset',
@@ -421,10 +471,10 @@ $('save-preferences').addEventListener('click', async () => {
       startup: $('startup').checked
     })
     prefsDirty = false
-    notice('PC 설정을 저장했습니다.')
+    notice(t('PC 설정을 저장했습니다.'))
     await poll()
   } catch (error) {
-    notice(error.message)
+    notice(t(error.message))
   }
 })
 for (const [id, accept] of [
@@ -439,6 +489,11 @@ $('pair-dialog').addEventListener('cancel', (event) => {
   if (state.pairingPin)
     action('confirm', { pin: state.pairingPin, accept: false })
 })
+$('language').addEventListener('change', () => {
+  setLanguage($('language').value)
+  localNotice = ''
+  if (state) { render(); renderAccounts() }
+})
 // One authenticated stream replaces periodic state requests. The bridge signals
 // two seconds before the next snapshot, or immediately for connection/settings.
 async function watch() {
@@ -447,11 +502,11 @@ async function watch() {
       headers: { 'X-Quotamon-Key': key }
     })
     if (response.status === 403) {
-      notice('트레이에서 설정 페이지를 다시 열어주세요.')
+      notice(t('트레이에서 설정 페이지를 다시 열어주세요.'))
       return
     }
     if (!response.ok || !response.body) throw Error('Stream unavailable')
-    if (localNotice === '중계 프로그램 연결을 확인하고 있습니다.') notice('')
+    if (localNotice === t('중계 프로그램 연결을 확인하고 있습니다.')) notice('')
     const reader = response.body.getReader(), decoder = new TextDecoder()
     let pending = ''
     try {
@@ -472,7 +527,7 @@ async function watch() {
   } catch {
     /* The stream also ends normally when its controller is replaced. */
   }
-  notice('중계 프로그램 연결을 확인하고 있습니다.')
+  notice(t('중계 프로그램 연결을 확인하고 있습니다.'))
   setTimeout(watch, 3000)
 }
 void watch()

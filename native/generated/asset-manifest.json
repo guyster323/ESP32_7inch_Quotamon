@@ -565,5 +565,26 @@
     "symbols": "·−가각간값개갱결경계고공과관구국그급기긴까나남는니다대데도독된됨뒤드딩래량레로를름리마막만매먼면모무뮬미밝변별보본부분불비사삭산상새서선설성세셋소수순스습시신실아않어없에여연예오온와요용원월율은을음의이인일있자작잔장저적정제족존주준지집책천청초추취치침태택터템표프필하한할합해화확활회후",
     "dynamic_account_name_glyphs": "All 11,172 modern Korean syllables, ASCII and Latin extended; unsupported scripts need additional font coverage"
   },
-  "copilot": "Original imagegen lavender pilot robot; assets/copilot/provenance.json"
+  "copilot": "Original imagegen lavender pilot robot; assets/copilot/provenance.json",
+  "ui_languages": {
+    "codes": [
+      "ko",
+      "zh-CN",
+      "ja",
+      "en",
+      "de"
+    ],
+    "catalog": "locales/messages.json",
+    "font_sizes": [
+      14,
+      16,
+      20
+    ],
+    "additional_font": "Noto Sans SC Medium (weight 500)",
+    "source": "https://github.com/google/fonts/tree/2894aab31764f10f29c421bdfd2340d3b382d384/ofl/notosanssc",
+    "source_sha256": "a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da",
+    "additional_symbols": "·äöü−、。あいうかがきくこごさしじすせただちってでとなにのはまみめもやょよらりるれわをんァアィイウォオカキクグサシスセタダチッデトニバフブプペポモャョラリルレロンー一上下不与両两个中临为也了予亮仅从他以件会传位体余作使例供便保信修値值停側允元先六关其再准処击分切初删別利别到制刷刻削前剩割务动効動化单単去及取受古另可号合同名后吗否启周和响唤器回在地報場备変失夹套始字存定对将屏已幕并序应度开当录待後得心必応态您情態或户戻打托批找承択拒择持据接提携摸操收改政敗数文断新方无既日时明显時更最月有服期未末本束枠查桁检検次止正此步残每比求況法消清済源滚灯点無版牙状现現理用电画番異登百的监盘直相看知确確示秒称端等答策简管約索細終継続结绝继置能脑致获蓝行表要视触言設許試詳認語订认许设试话询详语请读败账起过运近返连送选週違適選部配醒重量針钟開間闭间阅限除隔需面順頭项顺须额餐首默가각간값같개갱거결경계고공과관구국그근금기까끄끊나남는니다단달답대더데도독동되된됨됩두뒤드디때라래량레로롤료르를름리링마막만먼면모못무미밝번변별보본부분불블비사삭산상새서선설세셋소송수순스습승시신실아안않았야약양어언없었에여역연열영예오와요용우울원월위유율은을음응의이인일임있자작잔장재저적전절정제조존종주준중지집쪽찾책처천첫청초최추취치침카켜크태택터템트파패페포폴표플필하한할합해했행허현호화확회후，：？",
+    "fallback_symbols": "両个临为仅从传值关処击删别务动单単吗启响唤备変夹屏应开录态您户戻択择数既时显枠查检残滚状现电监盘称简継结绝继脑获蓝视订认许设试话询详语请读败账过连选钟闭间阅项顺须额",
+    "coverage": "All translated LCD UI text, language names, modern Hangul, ASCII and Latin extended. Arbitrary CJK account names outside this subset require extra glyphs."
+  }
 }
