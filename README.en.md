@@ -104,7 +104,15 @@ Companions blink, breathe and make small gestures on both home cards and account
 
 Restored 24 additional F108pro expressions and added native LVGL eyelids for Copilot. **Lossless palette storage expands the set from 30 to 54 images while reducing asset bytes from 855,360 to 521,289—about 39%.** One 100ms timer updates visible characters; settings and pairing pages pause it.
 
-The final ESP32 application uses **72.4% of its flash partition** and **16.5% of static RAM capacity**. After XIP, two LCD buffers and the LVGL stack, estimated PSRAM reserve is **852KiB**, before other dynamic allocations. CPU, FPS and actual free PSRAM have not been measured yet. The GIFs use illustrative usage data and are renderer output, not hardware footage.
+The instrumented ESP32 application uses **72.5% of its flash partition** and **17.1% of static RAM capacity**. Measured on the physical board with its existing BLE connection and animations running:
+
+| Hardware measurement | Home: five characters, 100.5s | Detail: one character at 2×, 80.5s |
+|---|---:|---:|
+| CPU utilization: two-core mean | **6.10%** | **6.08%** |
+| Actual LVGL refresh rate | **7.43fps** | **2.57fps** |
+| Current free PSRAM | **About 891KiB** | **About 891KiB** |
+
+Free PSRAM stayed at 912,804 bytes in both windows; the largest contiguous free block was 864KiB. FPS counts actual updates caused by changing content, not LCD scan frequency or maximum throughput. See [methods, per-core CPU, memory low-water marks and raw samples](docs/RUNTIME_METRICS.md). The GIFs use illustrative usage data and are renderer output, not hardware footage.
 
 [Detail GIF](visuals/native/character-detail-animation.gif) · [State GIF](visuals/native/character-states-animation.gif) · [Implementation, resources and hardware rollout](docs/CHARACTER_ANIMATION.md)
 
@@ -124,7 +132,7 @@ This is a **development preview**. Beyond the shared LVGL UI and portable bridge
 
 | Scope | Evidence |
 |---|---|
-| Software | 35 TypeScript tests; C++ BLE framing; native UI, pointer and font checks |
+| Software | 38 TypeScript tests; C++ BLE framing; native UI, pointer and font checks |
 | Character animation | Five providers × six states, 40 page cycles, unchanged pixels outside sprite regions and 54 lossless assets verified. All 380 rendered frames match before/after compression |
 | Live data | Three Codex accounts and Cursor from unmodified Orca 1.4.224, plus the existing Copilot SDK account |
 | Hardware | Full backup, application upload and readback verification; bootloader, partitions and pairing NVS preserved |
@@ -136,6 +144,7 @@ Refresh timestamps and compact reset layouts were checked in the native renderer
 
 ### 2026-10-16 — Pixel character animation
 
+- **Hardware resource measurements:** Home averages 6.10% CPU and 7.43fps; detail averages 6.08% and 2.57fps; free PSRAM is about 891KiB. Added five-second diagnostics, a numeric-only collector and tests for field filtering and unchanged dashboard cadence. [Measurement record](docs/RUNTIME_METRICS.md)
 - Home cards and account details now breathe, blink, change expression and make occasional small gestures according to quota/source state, with separate timing for each account.
 - Restored 24 original F108pro expression frames; Copilot uses native LVGL eyelids. One reusable timer updates visible characters only.
 - Lossless palette storage and one shared decode buffer reduce asset storage by about 39%. CI now checks animation regressions and the PSRAM XIP/framebuffer budget alongside flash capacity.

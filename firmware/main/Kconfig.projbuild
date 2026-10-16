@@ -115,3 +115,14 @@ menu "Example Configuration"
                 Height of LVGL buffer. The width of the buffer is the same as that of the LCD.
     endmenu
 endmenu
+
+menu "Quotamon diagnostics"
+    config QUOTAMON_RUNTIME_METRICS
+        bool "Report CPU, LVGL refresh rate and heap over authenticated BLE"
+        default y
+        select FREERTOS_GENERATE_RUN_TIME_STATS
+        help
+            Sample every five seconds and notify the already authenticated peer.
+            Reports counters only; does not expose accounts or change settings.
+            Disable for a build without task runtime accounting overhead.
+endmenu

@@ -5,6 +5,7 @@ extern "C" {
 #include "waveshare_rgb_lcd_port.h"
 }
 #include "ble_transport.h"
+#include "runtime_metrics.h"
 #include "../../native/snapshot_json.h"
 #include <memory>
 #include <sys/time.h>
@@ -44,6 +45,7 @@ extern "C" void app_main() {
     if(touch) {esp_lv_adapter_touch_config_t tc=ESP_LV_ADAPTER_TOUCH_DEFAULT_CONFIG(display,touch);auto* input=esp_lv_adapter_register_touch(&tc);ESP_ERROR_CHECK(input?ESP_OK:ESP_FAIL);}
     ESP_ERROR_CHECK(esp_lv_adapter_start());
     esp_lv_adapter_lock(-1);
+    diagnostics::start(display);
     monitor::init(current);monitor::setCommitCallback(settings);monitor::setRefreshCallback(refresh);
     monitor::setEditingCallback(beginEditing);
     monitor::setPairingCallbacks(transport::openPairing,transport::confirmPairing,transport::forgetPairing);brightness(70);
@@ -69,6 +71,7 @@ extern "C" void app_main() {
             }
         }
         if(current.connected&&(!transport::isConnected()||esp_timer_get_time()/1000-transport::lastContactMs()>35000)) {clear();transport::disconnect();}
+        diagnostics::tick();
         esp_lv_adapter_unlock();
     }
 }

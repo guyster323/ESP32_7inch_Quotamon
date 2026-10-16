@@ -41,7 +41,7 @@ python -m platformio run -d firmware
 
 PlatformIO 플랫폼은 `espressif32@6.13.0`(ESP-IDF 5.5 계열), LVGL 8.4.0, `esp_lvgl_adapter` 0.5.2로 고정합니다. 그래픽 어댑터는 IDF 5.5 이상이 필요합니다. 구성은 공식 LCD-7 RGB/GT911 포트와 8 MB 파티션 구성, octal PSRAM을 기준으로 하며, 확인된 16MB 보드에서도 아래 8MB 영역을 사용합니다. 보드의 실제 용량과 **최종 링크 이미지가 파티션에 들어가는지** 확인한 후 업로드하세요. 기본 설계는 OTA 슬롯이 없습니다.
 
-개발 PC에서 ESP-IDF 5.5.3 빌드가 통과했고 이미지 크기는 약 6.36 MB입니다. `DOUBLE_DIRECT` 모드로 RGB 버퍼 2개를 명시했습니다. CMake는 그래픽 어댑터의 forced-include를 묶어 PlatformIO의 플래그 재정렬로 header 경로가 별도 소스처럼 해석되는 문제를 방지합니다. 프로젝트 가상환경에 PlatformIO/intelhex를 실제 설치하세요. 임의 PYTHONPATH 설치는 빌더의 환경 정리로 의존성이 사라질 수 있습니다.
+개발 PC에서 ESP-IDF 5.5.3 빌드가 통과했고 계측 이미지 크기는 약 6.03 MB입니다. [현재 빌드·업로드 기록](character-animation-build.json)과 [CPU·FPS·PSRAM 실측](RUNTIME_METRICS.md)을 참조하세요. `DOUBLE_DIRECT` 모드로 RGB 버퍼 2개를 명시했습니다. CMake는 그래픽 어댑터의 forced-include를 묶어 PlatformIO의 플래그 재정렬로 header 경로가 별도 소스처럼 해석되는 문제를 방지합니다. 프로젝트 가상환경에 PlatformIO/intelhex를 실제 설치하세요. 임의 PYTHONPATH 설치는 빌더의 환경 정리로 의존성이 사라질 수 있습니다.
 
 IDF component-manager가 구형 1.5.3으로 설치되어 최신 manifest 조건을 파싱하지 못하면 PlatformIO가 사용하는 IDF Python 환경에서 `idf-component-manager==2.5.2`로 갱신한 뒤 다시 빌드하세요. TLS 가로채기가 있는 환경에서는 운영체제에서 신뢰하는 인증서를 빌드 도구에 제공하고, 인증서 검증을 끄지 마세요.
 

@@ -2,6 +2,7 @@ import { EventEmitter } from 'node:events'
 import { BleHost } from './ble-host.js'
 import { fragment, Reassembler } from './ble-protocol.js'
 import { OrcaAccountProjector } from './orca-account-projector.js'
+import { parseRuntimeMetrics } from './runtime-metrics.js'
 import {
   Config,
   DisplayAccount,
@@ -279,7 +280,10 @@ export class QuotamonController extends EventEmitter {
         Buffer.from(message.body).toString('utf8')
       )
       if (!record(request)) return
-      if (request.type === 'ack' && request.sequence === this.ack?.sequence) {
+      if (request.type === 'runtime_stats') {
+        const metrics = parseRuntimeMetrics(request)
+        if (metrics) this.emit('runtime-metrics', metrics)
+      } else if (request.type === 'ack' && request.sequence === this.ack?.sequence) {
         this.ack?.resolve()
         this.ack = undefined
       } else if (request.type === 'refresh') {

@@ -10,6 +10,7 @@ import {
 } from './quotamon-controller.js'
 import { RunningOrcaSource } from './running-orca-source.js'
 import { readCopilotQuota } from './copilot-quota-source.js'
+import type { RuntimeMetrics } from './runtime-metrics.js'
 import {
   defaultConfig,
   record,
@@ -144,6 +145,13 @@ function createController(): void {
     }, 5000)
   })
   controller = new QuotamonController(host, accountSource, persist, config)
+  controller.on('runtime-metrics', (metrics: RuntimeMetrics) => {
+    const path = join(dirname(configFile), 'runtime-metrics.json')
+    try {
+      writeFileSync(path + '.tmp', JSON.stringify({ received_at: new Date().toISOString(), ...metrics }) + '\n', { mode: 0o600 })
+      renameSync(path + '.tmp', path)
+    } catch { /* Diagnostics must not interrupt display data or settings. */ }
+  })
   void host.request('probe').catch(() => {
     if (activeHost === host) radio = false
   })
