@@ -1,0 +1,84 @@
+{
+  "stage": "D",
+  "recorded_utc": "2026-10-20T05:14:42.598226+00:00",
+  "firmware_sha256": "5f87fb711e7de9a2e0b207a17505ec8319ebd5ba7fa28accef23fef4cbbc7d31",
+  "hardware_uploaded": true,
+  "application_readback_verified": true,
+  "bootloader_partitions_nvs_unchanged_during_upload": true,
+  "previous_app_backup_verified": true,
+  "previous_app_sha256": "f43a9658caf76c0d3d8cd200ae05bfa3892af09a67ec15f40fa34fcf6aea6be7",
+  "backup_private": ".local/board-ble-paired-trial-20261020-140204",
+  "hardware_gate_passed": false,
+  "pc_package_applied": true,
+  "pc_version": "0.3.0",
+  "pc_settings_preserved_except_retired_scan_fields": true,
+  "autostart_preserved": true,
+  "checks": {
+    "board_boot": "passed: user confirmed LCD startup after cold power cycle",
+    "pc_bond_preserved": "passed: PC authenticated on D without re-pairing; repeated link generations2/3",
+    "phone_bond_preserved": "passed by user LCD connection and automatic return confirmation; initial boot console not captured",
+    "pc_snapshot_ack": "passed: sole installed controller completed1 actual snapshot ACK before diagnostic-to-tray handover",
+    "pc_data_reception": "passed: user confirmed usage restored; original tray runtime visible5 after automatic reconnect",
+    "schema2_status": "passed: user screenshot of current installed PC UI displays registered phone / phone connected / sensing enabled; this UI requires validated schema2 telemetry",
+    "opaque_id_migration": "passed indirectly: installed UI accepts bonded schema2 only with valid32hex peer_id; user screenshot displays registered phone from upgraded saved bond",
+    "local_toggle_reboot_persistence": "unverified",
+    "hardware_schedule_priority": "unverified: user cannot perform this test now; no temporary schedule was applied",
+    "pc_completely_off_phone_operation": "unverified",
+    "phone_reboot_reconnect": "unverified",
+    "selective_delete_reregister": "unverified",
+    "short_stability": "passed:75s of original installed tray, visible5/connected with stable free-memory range; not a long-duration leak certification"
+  },
+  "prior_evidence": {
+    "B": "lock30min, input normal, real range return1 and PC ACK passed on B image",
+    "C": "cold boot, usage recovery, phone BT off60s/on auto wake and touch5min passed on C f43 image"
+  },
+  "limitations": "D cold boot, retained PC/phone roles, actual ACK1, restored usage, schema2 PC status and short stability passed. Hardware schedule priority was deferred at user availability; local sensing-toggle reboot persistence, PC completely off, phone reboot and selective delete/reregister remain unverified. Historical B/C image-scoped results remain separate. Transient waiting view during diagnostic backend-to-tray handover recovered automatically.",
+  "diagnostic_handover": {
+    "intentional": true,
+    "pc_disconnect_transport_ms": 130199,
+    "pc_return_authenticated_ms": 147239,
+    "affected_user_display": true,
+    "visible_characters_after_recovery": 5,
+    "not_a_phone_disconnect": true,
+    "cause": "temporary sole-client observation backend ended, then installed tray restored automatically",
+    "schedule_test_started": false
+  },
+  "console_private": ".local/paired-trial-console/20261020-140605.log",
+  "short_stability_observation": {
+    "sample_count": 6,
+    "span_ms": 75139,
+    "all_pc_connected_and_visible5": true,
+    "cpu_average_percent_range": [
+      6.55,
+      7.96
+    ],
+    "lvgl_fps_range": [
+      7.199,
+      8.798
+    ],
+    "psram_free_bytes_range": [
+      1973524,
+      1973524
+    ],
+    "internal_free_bytes_range": [
+      108167,
+      108195
+    ],
+    "long_duration_leak_tested": false
+  },
+  "user_pc_status_screenshot": "User supplied screenshot; generic registered-phone label and actual connected/enabled state normal. Initial multiple-choice issue answer corrected by visible screenshot.",
+  "gate_status": "stage-d-applied-core-hardware-passed-stage-e-remaining",
+  "passive_capture_stopped": true,
+  "installed_original_tray_running": true,
+  "user_status_screenshot_private": ".local/stage-d-user-pc-status.png",
+  "schedule_test": {
+    "performed": false,
+    "user_answer": "cannot test now",
+    "original_preserved": true,
+    "enabled": true,
+    "start_minute": 1080,
+    "end_minute": 420,
+    "config_revision": 7,
+    "instruction_correction": "Suggested23:00 restore was a wrong default assumption; actual original18:00-07:00 enabled was confirmed and preserved."
+  }
+}

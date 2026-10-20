@@ -27,7 +27,7 @@ for name,remote in [('NotoSansSC.ttf','NotoSansSC%5Bwght%5D.ttf'),('NotoSansSC-O
 assert hashlib.sha256(sc.read_bytes()).hexdigest()==expected,'Unreviewed SC font'
 kr=folder/'NotoSansKR-Medium.ttf'
 assert kr.exists(),'Generate the existing Noto Sans KR Medium font first'
-text=''.join((ROOT/p).read_text(encoding='utf-8') for p in ['native/ui.cpp','firmware/main/main.cpp','native/generated/translations.h'])
+text=''.join((ROOT/p).read_text(encoding='utf-8') for p in ['native/ui.cpp','native/bluetooth_name.h','firmware/main/main.cpp','native/generated/translations.h'])
 characters={c for c in text if ord(c)>127}
 krmap=TTFont(kr).getBestCmap();scmap=TTFont(sc).getBestCmap()
 missing=characters-set(map(chr,krmap))
@@ -36,18 +36,40 @@ static=folder/'NotoSansSC-Medium.ttf'
 if not static.exists():instantiateVariableFont(TTFont(sc),{'wght':500},inplace=True).save(static)
 binary=ROOT/'.tools/fontconv/node_modules/lv_font_conv/lv_font_conv.js'
 for size in [14,16,20]:
+    # Keep all UI glyphs at their intended sizes, but share the full Hangul
+    # alphabet at 16px rather than storing it three times in XIP PSRAM.
+    alphabet='0x20-0x7e,0xa0-0x24f,0x25a1=>0xfffd'+(',0xac00-0xd7a3' if size==16 else '')
     args=['node',str(binary),'--size',str(size),'--bpp','4','--format','lvgl',
-          '--font',str(kr),'--range','0x20-0x7e,0xa0-0x24f,0xac00-0xd7a3',
+          '--font',str(kr),'--range',alphabet,
           '--symbols',''.join(sorted(characters-missing))]
     if missing:args+=['--font',str(static),'--symbols',''.join(sorted(missing))]
-    args+=['--no-compress','-o',str(ROOT/f'native/generated/font_ko{size}.c')]
+    args+=['--lv-fallback','font_cjk16' if size==16 else 'font_ko16','-o',str(ROOT/f'native/generated/font_ko{size}.c')]
     subprocess.run(args,check=True,cwd=ROOT)
+# A single shared 16px fallback covers arbitrary BMP Chinese/Japanese device
+# names. Keep the existing 4bpp UI glyphs; 2bpp compressed fallback saves flash
+# and XIP PSRAM. Only assigned characters present in the reviewed fonts are used.
+wanted=set(range(0x3400,0x4dc0))|set(range(0x4e00,0xa000))|set(range(0x3040,0x3100))|set(range(0x31f0,0x3200))|set(range(0xff00,0xfff0))|set(range(0x2000,0x2070))|set(range(0x3000,0x3040))
+def ranges(codes):
+    spans=[]
+    for code in sorted(codes):
+        if spans and code==spans[-1][1]+1:spans[-1][1]=code
+        else:spans.append([code,code])
+    return ','.join(f'0x{a:x}-0x{b:x}' if a!=b else f'0x{a:x}' for a,b in spans)
+cjk=wanted&scmap.keys()
+extra=(wanted&krmap.keys())-cjk
+args=['node',str(binary),'--size','16','--bpp','2','--format','lvgl',
+      '--font',str(static),'--range',ranges(cjk)]
+if extra:args+=['--font',str(kr),'--range',ranges(extra)]
+args+=['--no-kerning','-o',str(ROOT/'native/generated/font_cjk16.c')]
+subprocess.run(args,check=True,cwd=ROOT)
 shutil.copyfile(folder/'NotoSansSC-OFL.txt',ROOT/'native/generated/NotoSansSC-OFL.txt')
 path=ROOT/'native/generated/asset-manifest.json';manifest=json.loads(path.read_text(encoding='utf-8'))
 manifest['ui_languages']={'codes':['ko','zh-CN','ja','en','de'],'catalog':'locales/messages.json',
     'font_sizes':[14,16,20],'additional_font':'Noto Sans SC Medium (weight 500)',
     'source':f'https://github.com/google/fonts/tree/{pin}/ofl/notosanssc','source_sha256':expected,
     'additional_symbols':''.join(sorted(characters)),'fallback_symbols':''.join(sorted(missing)),
-    'coverage':'All translated LCD UI text, language names, modern Hangul, ASCII and Latin extended. Arbitrary CJK account names outside this subset require extra glyphs.'}
+    'coverage':'All translated LCD UI text, modern Hangul, ASCII and Latin extended; shared compressed 16px fallback for BMP CJK unified/Extension A ideographs, kana, punctuation and fullwidth characters supported by Noto Sans SC/KR.',
+    'cjk_fallback':{'font':'font_cjk16','size':16,'bpp':2,'compressed':True,'glyphs':len(cjk|extra)},
+    'ui_compressed':True,'shared_hangul_size':16}
 path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 print(f'Localized UI fonts: {len(characters)} non-ASCII symbols, {len(missing)} simplified fallback glyphs.')

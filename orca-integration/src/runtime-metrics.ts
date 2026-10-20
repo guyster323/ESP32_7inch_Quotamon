@@ -14,7 +14,7 @@ export type RuntimeMetrics = Record<typeof counters[number], number> & {
 export function parseRuntimeMetrics(input: unknown): RuntimeMetrics | undefined {
   if (!record(input) || input.type !== 'runtime_stats' || input.schema !== 1 ||
       typeof input.ble_connected !== 'boolean' || typeof input.cpu_valid !== 'boolean' ||
-      typeof input.page !== 'number' || !Number.isInteger(input.page) || input.page < -7 || input.page > 19 ||
+      typeof input.page !== 'number' || !Number.isInteger(input.page) || input.page < -9 || input.page > 19 ||
       !Array.isArray(input.cpu_percent) || input.cpu_percent.length !== 2 ||
       input.cpu_percent.some(v => typeof v !== 'number' || !Number.isFinite(v) || v < 0 || v > 100)) return
   const output = { type: 'runtime_stats', schema: 1, page: input.page,

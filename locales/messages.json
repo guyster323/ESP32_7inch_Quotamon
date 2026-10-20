@@ -1,4 +1,184 @@
 {
+  "등록된 휴대폰": {
+    "en": "Paired phone",
+    "zh-CN": "已配对手机",
+    "ja": "登録済みの携帯電話",
+    "de": "Gekoppeltes Telefon"
+  },
+  "휴대폰 감지 켜짐": {
+    "en": "Phone presence enabled",
+    "zh-CN": "手机检测已启用",
+    "ja": "携帯電話の検知は有効",
+    "de": "Telefonerkennung eingeschaltet"
+  },
+  "휴대폰 등록·감지 설정·삭제는 보드 LCD에서 관리합니다.": {
+    "en": "Manage phone pairing, presence and removal on the board LCD.",
+    "zh-CN": "请在开发板屏幕上管理手机配对、检测和删除。",
+    "ja": "登録・検知設定・削除はボードの画面で操作します。",
+    "de": "Kopplung, Erkennung und Entfernen am Board-Display verwalten."
+  },
+  "휴대폰 기본 Bluetooth 설정에서 보드와 페어링하세요.": {
+    "en": "Pair the board in your phone's Bluetooth settings.",
+    "zh-CN": "请在手机的蓝牙设置中与开发板配对。",
+    "ja": "携帯電話の標準 Bluetooth 設定でボードと登録してください。",
+    "de": "Das Board in den Bluetooth-Einstellungen des Telefons koppeln."
+  },
+  "보드 연결 후 휴대폰 상태를 확인할 수 있습니다.": {
+    "en": "Connect the board to view phone status.",
+    "zh-CN": "连接开发板后可查看手机状态。",
+    "ja": "ボードに接続すると携帯電話の状態を確認できます。",
+    "de": "Board verbinden, um den Telefonstatus anzuzeigen."
+  },
+  "연결된 보드는 휴대폰 상태 표시를 지원하지 않습니다.": {
+    "en": "The connected board does not support phone status display.",
+    "zh-CN": "当前开发板固件不支持显示手机状态。",
+    "ja": "接続中のボードは携帯電話の状態表示に対応していません。",
+    "de": "Das verbundene Board unterstützt die Telefonstatusanzeige nicht."
+  },
+  "감지 설정을 저장하지 못했습니다. 다시 시도하세요.": {
+    "en": "Could not save presence settings. Please retry.",
+    "zh-CN": "无法保存检测设置，请重试。",
+    "ja": "検知設定を保存できませんでした。再試行してください。",
+    "de": "Erkennungseinstellung konnte nicht gespeichert werden. Bitte erneut versuchen."
+  },
+  "휴대폰 감지 사용": {
+    "en": "Enable phone presence",
+    "zh-CN": "启用手机检测",
+    "ja": "携帯電話の検知を有効化",
+    "de": "Telefonerkennung aktivieren"
+  },
+  "휴대폰 등록": {
+    "en": "Pair phone",
+    "zh-CN": "注册手机",
+    "ja": "携帯電話を登録",
+    "de": "Telefon koppeln"
+  },
+  "휴대폰 감지 꺼짐": {
+    "en": "Phone presence disabled",
+    "zh-CN": "手机检测已关闭",
+    "ja": "携帯電話の検知は無効",
+    "de": "Telefonerkennung ausgeschaltet"
+  },
+  "휴대폰 등록 중": {
+    "en": "Pairing phone",
+    "zh-CN": "正在注册手机",
+    "ja": "携帯電話を登録中",
+    "de": "Telefon wird gekoppelt"
+  },
+  "휴대폰 부재 · 화면 끄기": {
+    "en": "Phone absent · display sleep",
+    "zh-CN": "手机不在附近 · 关闭屏幕",
+    "ja": "携帯電話が不在 · 画面を消灯",
+    "de": "Telefon abwesend · Display aus"
+  },
+  "재연결 대기 · %d초 후 화면 끄기": {
+    "en": "Waiting for reconnect · display sleep in %ds",
+    "zh-CN": "等待重新连接 · %d秒后关闭屏幕",
+    "ja": "再接続待ち · %d秒後に消灯",
+    "de": "Warte auf Verbindung · Display aus in %ds"
+  },
+  "연결 해제 후 60초 뒤 화면 끄기 · 복귀 시 켜기": {
+    "en": "Sleep 60s after disconnect · wake on return",
+    "zh-CN": "断开连接60秒后关闭屏幕 · 返回时亮屏",
+    "ja": "切断60秒後に消灯 · 戻ると点灯",
+    "de": "60s nach Trennung aus · bei Rückkehr an"
+  },
+  "예약 우선 · 꺼진 화면 터치 시 5분 켜기": {
+    "en": "Schedule takes priority · touch to wake for 5min",
+    "zh-CN": "定时优先 · 触摸熄灭屏幕可亮屏5分钟",
+    "ja": "時刻設定を優先 · 消灯中のタッチで5分点灯",
+    "de": "Zeitplan hat Vorrang · Berührung weckt für 5min"
+  },
+  "HID 입력 장치로 등록하며 자동 입력은 보내지 않습니다.": {
+    "en": "Pairs as a HID input device; no automatic input is sent.",
+    "zh-CN": "注册为 HID 输入设备，不自动发送输入。",
+    "ja": "HID 入力機器として登録します。自動入力は送信しません。",
+    "de": "Kopplung als HID-Eingabegerät; keine automatischen Eingaben."
+  },
+  "페어링 저장에 실패했습니다. 다시 시도하세요.": {
+    "en": "Pairing could not be saved. Please retry.",
+    "zh-CN": "无法保存配对。请重试。",
+    "ja": "ペアリングを保存できませんでした。再試行してください。",
+    "de": "Kopplung konnte nicht gespeichert werden. Bitte erneut versuchen."
+  },
+  "휴대폰 등록 시험": {
+    "en": "Phone pairing trial",
+    "zh-CN": "手机配对测试",
+    "ja": "携帯電話のペアリング試験",
+    "de": "Telefon koppeln: Test"
+  },
+  "휴대폰과 같은 번호인가요?": {
+    "en": "Does the number match your phone?",
+    "zh-CN": "号码与手机上的相同吗？",
+    "ja": "携帯電話と同じ番号ですか？",
+    "de": "Stimmt die Nummer am Telefon überein?"
+  },
+  "휴대폰과 이 화면에서 각각 승인하세요.": {
+    "en": "Confirm on both the phone and this screen.",
+    "zh-CN": "请在手机和此屏幕上分别确认。",
+    "ja": "携帯電話とこの画面の両方で承認してください。",
+    "de": "Am Telefon und auf diesem Bildschirm bestätigen."
+  },
+  "휴대폰 Bluetooth 설정에서 Quotamon을 선택하세요.": {
+    "en": "Select Quotamon in your phone's Bluetooth settings.",
+    "zh-CN": "在手机蓝牙设置中选择 Quotamon。",
+    "ja": "携帯電話の Bluetooth 設定で Quotamon を選択してください。",
+    "de": "Quotamon in den Bluetooth-Einstellungen des Telefons wählen."
+  },
+  "추가 앱 없이 잠금 유지와 자동 재연결을 시험합니다.": {
+    "en": "Test locked connection and automatic reconnect without an app.",
+    "zh-CN": "不安装应用，测试锁屏连接和自动重连。",
+    "ja": "追加アプリなしでロック中の接続と自動再接続を試験します。",
+    "de": "Verbindung bei Sperre und automatische Rückkehr ohne App testen."
+  },
+  "시험 중에는 휴대폰 감지로 화면을 끄지 않습니다.": {
+    "en": "Phone presence will not turn off the screen during this trial.",
+    "zh-CN": "测试期间，手机检测不会关闭屏幕。",
+    "ja": "試験中は携帯電話の検知で画面を消しません。",
+    "de": "Während des Tests schaltet die Telefonerkennung das Display nicht aus."
+  },
+  "휴대폰 페어링 삭제": {
+    "en": "Forget phone",
+    "zh-CN": "删除手机配对",
+    "ja": "携帯電話の登録削除",
+    "de": "Telefon entfernen"
+  },
+  "휴대폰 페어링만 지울까요?": {
+    "en": "Forget only the phone pairing?",
+    "zh-CN": "仅删除手机配对？",
+    "ja": "携帯電話のペアリングだけを削除しますか？",
+    "de": "Nur die Kopplung des Telefons löschen?"
+  },
+  "PC 페어링과 사용량 설정은 유지됩니다.": {
+    "en": "PC pairing and usage settings are preserved.",
+    "zh-CN": "保留电脑配对和用量设置。",
+    "ja": "PC のペアリングと使用量設定は維持されます。",
+    "de": "PC-Kopplung und Nutzungseinstellungen bleiben erhalten."
+  },
+  "휴대폰 연결됨": {
+    "en": "Phone connected",
+    "zh-CN": "手机已连接",
+    "ja": "携帯電話に接続済み",
+    "de": "Telefon verbunden"
+  },
+  "휴대폰 등록됨 · 연결 대기": {
+    "en": "Phone paired · waiting for connection",
+    "zh-CN": "手机已配对 · 等待连接",
+    "ja": "携帯電話を登録済み · 接続待機中",
+    "de": "Telefon gekoppelt · Verbindung ausstehend"
+  },
+  "휴대폰 미등록 · 등록 버튼을 누르세요.": {
+    "en": "No phone paired · tap the pairing button",
+    "zh-CN": "手机未配对 · 请点击配对按钮",
+    "ja": "携帯電話が未登録 · 登録ボタンを押してください。",
+    "de": "Kein Telefon gekoppelt · Kopplung starten"
+  },
+  "Bluetooth 오류": {
+    "en": "Bluetooth error",
+    "zh-CN": "蓝牙错误",
+    "ja": "Bluetooth エラー",
+    "de": "Bluetooth-Fehler"
+  },
   "설정": {
     "en": "Settings",
     "zh-CN": "设置",
@@ -1324,5 +1504,83 @@
     "zh-CN": "请使用24小时制 HH:MM 格式输入时间。",
     "ja": "時刻は24時間制のHH:MM形式で入力してください。",
     "de": "Zeiten im 24-Stunden-Format HH:MM eingeben."
+  },
+  "휴대폰 감지": {
+    "zh-CN": "手机检测",
+    "ja": "スマートフォン検出",
+    "en": "Phone presence",
+    "de": "Telefonerkennung"
+  },
+  "기기 감지됨": {
+    "zh-CN": "已检测到设备",
+    "ja": "機器を検出",
+    "en": "Device detected",
+    "de": "Gerät erkannt"
+  },
+  "기기 감지 대기": {
+    "zh-CN": "等待检测设备",
+    "ja": "機器の検出待ち",
+    "en": "Waiting for device",
+    "de": "Warten auf Gerät"
+  },
+  "다른 이름은 최대 4개까지 추가할 수 있습니다.": {
+    "zh-CN": "最多可添加4个其他名称。",
+    "ja": "別名は4件まで追加できます。",
+    "en": "You can add up to four alternative names.",
+    "de": "Bis zu vier weitere Namen sind möglich."
+  },
+  "검색 종료 · 기기가 없으면 다시 검색하세요.": {
+    "zh-CN": "搜索结束 · 如未找到设备，请重新搜索。",
+    "ja": "検索終了 · 見つからない場合は再検索してください。",
+    "en": "Scan finished · scan again if the device is missing.",
+    "de": "Suche beendet · bei fehlendem Gerät erneut suchen."
+  },
+  "선택": {
+    "zh-CN": "选择",
+    "ja": "選択",
+    "en": "Select",
+    "de": "Auswählen"
+  },
+  "다른 이름 추가": {
+    "zh-CN": "添加其他名称",
+    "ja": "別名を追加",
+    "en": "Add alias",
+    "de": "Weiteren Namen hinzufügen"
+  },
+  "기기 이름": {
+    "zh-CN": "设备名称",
+    "ja": "機器名",
+    "en": "Device name",
+    "de": "Gerätename"
+  },
+  "다른 이름 (한 줄에 하나)": {
+    "zh-CN": "其他名称（每行一个）",
+    "ja": "別名（1行に1件）",
+    "en": "Alternative names (one per line)",
+    "de": "Weitere Namen (einer pro Zeile)"
+  },
+  "휴대폰의 BLE 광고가 켜져 있어야 합니다. 페어링은 필요하지 않습니다.": {
+    "zh-CN": "手机必须开启BLE广播。无需配对。",
+    "ja": "端末のBLE広告が必要です。ペアリングは不要です。",
+    "en": "The phone must advertise over BLE. No pairing is required.",
+    "de": "Das Telefon muss BLE-Werbung senden. Keine Kopplung nötig."
+  },
+  "디스플레이를 연결한 뒤 검색하세요.": {
+    "zh-CN": "请先连接显示屏再搜索。",
+    "ja": "ディスプレイに接続してから検索してください。",
+    "en": "Connect the display before scanning.",
+    "de": "Vor der Suche das Display verbinden."
+  },
+  "디스플레이에서 주변 기기를 20초 동안 찾고 있습니다.": {
+    "zh-CN": "显示屏正在搜索附近设备，持续20秒。",
+    "ja": "ディスプレイで周辺機器を20秒間検索しています。",
+    "en": "The display is scanning nearby devices for 20 seconds.",
+    "de": "Das Display sucht 20 Sekunden lang nach Geräten."
+  },
+  "기기를 찾지 못했습니다. 휴대폰의 BLE 광고를 확인하세요.": {
+    "zh-CN": "未找到设备。请检查手机的BLE广播。",
+    "ja": "機器が見つかりません。端末のBLE広告を確認してください。",
+    "en": "No devices found. Check the phone’s BLE advertising.",
+    "de": "Kein Gerät gefunden. BLE-Werbung des Telefons prüfen."
   }
 }

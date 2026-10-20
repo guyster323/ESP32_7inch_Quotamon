@@ -472,6 +472,71 @@ void renderReadme(const std::string& language,const std::filesystem::path& folde
                     "schedule enabled","four digit keypad input","23:30 saved","screen-off pauses animation","touch wake resumes animation"}}}).dump(2)<<'\n';
     std::cout<<"README native frames: "<<language<<" PASS\n";
 }
+void renderPairedTrial(const std::filesystem::path& folder) {
+    std::filesystem::create_directories(folder);
+    auto data=monitor::demo();monitor::init(data);
+    static int starts=0,forgets=0,cancels=0,approvals=0;
+    monitor::setPairedTrialCallbacks([]{++starts;},[]{++forgets;},[]{++cancels;});
+    monitor::setPairingCallbacks(nullptr,[](bool accepted){if(accepted)++approvals;});
+    for(const auto* language:monitor::i18n::languages) {
+        monitor::Settings settings;settings.language=language;monitor::setSettings(settings);
+        monitor::showSettings();monitor::showPairingWait();advance();click(300,430);
+        require(monitor::selectedAccount()==-4,"Phone trial enrollment navigation failed");
+        monitor::updatePairedTrial(true,false,false);
+        capture(folder/(std::string(language)+"-enrollment.ppm"));
+        data.connected=false;monitor::apply(data);advance();
+        require(monitor::selectedAccount()==-4,"PC disconnect closed phone enrollment");
+        monitor::showPhonePairing(123456);advance();
+        data.connected=true;monitor::apply(data);advance();
+        require(monitor::selectedAccount()==-5,"PC snapshot closed phone comparison");
+        capture(folder/(std::string(language)+"-comparison.ppm"));
+        click(600,404);require(monitor::selectedAccount()==-4,"Phone approval did not preserve trial status page");
+        monitor::updatePairedTrial(true,true,true);
+        capture(folder/(std::string(language)+"-connected.ppm"));
+        monitor::updatePairedTrial(true,true,false);advance();
+        capture(folder/(std::string(language)+"-disconnected.ppm"));
+        click(630,430);require(monitor::selectedAccount()==-6,"Phone-only forget confirmation missing");
+        click(170,360);require(monitor::selectedAccount()==-4,"Forget cancel failed");
+        require(forgets==monitor::i18n::index(language),"Cancel deleted phone pairing");
+        click(630,430);click(600,360);require(monitor::selectedAccount()==-4,"Forget did not return to phone trial");
+        monitor::updatePairedTrial(false,false,false);
+        capture(folder/(std::string(language)+"-unavailable.ppm"));
+        click(100,430);require(monitor::selectedAccount()==-1,"Phone trial back failed");
+    }
+    require(starts==5&&forgets==5&&approvals==5&&cancels==10,"Phone trial callbacks or cancel isolation failed");
+    static int toggles=0;static bool enabled=true;
+    monitor::setPairedPresenceControl([](bool value){++toggles;enabled=value;});
+    for(const auto* language:monitor::i18n::languages) {
+        monitor::Settings settings;settings.language=language;monitor::setSettings(settings);
+        monitor::PairedPresenceStatus status;
+        status.available=status.bonded=status.connected=status.enabled=true;
+        status.state=monitor::PairedPresenceState::Connected;
+        monitor::updatePairedPresence(status);monitor::showPhonePairingWait();advance();
+        capture(folder/(std::string(language)+"-presence-connected.ppm"));
+        const int before=toggles;click(80,195);
+        require(toggles==before+1&&!enabled,"Paired presence disable callback failed");
+        status.enabled=false;status.state=monitor::PairedPresenceState::Disabled;
+        monitor::updatePairedPresence(status);advance();
+        capture(folder/(std::string(language)+"-presence-disabled.ppm"));
+        click(80,195);require(toggles==before+2&&enabled,"Paired presence enable callback failed");
+        status.enabled=true;status.connected=false;status.state=monitor::PairedPresenceState::DisconnectedGrace;status.graceRemainingSeconds=42;
+        monitor::updatePairedPresence(status);advance();
+        capture(folder/(std::string(language)+"-presence-grace.ppm"));
+        status.state=monitor::PairedPresenceState::Absent;status.graceRemainingSeconds=0;
+        monitor::updatePairedPresence(status);advance();
+        capture(folder/(std::string(language)+"-presence-absent.ppm"));
+        status.available=false;status.state=monitor::PairedPresenceState::Unavailable;
+        monitor::updatePairedPresence(status);advance();
+        capture(folder/(std::string(language)+"-presence-unavailable.ppm"));
+    }
+    std::ofstream report(folder/"checks.json");
+    report<<nlohmann::json({{"passed",true},{"mock_ble",true},{"hardware_tested",false},
+        {"paired_presence_controls",true},{"presence_state_screens",true},
+        {"languages",{"ko","zh-CN","ja","en","de"}},
+        {"checks",{"enrollment navigation","PC disconnect preserves phone page","PC snapshot preserves phone comparison",
+         "number approval","connected/disconnected/unavailable status","phone-only forget and cancel","back cancels enrollment"}}}).dump(2)<<'\n';
+    std::cout<<"Five-language paired trial LCD: PASS\n";
+}
 void renderLocales(const std::filesystem::path& folder) {
     std::filesystem::create_directories(folder);
     auto data=monitor::demo();monitor::init(data);
@@ -570,6 +635,7 @@ int wmain(int argc,wchar_t** argv) {
         if(argc>=3&&std::wstring(argv[1])==L"--render") { renderSuite(argv[2]); return 0; }
         if(argc>=3&&std::wstring(argv[1])==L"--render-animation") { renderAnimation(argv[2]); return 0; }
         if(argc>=3&&std::wstring(argv[1])==L"--render-locales") { renderLocales(argv[2]); return 0; }
+        if(argc>=3&&(std::wstring(argv[1])==L"--render-paired-trial"||std::wstring(argv[1])==L"--render-paired-presence")) { renderPairedTrial(argv[2]); return 0; }
         if(argc>=3&&std::wstring(argv[1])==L"--render-account-counts") {renderAccountCounts(argv[2]);return 0;}
         if(argc>=4&&std::wstring(argv[1])==L"--render-readme") {
             std::string language;for(const auto c:std::wstring(argv[2])) {require(c<=127,"Invalid language code");language.push_back(static_cast<char>(c));}

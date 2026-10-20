@@ -117,7 +117,8 @@ internal static class Program {
         // Reconnect to previously bonded devices is allowed; new devices must have advertised our service.
         device=await BluetoothLEDevice.FromBluetoothAddressAsync(address);
         if(device==null) throw new InvalidOperationException("Device unavailable");
-        if(!device.DeviceInformation.Pairing.IsPaired) {
+        var wasPaired=device.DeviceInformation.Pairing.IsPaired;
+        if(!wasPaired) {
             lock(Discovered) if(!Discovered.Contains(address)) throw new InvalidOperationException("Discover device first");
             var custom=device.DeviceInformation.Pairing.Custom;
             custom.PairingRequested+=OnPairing;
@@ -127,17 +128,18 @@ internal static class Program {
             } finally { custom.PairingRequested-=OnPairing; confirmation=null; pendingPin=null; }
         }
         session=await GattSession.FromDeviceIdAsync(device.BluetoothDeviceId); session.MaintainConnection=true;
-        GattDeviceServicesResult services;
-        try { services=await device.GetGattServicesForUuidAsync(Service,BluetoothCacheMode.Uncached); }
-        catch(System.Runtime.InteropServices.COMException ex) when(ex.HResult==unchecked((int)0x80070016)) {
-            // Some Windows drivers reject fresh primary-service discovery even on a
-            // securely paired connection. Reuse Windows' service cache in that case.
-            services=await device.GetGattServicesForUuidAsync(Service,BluetoothCacheMode.Cached);
-        }
+        // On saved bonds, Windows can reject fresh discovery while the secure
+        // link is already active. Resolve stable UUIDs from its cache first;
+        // actual CCCD/writes still require authenticated encryption and ACKs.
+        var cacheMode=wasPaired?BluetoothCacheMode.Cached:BluetoothCacheMode.Uncached;
+        var services=await DiscoverServices(cacheMode);
+        if(wasPaired&&(services.Status==GattCommunicationStatus.Unreachable ||
+            services.Status==GattCommunicationStatus.Success&&services.Services.Count==0))
+            services=await DiscoverServices(BluetoothCacheMode.Uncached);
         if(services.Status!=GattCommunicationStatus.Success || services.Services.Count!=1) throw new InvalidOperationException("Quota service missing");
         service=services.Services[0];
-        var writes=await service.GetCharacteristicsForUuidAsync(Snapshot,BluetoothCacheMode.Uncached);
-        var notices=await service.GetCharacteristicsForUuidAsync(Control,BluetoothCacheMode.Uncached);
+        var writes=await FindCharacteristic(Snapshot,cacheMode);
+        var notices=await FindCharacteristic(Control,cacheMode);
         if(writes.Status!=GattCommunicationStatus.Success||notices.Status!=GattCommunicationStatus.Success||writes.Characteristics.Count!=1||notices.Characteristics.Count!=1) throw new InvalidOperationException("Quota characteristics missing");
         writer=writes.Characteristics[0]; notifier=notices.Characteristics[0];
         writer.ProtectionLevel=GattProtectionLevel.EncryptionAndAuthenticationRequired;
@@ -147,6 +149,27 @@ internal static class Program {
         if(subscribed!=GattCommunicationStatus.Success) throw new InvalidOperationException("Notification subscribe failed");
         device.ConnectionStatusChanged+=OnConnection;
         Emit(new {type="connected",address=address.ToString(),value_size=Math.Min(512,session.MaxPduSize-3)});
+    }
+    static async Task<GattDeviceServicesResult> DiscoverServices(BluetoothCacheMode mode) {
+        try { return await device!.GetGattServicesForUuidAsync(Service,mode); }
+        catch(System.Runtime.InteropServices.COMException ex) when(ex.HResult==unchecked((int)0x80070016)) {
+            if(mode==BluetoothCacheMode.Cached) throw;
+            return await device!.GetGattServicesForUuidAsync(Service,BluetoothCacheMode.Cached);
+        }
+    }
+    static async Task<GattCharacteristicsResult> FindCharacteristic(Guid uuid,BluetoothCacheMode mode) {
+        var result=await DiscoverCharacteristic(uuid,mode);
+        if(mode==BluetoothCacheMode.Cached&&(result.Status==GattCommunicationStatus.Unreachable ||
+            result.Status==GattCommunicationStatus.Success&&result.Characteristics.Count==0))
+            result=await DiscoverCharacteristic(uuid,BluetoothCacheMode.Uncached);
+        return result;
+    }
+    static async Task<GattCharacteristicsResult> DiscoverCharacteristic(Guid uuid,BluetoothCacheMode mode) {
+        try { return await service!.GetCharacteristicsForUuidAsync(uuid,mode); }
+        catch(System.Runtime.InteropServices.COMException ex) when(ex.HResult==unchecked((int)0x80070016)) {
+            if(mode==BluetoothCacheMode.Cached) throw;
+            return await service!.GetCharacteristicsForUuidAsync(uuid,BluetoothCacheMode.Cached);
+        }
     }
     static async void OnPairing(DeviceInformationCustomPairing sender,DevicePairingRequestedEventArgs args) {
         var deferral=args.GetDeferral();

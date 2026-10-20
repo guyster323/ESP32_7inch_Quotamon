@@ -308,6 +308,17 @@ function renderDevices() {
     $('devices').append(row)
   }
 }
+function renderPresence() {
+  const status = state.presence
+  const labels = { disabled: '휴대폰 감지 꺼짐', unpaired: '휴대폰 미등록 · 등록 버튼을 누르세요.',
+    pairing: '휴대폰 등록 중', connected: '휴대폰 연결됨', absent: '휴대폰 부재 · 화면 끄기', unavailable: 'Bluetooth 오류' }
+  $('presence-phone-name').textContent = status?.bonded ? (status.name === 'Phone' ? t('등록된 휴대폰') : status.name) : ''
+  $('presence-status').textContent = !state.connected ? t('보드 연결 후 휴대폰 상태를 확인할 수 있습니다.')
+    : !status?.supported ? t('연결된 보드는 휴대폰 상태 표시를 지원하지 않습니다.')
+    : status.state === 'disconnected_grace' ? t('재연결 대기 · %d초 후 화면 끄기').replace('%d', String(status.grace_remaining_seconds))
+    : t(labels[status.state] || 'Bluetooth 오류')
+  $('presence-enabled-state').textContent = status?.supported ? t(status.enabled ? '휴대폰 감지 켜짐' : '휴대폰 감지 꺼짐') : ''
+}
 function render() {
   if (!draft || (!dirty && draft.revision !== state.config.revision)) loadDraft()
   $('source-label').textContent = state.source_available
@@ -353,6 +364,7 @@ function render() {
   else if (!localNotice) notice('')
   renderCards()
   renderDevices()
+  renderPresence()
   const dialog = $('pair-dialog')
   if (state.pairingPin) {
     $('pin').textContent = state.pairingPin
@@ -423,6 +435,7 @@ async function saveDisplay() {
     notice(t('시작과 종료 시각은 달라야 합니다.')); return
   }
   draft.display = {
+    ...draft.display,
     language: $('language').value,
     sleep_enabled: $('sleep-enabled').checked,
     sleep_start_minute: minutes($('sleep-start').value),

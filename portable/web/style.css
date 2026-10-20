@@ -688,3 +688,4 @@ select {
     font-size: 38px;
   }
 }
+.presence-settings p { overflow-wrap: anywhere; }

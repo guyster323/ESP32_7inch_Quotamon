@@ -72,6 +72,7 @@ inline DecodedSnapshot decode(const nlohmann::json& json) {
     out.settings.sleepEndMinute=d.value("sleep_end_minute",420);
     if(out.settings.sleepStartMinute<0||out.settings.sleepStartMinute>1439||out.settings.sleepEndMinute<0||out.settings.sleepEndMinute>1439||
        (out.settings.sleepEnabled&&out.settings.sleepStartMinute==out.settings.sleepEndMinute))throw std::runtime_error("Screen schedule bounds");
+    // Legacy advertisement configuration is ignored; only board pairing owns sensing.
     return out;
 }
 }

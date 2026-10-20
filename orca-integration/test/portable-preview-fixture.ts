@@ -5,6 +5,7 @@ import { BleHost } from '../src/ble-host.js'
 import { QuotamonController } from '../src/quotamon-controller.js'
 import { copilotQuota } from '../src/quota-snapshot.js'
 import { startPortableServer } from '../src/portable-server.js'
+import { fragment } from '../src/ble-protocol.js'
 const now = Date.now()
 const quota = (usedPercent: number) => ({
   status: 'ok',
@@ -82,7 +83,19 @@ async function main(): Promise<void> {
   process.stdout.write(JSON.stringify({ url: server.url }) + '\n')
   process.stdin.resume()
   process.stdin.on('data', (chunk) => {
-    if (chunk.toString().trim() === 'offline') {
+    const command=chunk.toString().trim()
+    if(command.startsWith('presence-')) {
+      const mode=command.slice(9)
+      const connected=mode==='connected'
+      const body=mode==='legacy'?{type:'presence_status',scanning:true,present:true,devices:[]}:
+        {type:'paired_presence_status',schema:2,capability:'paired-presence',available:mode!=='unavailable',enabled:true,
+         phone_bonded:true,phone_connected:connected,peer_id:'1234567890abcdef1234567890abcdef',
+         name:mode==='html'?'<img src=x onerror=bad>':'Phone',
+         presence_state:mode==='html'?'absent':mode,grace_remaining_seconds:mode==='disconnected_grace'?42:0}
+      for(const frame of fragment(2,100,Buffer.from(JSON.stringify(body)),244))
+        host.emit('event',{type:'notification',frame:Buffer.from(frame).toString('base64')})
+    }
+    if (command === 'offline') {
       available = false
       for (const listener of listeners) listener()
     }

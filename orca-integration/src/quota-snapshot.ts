@@ -477,6 +477,9 @@ export function validateConfig(value: unknown): Config {
   if (typeof sleepEnabled !== 'boolean' || !Number.isInteger(sleepStart) || !finite(sleepStart) ||
       sleepStart < 0 || sleepStart > 1439 || !Number.isInteger(sleepEnd) || !finite(sleepEnd) ||
       sleepEnd < 0 || sleepEnd > 1439 || (sleepEnabled && sleepStart === sleepEnd)) throw Error('Screen schedule bounds')
+  // Legacy advertisement fields are intentionally discarded on load/save.
+  // Paired identity, enablement and authorization belong to board NVS, and
+  // reach the PC only through authenticated paired-presence status schema2.
   if (
     !Number.isInteger(d.poll_seconds) ||
     !finite(d.poll_seconds) ||
