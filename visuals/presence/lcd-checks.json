@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "checkbox/save/cancel",
+    "scan callback",
+    "multilingual device labels",
+    "row identity during scan updates",
+    "aliases retain primary phone"
+  ],
+  "hardware_tested": false,
+  "languages": [
+    "ko",
+    "zh-CN",
+    "ja",
+    "en",
+    "de"
+  ],
+  "mock_ble": true,
+  "passed": true
+}

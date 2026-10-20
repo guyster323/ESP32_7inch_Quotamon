@@ -78,6 +78,7 @@ These are mock examples rendered by the product UI. Physical upload, pairing, da
 flowchart LR
     A[Existing Orca<br/>Accounts and usage cache] --> B[Quotamon portable<br/>Windows tray app]
     B <-->|Encrypted BLE| C[ESP32-S3<br/>7-inch touch display]
+    D[Paired phone<br/>Native Bluetooth settings] <-->|Authenticated BLE link| C
 ```
 
 ESP32 handles rendering and touch. A **nearby PC running Orca and the portable bridge** supplies subscription data. No Wi-Fi or on-device web login is required. Orca stays unmodified, and account credentials remain on the PC.
@@ -103,6 +104,23 @@ On the ESP32, **tap a time → enter four digits → OK → Save**. For example,
 
 [Settings, clock sync, fonts and verification](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md) · [English web settings](visuals/locales/web-en.png) · [Japanese LCD preview](visuals/locales/lcd-ja-home.png)
 
+## Paired-phone screen control
+
+Pair **one PC and one phone** directly with the board. The PC sends usage; the phone’s authenticated connection controls presence. On the LCD, open **BLE connection → Phone presence → Register phone**, select Quotamon in the phone’s native Bluetooth settings, and approve matching numbers on both screens. Registration, deletion and the sensing switch are saved on the board. The PC settings page shows connection status.
+
+- After the registered phone disconnects, keep the screen on for **60 seconds**, then switch it off. An authenticated automatic reconnect wakes it.
+- The screen-off schedule takes priority over phone presence. Touching the dark LCD wakes it at the saved brightness for **five minutes**.
+- No phone app, phone-advertisement scan, name/alias matching, PC-based phone sensing or Wi-Fi is used. Phone and PC links have separate roles; the phone cannot access quota data.
+- Fold7 native auto-reconnect uses the consumer-control HID profile accepted during testing. It defines no keyboard/mouse collection and sends no automatic input. The PC currently displays the generic name **“Paired phone.”**
+
+Fold7 native pairing, normal phone input, a 30-minute locked connection and one actual departure/return were verified. The screen-control build passed Bluetooth-off → 60-second screen-off, automatic wake and five-minute touch wake. The latest migration build passed retained bonds, quota ACK, five-account display recovery and PC phone-status display. **Physical schedule priority, local-toggle persistence after reboot, PC-completely-off operation and other remaining integration checks are still unverified.**
+
+| LCD reconnect grace | PC phone status |
+|:---:|:---:|
+| ![LCD presence grace, simulated](visuals/paired-presence/lcd-ko-grace.png) | ![PC paired status, simulated](visuals/paired-presence/web-en.png) |
+
+These previews use simulated data rendered by the actual product UI. [Usage and test limits](docs/BLE_PRESENCE.md) · [Latest hardware evidence](docs/ble-paired-migration-hardware.json) · [Implementation plan](docs/BLE_PAIRED_PRESENCE_PLAN.md)
+
 ## Meet the pixel crew
 
 | Codex | Cursor | Copilot | Claude | Grok |
@@ -122,15 +140,15 @@ Companions blink, breathe and make small gestures on both home cards and account
 
 Restored 24 additional F108pro expressions and added native LVGL eyelids for Copilot. **Lossless palette storage expands the set from 30 to 54 images while reducing asset bytes from 855,360 to 521,289—about 39%.** One 100ms timer updates visible characters; settings and pairing pages pause it.
 
-The current firmware uses **74.9% of its flash partition** and **16.6% of static RAM capacity**. After adding languages and screen scheduling, the physical board was measured with BLE and animations running.
+The latest paired-presence firmware uses **59.2% of its app partition** and **16.9% of static RAM capacity**. The flashed image is 4,929,840 bytes. Shared CJK glyphs and localized UI subsets reduce font storage while retaining all five UI languages.
 
-| Hardware measurement | Home: five characters, 70.32s |
+| Latest physical samples | Five accounts, PC + phone, 75.139s / six samples |
 |---|---:|
-| CPU utilization: two-core mean | **6.28%** |
-| Actual LVGL refresh rate | **7.47fps** |
-| Current free PSRAM | **About 635KiB** |
+| CPU utilization: two-core mean, sample range | **6.55–7.96%** |
+| Actual LVGL refresh rate, sample range | **7.199–8.798fps** |
+| Free PSRAM | **1,973,524 bytes (about 1.88MiB)** |
 
-Free PSRAM stayed at 650,584 bytes; the largest contiguous block was 608KiB. During 55.11s of scheduled screen-off, average CPU utilization was 1.49% and BLE stayed connected. FPS counts actual content updates, not LCD scan frequency or maximum throughput. [Latest samples](docs/screen-schedule-hardware.json) · [Methods and earlier firmware measurements](docs/RUNTIME_METRICS.md). The GIFs use illustrative data and are renderer output, not hardware footage.
+Free internal RAM stayed at 108,167–108,195 bytes during this short window. This is not a long-duration leak test. FPS counts actual content updates, not LCD scan frequency. [Latest build](docs/ble-paired-migration-build.json) · [Physical evidence and limits](docs/ble-paired-migration-hardware.json) · [Earlier measurements](docs/RUNTIME_METRICS.md). The GIFs use illustrative data and are renderer output, not hardware footage.
 
 [Detail GIF](visuals/native/character-detail-animation.gif) · [State GIF](visuals/native/character-states-animation.gif) · [Implementation, resources and hardware rollout](docs/CHARACTER_ANIMATION.md)
 
@@ -150,15 +168,23 @@ This is a **development preview**. Beyond the shared LVGL UI and portable bridge
 
 | Scope | Evidence |
 |---|---|
-| Software | 38 TypeScript tests; C++ BLE framing; native UI, pointer and font checks |
+| Software | 49 TypeScript tests, eight CTest suites including actual BLE transport with a simulated host/store, and five-language LCD/web checks |
 | Character animation | Five providers × six states, 40 page cycles, unchanged pixels outside sprite regions and 54 lossless assets verified. All 380 rendered frames match before/after compression |
 | Live data | Three Codex accounts and Cursor from unmodified Orca 1.4.224, plus the existing Copilot SDK account |
 | Hardware | Full backup, application upload and readback verification; bootloader, partitions and pairing NVS preserved |
-| Connection and display | Windows numeric pairing and five-account transfer/ACK on earlier firmware. After the animation update and BLE-helper restart, the user confirmed display startup, BLE reconnection and normal operation |
+| Connection and display | Saved PC/phone bonds retained; Fold7 native pairing/locked30min/automatic return; screen-control and touch-wake hardware checks; latest migration build quota ACK and five-account/phone-status recovery. Remaining hardware scenarios are listed above |
 
 Refresh timestamps and compact reset layouts were checked in the native renderer. Individual on-device text layouts, extended operation and every recovery scenario have not all been verified. The [verification record](docs/VERIFICATION.md) separates these boundaries.
 
 ## Changelog
+
+### 2026-10-20 — Paired-phone presence · PC 0.3.0
+
+- Added independent authenticated PC/phone links, role-specific numeric confirmation and selective bond deletion, plus the 60-second absence policy and local sensing switch.
+- Removed phone advertising scans, address/alias settings and scan APIs; migrated to board-owned settings and read-only schema2 PC status while preserving valid account/display settings and bonds.
+- Fixed Windows saved-peer GATT discovery using cached services and characteristics first, with bounded fresh fallback.
+- Reduced font storage, refreshed five-language UI and added state/role/transport/migration checks to CI. [Build and hardware scope](docs/BLE_PRESENCE.md)
+
 
 ### 2026-10-16 — Recovery and connection hardening
 

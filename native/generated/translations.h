@@ -12,6 +12,29 @@ inline bool valid(const std::string& language) {
   for(const auto* code:languages) { if(language==code)return true; }
   return false;}
 inline constexpr const char* messages[][5]={
+  {"감지 설정을 저장하지 못했습니다. 다시 시도하세요.","无法保存检测设置，请重试。","検知設定を保存できませんでした。再試行してください。","Could not save presence settings. Please retry.","Erkennungseinstellung konnte nicht gespeichert werden. Bitte erneut versuchen."},
+  {"휴대폰 감지 사용","启用手机检测","携帯電話の検知を有効化","Enable phone presence","Telefonerkennung aktivieren"},
+  {"휴대폰 등록","注册手机","携帯電話を登録","Pair phone","Telefon koppeln"},
+  {"휴대폰 감지 꺼짐","手机检测已关闭","携帯電話の検知は無効","Phone presence disabled","Telefonerkennung ausgeschaltet"},
+  {"휴대폰 등록 중","正在注册手机","携帯電話を登録中","Pairing phone","Telefon wird gekoppelt"},
+  {"휴대폰 부재 · 화면 끄기","手机不在附近 · 关闭屏幕","携帯電話が不在 · 画面を消灯","Phone absent · display sleep","Telefon abwesend · Display aus"},
+  {"재연결 대기 · %d초 후 화면 끄기","等待重新连接 · %d秒后关闭屏幕","再接続待ち · %d秒後に消灯","Waiting for reconnect · display sleep in %ds","Warte auf Verbindung · Display aus in %ds"},
+  {"연결 해제 후 60초 뒤 화면 끄기 · 복귀 시 켜기","断开连接60秒后关闭屏幕 · 返回时亮屏","切断60秒後に消灯 · 戻ると点灯","Sleep 60s after disconnect · wake on return","60s nach Trennung aus · bei Rückkehr an"},
+  {"예약 우선 · 꺼진 화면 터치 시 5분 켜기","定时优先 · 触摸熄灭屏幕可亮屏5分钟","時刻設定を優先 · 消灯中のタッチで5分点灯","Schedule takes priority · touch to wake for 5min","Zeitplan hat Vorrang · Berührung weckt für 5min"},
+  {"HID 입력 장치로 등록하며 자동 입력은 보내지 않습니다.","注册为 HID 输入设备，不自动发送输入。","HID 入力機器として登録します。自動入力は送信しません。","Pairs as a HID input device; no automatic input is sent.","Kopplung als HID-Eingabegerät; keine automatischen Eingaben."},
+  {"페어링 저장에 실패했습니다. 다시 시도하세요.","无法保存配对。请重试。","ペアリングを保存できませんでした。再試行してください。","Pairing could not be saved. Please retry.","Kopplung konnte nicht gespeichert werden. Bitte erneut versuchen."},
+  {"휴대폰 등록 시험","手机配对测试","携帯電話のペアリング試験","Phone pairing trial","Telefon koppeln: Test"},
+  {"휴대폰과 같은 번호인가요?","号码与手机上的相同吗？","携帯電話と同じ番号ですか？","Does the number match your phone?","Stimmt die Nummer am Telefon überein?"},
+  {"휴대폰과 이 화면에서 각각 승인하세요.","请在手机和此屏幕上分别确认。","携帯電話とこの画面の両方で承認してください。","Confirm on both the phone and this screen.","Am Telefon und auf diesem Bildschirm bestätigen."},
+  {"휴대폰 Bluetooth 설정에서 Quotamon을 선택하세요.","在手机蓝牙设置中选择 Quotamon。","携帯電話の Bluetooth 設定で Quotamon を選択してください。","Select Quotamon in your phone's Bluetooth settings.","Quotamon in den Bluetooth-Einstellungen des Telefons wählen."},
+  {"시험 중에는 휴대폰 감지로 화면을 끄지 않습니다.","测试期间，手机检测不会关闭屏幕。","試験中は携帯電話の検知で画面を消しません。","Phone presence will not turn off the screen during this trial.","Während des Tests schaltet die Telefonerkennung das Display nicht aus."},
+  {"휴대폰 페어링 삭제","删除手机配对","携帯電話の登録削除","Forget phone","Telefon entfernen"},
+  {"휴대폰 페어링만 지울까요?","仅删除手机配对？","携帯電話のペアリングだけを削除しますか？","Forget only the phone pairing?","Nur die Kopplung des Telefons löschen?"},
+  {"PC 페어링과 사용량 설정은 유지됩니다.","保留电脑配对和用量设置。","PC のペアリングと使用量設定は維持されます。","PC pairing and usage settings are preserved.","PC-Kopplung und Nutzungseinstellungen bleiben erhalten."},
+  {"휴대폰 연결됨","手机已连接","携帯電話に接続済み","Phone connected","Telefon verbunden"},
+  {"휴대폰 등록됨 · 연결 대기","手机已配对 · 等待连接","携帯電話を登録済み · 接続待機中","Phone paired · waiting for connection","Telefon gekoppelt · Verbindung ausstehend"},
+  {"휴대폰 미등록 · 등록 버튼을 누르세요.","手机未配对 · 请点击配对按钮","携帯電話が未登録 · 登録ボタンを押してください。","No phone paired · tap the pairing button","Kein Telefon gekoppelt · Kopplung starten"},
+  {"Bluetooth 오류","蓝牙错误","Bluetooth エラー","Bluetooth error","Bluetooth-Fehler"},
   {"설정","设置","設定","Settings","Einstellungen"},
   {"언어","语言","言語","Language","Sprache"},
   {"저장","保存","保存","Save","Speichern"},
@@ -117,6 +140,7 @@ inline constexpr const char* messages[][5]={
   {"오래된 정보","过期数据","古い情報","Stale data","Veraltete Daten"},
   {"중계 종료","中继已停止","中継終了","Bridge stopped","Bridge beendet"},
   {"시작하지 못했습니다. 포터블 폴더와 설정 파일을 확인하세요.","无法启动。请检查便携版文件夹及设置文件。","起動できませんでした。ポータブルフォルダーと設定ファイルを確認してください。","Could not start. Check the portable folder and settings file.","Start fehlgeschlagen. Portablen Ordner und Einstellungsdatei prüfen."},
+  {"휴대폰 감지","手机检测","スマートフォン検出","Phone presence","Telefonerkennung"},
 };
 inline const char* text(const char* key,const std::string& language) {
   const int column=index(language);if(!column)return key;

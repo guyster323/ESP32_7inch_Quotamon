@@ -25,6 +25,13 @@ int page=-1, refreshCount=0;
 int homePage=0;
 CommitCallback onCommit=nullptr;
 ActionCallback onRefresh=nullptr, onPairingStart=nullptr, onPairingForget=nullptr, onEditing=nullptr;
+ActionCallback onPhonePairingStart=nullptr,onPhonePairingForget=nullptr,onPairingCancel=nullptr;
+bool phonePairingScreen=false,pairedTrial=false,trialAvailable=false,trialBonded=false,trialConnected=false;
+lv_obj_t* pairedTrialLabel=nullptr;
+bool pairedPresenceMode=false;
+PairingCallback onPairedPresenceChanged=nullptr;
+PairedPresenceStatus pairedPresenceStatus;
+lv_obj_t* pairedPresenceCheck=nullptr;
 std::string feedback;
 uint32_t feedbackAt=0;
 PairingCallback onPairingConfirm=nullptr;
@@ -52,7 +59,7 @@ std::array<AnimatedCharacter,5> characters;
 size_t characterCount=0;
 lv_timer_t* characterTimer=nullptr;
 bool displayAwake=true;
-const char* tr(const char* key) { return i18n::text(key,(page==-2||page==-7)?draft.language:committed.language); }
+const char* tr(const char* key) { return i18n::text(key,(page==-2||page==-7||page==-8||page==-9)?draft.language:committed.language); }
 std::string translated(const std::string& key) { return tr(key.c_str()); }
 std::string formatted(const char* key,int value) { char b[160];std::snprintf(b,sizeof(b),tr(key),value);return b; }
 lv_color_t color(unsigned value) { return lv_color_hex(value); }
@@ -308,6 +315,7 @@ void newPage() {
     if(old) lv_obj_del(old);
     cards={}; back=save=cancel=footer=nullptr; detailLimits=nullptr;
     timeInput=timeInputValue=nullptr;
+    pairedTrialLabel=pairedPresenceCheck=nullptr;
 }
 void card(int slot,int i,int x,int y,int w,int h) {
     auto& c=cards[slot]; const auto& a=current.accounts[i];
@@ -365,8 +373,8 @@ void action(lv_event_t* e) {
     else if(id==14) showAccounts();
     else if(id==15) { homePage=std::max(0,homePage-1); showHome(); }
     else if(id==16) { ++homePage; showHome(); }
-    else if(id==17) { if(onPairingStart) onPairingStart(); showPairingWait(); }
-    else if(id==18||id==19) { if(onPairingConfirm) onPairingConfirm(id==18); showHome(); }
+    else if(id==17) { phonePairingScreen=false;if(onPairingStart) onPairingStart(); showPairingWait(); }
+    else if(id==18||id==19) { if(onPairingConfirm) onPairingConfirm(id==18);if(phonePairingScreen)showPhonePairingWait();else showHome(); }
     else if(id==20) {
         page=-6;newPage();label(root,40,40,720,tr("저장된 PC 페어링을 지울까요?"),&font_ko20);
         label(root,40,130,720,tr("현재 연결이 끊어지고 Windows에서도 기존 장치를 제거해야 합니다."),&font_ko16,MUTED);
@@ -386,6 +394,17 @@ void action(lv_event_t* e) {
     }
     else if(id==30||id==31) showTimeInput(id-30);
     else if(id==32) {lv_obj_del(timeInput);timeInput=timeInputValue=nullptr;}
+    else if(id==33) showPresenceSettings();
+    else if(id==40) {if(onPhonePairingStart)onPhonePairingStart();showPhonePairingWait();}
+    else if(id==41) {
+        page=-6;newPage();label(root,40,40,720,tr("휴대폰 페어링만 지울까요?"),&font_ko20);
+        label(root,40,130,720,tr("PC 페어링과 사용량 설정은 유지됩니다."),&font_ko16,MUTED);
+        button(root,40,340,344,tr("취소"),42);button(root,416,340,344,tr("페어링 지우기"),43);
+    }
+    else if(id==42) {if(onPairingCancel)onPairingCancel();showPhonePairingWait();}
+    else if(id==43) {if(onPhonePairingForget)onPhonePairingForget();showPhonePairingWait();}
+    else if(id==44) {if(onPairingCancel)onPairingCancel();phonePairingScreen=false;showHome();}
+    else if(id==45) {if(onPairedPresenceChanged)onPairedPresenceChanged(lv_obj_has_state(lv_event_get_target(e),LV_STATE_CHECKED));}
     else if(id==21) {if(onPairingForget)onPairingForget();if(onPairingStart)onPairingStart();showPairingWait();}
     else if(id>=200&&id<300) { const size_t i=static_cast<size_t>(id-200); if(i<accountDraft.size()) accountDraft[i]=lv_obj_has_state(lv_event_get_target(e),LV_STATE_CHECKED); }
 }
@@ -567,7 +586,8 @@ void showSettings(bool keepDraft) {
 }
 void showScreenSchedule() {
     page=-7;newPage();
-    label(root,20,22,760,tr("화면 끄기 예약"),&font_ko20);
+    label(root,20,22,440,tr("화면 끄기 예약"),&font_ko20);
+    button(root,490,12,290,tr("휴대폰 감지"),33);
     auto* panel=box(root,20,80,760,300,PANEL,BORDER,8);
     auto* enabled=lv_checkbox_create(panel);lv_obj_set_pos(enabled,20,12);
     lv_checkbox_set_text(enabled,tr("예약 사용"));lv_obj_set_style_text_font(enabled,&font_ko16,0);
@@ -586,6 +606,7 @@ void showScreenSchedule() {
     button(root,20,408,140,tr("뒤로"),24);
     cancel=button(root,548,408,108,tr("취소"),5);save=button(root,672,408,108,tr("저장"),4);
 }
+void showPresenceSettings() {showPhonePairingWait();}
 void setDisplayAwake(bool awake) {
     if(displayAwake==awake)return;
     displayAwake=awake;
@@ -610,18 +631,82 @@ void showPairingWait() {
     label(panel,32,38,656,tr("Orca 설정에서 디스플레이를 찾아 선택하세요."),&font_ko20);
     label(panel,32,98,656,tr("이름: Quotamon · 연결 허용 시간: 2분"),&font_ko16,GREEN);
     label(panel,32,150,656,tr("두 화면의 6자리 번호가 일치할 때만 승인하세요."),&font_ko16,MUTED);
-    back=button(root,40,404,120,tr("뒤로"),1);
+    back=button(root,40,404,120,tr("뒤로"),pairedTrial?44:1);
+    if(pairedTrial)button(root,180,404,280,tr(pairedPresenceMode?"휴대폰 감지":"휴대폰 등록 시험"),40);
     button(root,560,404,200,tr("페어링 초기화"),20);
 }
 void showPairing(uint32_t passkey) {
     page=-5; newPage();
-    label(root,40,32,720,tr("Orca와 같은 번호인가요?"),&font_ko20);
+    label(root,40,32,720,tr(phonePairingScreen?"휴대폰과 같은 번호인가요?":"Orca와 같은 번호인가요?"),&font_ko20);
     auto* panel=box(root,40,92,720,252,PANEL,BORDER,8);
     char digits[8]; std::snprintf(digits,sizeof(digits),"%06u",static_cast<unsigned>(passkey%1000000));
     auto* pin=label(panel,32,52,656,digits,&font_pixel40,GREEN); lv_obj_set_style_text_align(pin,LV_TEXT_ALIGN_CENTER,0);
-    label(panel,32,134,656,tr("Orca와 이 화면에서 각각 승인해야 연결됩니다."),&font_ko16,MUTED);
+    label(panel,32,134,656,tr(phonePairingScreen?"휴대폰과 이 화면에서 각각 승인하세요.":"Orca와 이 화면에서 각각 승인해야 연결됩니다."),&font_ko16,MUTED);
     label(panel,32,178,656,tr("요청하지 않은 연결이거나 번호가 다르면 거절하세요."),&font_ko14,MUTED);
     button(root,40,380,344,tr("다름 · 거절"),19); button(root,416,380,344,tr("일치 · 승인"),18);
+}
+void setPairedTrialCallbacks(ActionCallback startPhone,ActionCallback forgetPhone,ActionCallback cancelPairing) {
+    pairedTrial=true;onPhonePairingStart=startPhone;onPhonePairingForget=forgetPhone;onPairingCancel=cancelPairing;
+}
+void showPhonePairingWait() {
+    phonePairingScreen=true;page=-4;newPage();
+    label(root,40,28,720,tr(pairedPresenceMode?"휴대폰 감지":"휴대폰 등록 시험"),&font_ko20);
+    auto* panel=box(root,40,80,720,300,PANEL,BORDER,8);
+    if(pairedPresenceMode) {
+        label(panel,24,14,672,tr("휴대폰 Bluetooth 설정에서 Quotamon을 선택하세요."),&font_ko16);
+        label(panel,24,56,672,tr("HID 입력 장치로 등록하며 자동 입력은 보내지 않습니다."),&font_ko14,MUTED);
+        pairedPresenceCheck=lv_checkbox_create(panel);
+        lv_obj_set_pos(pairedPresenceCheck,24,102);lv_checkbox_set_text(pairedPresenceCheck,tr("휴대폰 감지 사용"));
+        lv_obj_set_style_text_font(pairedPresenceCheck,&font_ko16,0);
+        lv_obj_set_style_text_color(pairedPresenceCheck,color(TEXT),0);
+        lv_obj_set_style_text_color(pairedPresenceCheck,color(MUTED),LV_STATE_DISABLED);
+        lv_obj_add_event_cb(pairedPresenceCheck,action,LV_EVENT_VALUE_CHANGED,reinterpret_cast<void*>(45));
+        label(panel,24,147,672,tr("연결 해제 후 60초 뒤 화면 끄기 · 복귀 시 켜기"),&font_ko16);
+        label(panel,24,187,672,tr("예약 우선 · 꺼진 화면 터치 시 5분 켜기"),&font_ko14,MUTED);
+        pairedTrialLabel=label(panel,24,232,672,"",&font_ko16,GREEN);
+        updatePairedPresence(pairedPresenceStatus);
+    } else {
+    label(panel,24,24,672,tr("휴대폰 Bluetooth 설정에서 Quotamon을 선택하세요."),&font_ko16);
+    label(panel,24,72,672,tr("두 화면의 6자리 번호가 일치할 때만 승인하세요."),&font_ko16,MUTED);
+    label(panel,24,120,672,tr("HID 입력 장치로 등록하며 자동 입력은 보내지 않습니다."),&font_ko16);
+    label(panel,24,168,672,tr("시험 중에는 휴대폰 감지로 화면을 끄지 않습니다."),&font_ko16,AMBER);
+    pairedTrialLabel=label(panel,24,222,672,"",&font_ko16,GREEN);
+    updatePairedTrial(trialAvailable,trialBonded,trialConnected);
+    }
+    button(root,40,404,120,tr("뒤로"),44);
+    button(root,190,404,280,tr(pairedPresenceMode?"휴대폰 등록":"휴대폰 등록 시험"),40);
+    button(root,500,404,260,tr("휴대폰 페어링 삭제"),41);
+}
+void showPhonePairing(uint32_t passkey) {phonePairingScreen=true;showPairing(passkey);}
+void updatePairedTrial(bool available,bool bonded,bool connected) {
+    trialAvailable=available;trialBonded=bonded;trialConnected=connected;
+    if(pairedTrialLabel)lv_label_set_text(pairedTrialLabel,tr(!available?"Bluetooth 오류":connected?"휴대폰 연결됨":bonded?"휴대폰 등록됨 · 연결 대기":"휴대폰 미등록 · 등록 버튼을 누르세요."));
+}
+void setPairedPresenceControl(PairingCallback callback) {pairedPresenceMode=true;onPairedPresenceChanged=callback;}
+void updatePairedPresence(const PairedPresenceStatus& status) {
+    pairedPresenceStatus=status;trialAvailable=status.available;trialBonded=status.bonded;trialConnected=status.connected;
+    if(pairedPresenceCheck) {
+        if(status.enabled)lv_obj_add_state(pairedPresenceCheck,LV_STATE_CHECKED);else lv_obj_clear_state(pairedPresenceCheck,LV_STATE_CHECKED);
+        if(status.bonded)lv_obj_clear_state(pairedPresenceCheck,LV_STATE_DISABLED);else lv_obj_add_state(pairedPresenceCheck,LV_STATE_DISABLED);
+    }
+    if(!pairedTrialLabel)return;
+    lv_obj_set_style_text_color(pairedTrialLabel,color(status.state==PairedPresenceState::Connected?GREEN:
+        status.state==PairedPresenceState::Unavailable?RED:
+        status.state==PairedPresenceState::DisconnectedGrace||status.state==PairedPresenceState::Absent?AMBER:MUTED),0);
+    const char* key="Bluetooth 오류";
+    switch(status.state) {
+        case PairedPresenceState::Disabled:key="휴대폰 감지 꺼짐";break;
+        case PairedPresenceState::Unpaired:key="휴대폰 미등록 · 등록 버튼을 누르세요.";break;
+        case PairedPresenceState::Pairing:key="휴대폰 등록 중";break;
+        case PairedPresenceState::Connected:key="휴대폰 연결됨";break;
+        case PairedPresenceState::Absent:key="휴대폰 부재 · 화면 끄기";break;
+        case PairedPresenceState::DisconnectedGrace: {
+            char text[256];std::snprintf(text,sizeof(text),tr("재연결 대기 · %d초 후 화면 끄기"),status.graceRemainingSeconds);
+            lv_label_set_text(pairedTrialLabel,text);return;
+        }
+        default:break;
+    }
+    lv_label_set_text(pairedTrialLabel,tr(key));
 }
 void showAccounts() {
     if(onEditing)onEditing();

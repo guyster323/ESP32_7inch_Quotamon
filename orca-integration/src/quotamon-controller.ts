@@ -3,6 +3,7 @@ import { BleHost } from './ble-host.js'
 import { fragment, Reassembler } from './ble-protocol.js'
 import { OrcaAccountProjector } from './orca-account-projector.js'
 import { parseRuntimeMetrics } from './runtime-metrics.js'
+import { type PairedPresence, parsePairedPresence, unknownPresence } from './paired-presence.js'
 import {
   Config,
   DisplayAccount,
@@ -24,6 +25,7 @@ export interface ControllerState {
   next_snapshot_at: number | null
   pairingPin: string | null
   devices: { address: string; name: string; rssi: number; paired?: boolean }[]
+  presence: PairedPresence
   config: Config
   accounts: DisplayAccount[]
   error: string | null
@@ -31,6 +33,7 @@ export interface ControllerState {
 // Shared by the portable bridge and optional Orca source integration.
 export class QuotamonController extends EventEmitter {
   private config: Config
+  private presence: PairedPresence = unknownPresence()
   private connected = false
   private devices = new Map<
     string,
@@ -91,6 +94,7 @@ export class QuotamonController extends EventEmitter {
         : null,
       pairingPin: this.pairingPin,
       devices: [...this.devices.values()],
+      presence: this.presence,
       config: this.config,
       accounts: this.accounts(),
       error: this.fault
@@ -120,6 +124,7 @@ export class QuotamonController extends EventEmitter {
   private fail(message: string): void {
     if (this.stopped) return
     this.connected = false
+    this.presence = unknownPresence()
     this.sending = false
     this.fault = message
     this.receive.reset()
@@ -162,6 +167,7 @@ export class QuotamonController extends EventEmitter {
     }
     await this.host.request('disconnect')
     this.connected = false
+    this.presence = unknownPresence()
     this.publish()
   }
   save(input: unknown): void {
@@ -254,6 +260,7 @@ export class QuotamonController extends EventEmitter {
       this.publish()
     } else if (event.type === 'connected') {
       this.connected = true
+      this.presence = unknownPresence()
       this.fault = null
       this.receive.reset()
       this.valueSize =
@@ -282,7 +289,10 @@ export class QuotamonController extends EventEmitter {
         if (!record(value)) return
         request = value
       } catch { return }
-      if (request.type === 'runtime_stats') {
+      if (request.type === 'paired_presence_status') {
+        const presence = parsePairedPresence(request)
+        if (presence) { this.presence = presence; this.publish() }
+      } else if (request.type === 'runtime_stats') {
         const metrics = parseRuntimeMetrics(request)
         if (metrics) this.emit('runtime-metrics', metrics)
       } else if (request.type === 'ack' && request.sequence === this.ack?.sequence) {
@@ -315,9 +325,8 @@ export class QuotamonController extends EventEmitter {
         }))
         // Older firmware omits the optional locale/schedule fields. Preserve
         // them when that firmware changes an existing display preference.
-        const { language, sleep_enabled, sleep_start_minute, sleep_end_minute } = this.config.display
         this.save({ ...this.config, display: {
-          language, sleep_enabled, sleep_start_minute, sleep_end_minute, ...request.display
+          ...this.config.display, ...request.display
         }, accounts })
       } else if (request.type === 'settings') {
         this.dirty = true

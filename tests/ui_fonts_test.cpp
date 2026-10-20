@@ -27,5 +27,7 @@ void check(const char* text) {
 int main() {
     for(const auto& row:monitor::i18n::messages)for(const auto* text:row)check(text);
     for(const auto* text:monitor::i18n::names)check(text);
+    for(const auto* text:{"선우의 Z Fold7","山田の携帯電話","张伟的手机","Jörgs Gerät","Zoë’s Phone"})check(text);
+    check("齋藤の髙橋 龍龘 㐀 㐁 ｶﾀｶﾅ \ufffd");
     std::cout<<"All five-language LCD messages and language names at 14/16/20px: PASS\n";
 }

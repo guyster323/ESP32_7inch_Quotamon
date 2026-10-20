@@ -1,0 +1,23 @@
+{
+  "checks": [
+    "enrollment navigation",
+    "PC disconnect preserves phone page",
+    "PC snapshot preserves phone comparison",
+    "number approval",
+    "connected/disconnected/unavailable status",
+    "phone-only forget and cancel",
+    "back cancels enrollment"
+  ],
+  "hardware_tested": false,
+  "languages": [
+    "ko",
+    "zh-CN",
+    "ja",
+    "en",
+    "de"
+  ],
+  "mock_ble": true,
+  "paired_presence_controls": true,
+  "passed": true,
+  "presence_state_screens": true
+}

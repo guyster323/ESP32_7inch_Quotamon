@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "mock_ble": true,
+  "hardware_tested": false,
+  "languages": [
+    "ko",
+    "zh-CN",
+    "ja",
+    "en",
+    "de"
+  ],
+  "checks": [
+    "ESP32 scan route",
+    "Unicode labels",
+    "HTML displayed as text",
+    "selection and aliases",
+    "save/reload/cancel",
+    "430px layout",
+    "no JavaScript errors"
+  ]
+}

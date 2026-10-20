@@ -4,7 +4,7 @@ Codex, Cursor, Claude and Grok sprites, numeric pixel glyph shapes and split-met
 
 The lavender Copilot pilot robot is original unofficial artwork. Source master, exact prompts and conversion record: [assets/copilot](assets/copilot). No official vendor mascot or logo is claimed.
 
-Noto Sans KR Medium and Noto Sans SC Medium: SIL OFL 1.1, [KR notice](native/generated/NotoSansKR-OFL.txt), [SC notice](native/generated/NotoSansSC-OFL.txt). Embedded glyphs include all five-language LCD UI messages, modern Hangul, ASCII and Latin extended. Additional Chinese/Japanese account-name glyphs outside the UI subset require regenerating the fonts. Font source revision and checksum are recorded in [the asset manifest](native/generated/asset-manifest.json).
+Noto Sans KR Medium and Noto Sans SC Medium: SIL OFL 1.1, [KR notice](native/generated/NotoSansKR-OFL.txt), [SC notice](native/generated/NotoSansSC-OFL.txt). Embedded glyphs include all five-language LCD UI messages, modern Hangul, ASCII and Latin extended. Shared compressed 16px fallback fonts cover arbitrary Hangul and the BMP CJK unified/Extension A ideographs, kana, punctuation and fullwidth characters available in the reviewed fonts, including Bluetooth device names. Supplementary-plane ideographs and emoji are outside this subset. Font source revision and checksum are recorded in [the asset manifest](native/generated/asset-manifest.json).
 
 README video captions also use Noto Sans JP Medium under SIL OFL 1.1. The [JP notice](assets/readme/NotoSansJP-OFL.txt) is retained; the pinned source and SHA-256 are recorded in [media metadata](assets/readme/media.json). This caption font is used during media generation and is not added to the ESP32 firmware.
 

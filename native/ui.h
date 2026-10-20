@@ -1,5 +1,7 @@
 #pragma once
 #include "lvgl.h"
+#include "bluetooth_name.h"
+#include "paired_presence.h"
 #include <array>
 #include <string>
 #include <vector>
@@ -50,6 +52,7 @@ void showHome();
 void showDetail(int account);
 void showSettings(bool keepDraft=false);
 void showScreenSchedule();
+void showPresenceSettings();
 void setDisplayAwake(bool awake);
 void showAccounts();
 void setSettings(const Settings& value);
@@ -63,6 +66,12 @@ void notify(const char* message);
 void setPairingCallbacks(ActionCallback start, PairingCallback confirm, ActionCallback forget = nullptr);
 void showPairingWait();
 void showPairing(uint32_t passkey);
+void setPairedTrialCallbacks(ActionCallback startPhone, ActionCallback forgetPhone, ActionCallback cancelPairing);
+void updatePairedTrial(bool available,bool bonded,bool connected);
+void setPairedPresenceControl(PairingCallback enabledChanged);
+void updatePairedPresence(const PairedPresenceStatus& status);
+void showPhonePairingWait();
+void showPhonePairing(uint32_t passkey);
 const Settings& settings();
 int selectedAccount(); // -1 home, -2 settings
 int refreshRequests(); // simulator intent only; no network or credentials

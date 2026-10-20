@@ -8,10 +8,19 @@ if (Test-Path -LiteralPath (Join-Path $outputRoot '_internal')) { throw 'Select 
 $nodeExecutable = (Get-Command $Node -ErrorAction Stop).Source
 $dotnetExecutable = (Get-Command $Dotnet -ErrorAction Stop).Source
 # Use esbuild's JavaScript API so this works with its native Windows executable.
-& $nodeExecutable (Join-Path $PSScriptRoot 'bundle_portable.mjs') (Join-Path $outputRoot 'bridge.cjs')
-if ($LASTEXITCODE -ne 0) { throw 'Portable JavaScript bundle failed' }
-& $dotnetExecutable publish (Join-Path $projectRoot 'portable/Quotamon.Portable.csproj') -c Release -o $outputRoot
-if ($LASTEXITCODE -ne 0) { throw 'Portable Windows build failed' }
+# Windows PowerShell treats ordinary native stderr (including esbuild progress)
+# as an ErrorRecord. Native tools report failure through their exit code.
+function Invoke-BuildTool([string]$Executable, [string[]]$Arguments) {
+    $savedPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        & $Executable @Arguments 2>&1 | ForEach-Object { Write-Output "$_" }
+        $toolExit = $LASTEXITCODE
+    } finally { $ErrorActionPreference = $savedPreference }
+    if ($toolExit -ne 0) { throw "Build tool failed ($toolExit): $Executable" }
+}
+Invoke-BuildTool $nodeExecutable @((Join-Path $PSScriptRoot 'bundle_portable.mjs'), (Join-Path $outputRoot 'bridge.cjs'))
+Invoke-BuildTool $dotnetExecutable @('publish', (Join-Path $projectRoot 'portable/Quotamon.Portable.csproj'), '-c', 'Release', '-o', $outputRoot)
 Copy-Item -LiteralPath $nodeExecutable -Destination (Join-Path $outputRoot 'node.exe') -Force
 Copy-Item -LiteralPath (Join-Path $projectRoot 'portable/web') -Destination $outputRoot -Recurse -Force
 $assetRoot = Join-Path $outputRoot 'assets'
@@ -36,7 +45,7 @@ else {
     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/nodejs/node/$nodeVersion/LICENSE" -OutFile (Join-Path $noticeRoot 'NODE-LICENSE.txt')
 }
 $manifest = @{
-    version = '0.2.0'; built_utc = [DateTime]::UtcNow.ToString('o'); node_version = (& $nodeExecutable --version).Trim()
+    version = '0.3.0'; built_utc = [DateTime]::UtcNow.ToString('o'); node_version = (& $nodeExecutable --version).Trim()
     architecture = 'win-x64'; orca_modified = $false; hardware_verified = $false
     files = @(Get-ChildItem -LiteralPath $outputRoot -File -Recurse | Where-Object { $_.Name -ne 'build-manifest.json' } | ForEach-Object {
         @{path=$_.FullName.Substring($outputRoot.Length+1).Replace('\','/');bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}

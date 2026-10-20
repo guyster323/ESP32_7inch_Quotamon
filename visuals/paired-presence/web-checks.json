@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "mock_ble": true,
+  "hardware_tested": false,
+  "languages": [
+    "ko",
+    "zh-CN",
+    "ja",
+    "en",
+    "de"
+  ],
+  "checks": [
+    "read-only paired status",
+    "no retired phone scan controls or endpoint",
+    "unsupported old board",
+    "connected/grace/absent/unavailable",
+    "literal HTML name",
+    "save/reload/cancel",
+    "430px layout",
+    "no JavaScript errors"
+  ]
+}

@@ -1,6 +1,9 @@
 #pragma once
 #include <cstdint>
 namespace monitor {
+inline bool screenShouldBeOff(bool scheduleSleep,bool presenceSleep,int64_t monotonicUs,int64_t wakeUntilUs) {
+    return monotonicUs>=wakeUntilUs&&(scheduleSleep||presenceSleep);
+}
 // Half-open local-time interval [start,end), including overnight ranges.
 // No synchronized clock means stay on. Touch wake uses monotonic time.
 inline bool screenShouldSleep(bool enabled,int start,int end,int64_t unixSeconds,int utcOffsetMinutes,
