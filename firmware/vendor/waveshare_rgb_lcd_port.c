@@ -12,35 +12,55 @@
 #include "esp_rom_sys.h"
 
 static const char *TAG = "lcd_port";
-static bool s_i2c_ready = false;
+static i2c_master_bus_handle_t s_i2c_bus = NULL;
+static i2c_master_dev_handle_t s_ch422g_mode = NULL;
+static i2c_master_dev_handle_t s_ch422g_output = NULL;
 
 #if CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_GT911
 static esp_err_t i2c_master_init_if_needed(void)
 {
-    if (s_i2c_ready) {
+    if (s_i2c_bus != NULL) {
         return ESP_OK;
     }
 
-    const i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    // The legacy I2C ISR was active in the captured CPU0 interrupt watchdog
+    // panic. Share one new-driver bus between GT911 and both CH422G addresses;
+    // mixing the legacy panel IO with this bus is not supported by ESP-IDF.
+    const i2c_master_bus_config_t bus_config = {
+        .i2c_port = I2C_MASTER_NUM,
         .sda_io_num = I2C_MASTER_SDA_IO,
         .scl_io_num = I2C_MASTER_SCL_IO,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = I2C_MASTER_FREQ_HZ,
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .glitch_ignore_cnt = 7,
+        .flags.enable_internal_pullup = true,
     };
-
-    esp_err_t ret = i2c_param_config(I2C_MASTER_NUM, &i2c_conf);
+    i2c_master_bus_handle_t bus = NULL;
+    esp_err_t ret = i2c_new_master_bus(&bus_config, &bus);
     if (ret != ESP_OK) {
         return ret;
     }
 
-    ret = i2c_driver_install(I2C_MASTER_NUM, i2c_conf.mode, 0, 0, 0);
-    if (ret == ESP_OK || ret == ESP_ERR_INVALID_STATE) {
-        s_i2c_ready = true;
+    i2c_device_config_t device_config = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = 0x24,
+        .scl_speed_hz = I2C_MASTER_FREQ_HZ,
+    };
+    ret = i2c_master_bus_add_device(bus, &device_config, &s_ch422g_mode);
+    if (ret == ESP_OK) {
+        device_config.device_address = 0x38;
+        ret = i2c_master_bus_add_device(bus, &device_config, &s_ch422g_output);
+    }
+    if (ret == ESP_OK) {
+        s_i2c_bus = bus;
+        ESP_LOGI(TAG, "I2C master bus: GT911 + CH422G, new driver");
         return ESP_OK;
     }
 
+    if (s_ch422g_mode != NULL) {
+        i2c_master_bus_rm_device(s_ch422g_mode);
+        s_ch422g_mode = NULL;
+    }
+    i2c_del_master_bus(bus);
     return ret;
 }
 
@@ -59,7 +79,7 @@ static esp_err_t touch_reset_gpio_init(void)
 static esp_err_t ch422g_init_for_output(void)
 {
     uint8_t write_buf = 0x01;
-    return i2c_master_write_to_device(I2C_MASTER_NUM, 0x24, &write_buf, 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
+    return i2c_master_transmit(s_ch422g_mode, &write_buf, 1, I2C_MASTER_TIMEOUT_MS);
 }
 
 static esp_err_t waveshare_esp32_s3_touch_reset(void)
@@ -68,12 +88,12 @@ static esp_err_t waveshare_esp32_s3_touch_reset(void)
 
     ESP_ERROR_CHECK(ch422g_init_for_output());
     ESP_ERROR_CHECK(touch_reset_gpio_init());
-    ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, 0x38, &write_buf, 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
+    ESP_ERROR_CHECK(i2c_master_transmit(s_ch422g_output, &write_buf, 1, I2C_MASTER_TIMEOUT_MS));
     esp_rom_delay_us(100 * 1000);
     gpio_set_level(EXAMPLE_TOUCH_RESET_GPIO, 0);
     esp_rom_delay_us(100 * 1000);
     write_buf = 0x2E;
-    ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, 0x38, &write_buf, 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS));
+    ESP_ERROR_CHECK(i2c_master_transmit(s_ch422g_output, &write_buf, 1, I2C_MASTER_TIMEOUT_MS));
     esp_rom_delay_us(200 * 1000);
     return ESP_OK;
 }
@@ -83,9 +103,11 @@ esp_err_t waveshare_rgb_lcd_backlight_on(void)
 {
     uint8_t write_buf = 0x1E;
 
-    ESP_ERROR_CHECK(i2c_master_init_if_needed());
-    ESP_ERROR_CHECK(ch422g_init_for_output());
-    return i2c_master_write_to_device(I2C_MASTER_NUM, 0x38, &write_buf, 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
+    esp_err_t ret = i2c_master_init_if_needed();
+    if (ret != ESP_OK) return ret;
+    ret = ch422g_init_for_output();
+    if (ret != ESP_OK) return ret;
+    return i2c_master_transmit(s_ch422g_output, &write_buf, 1, I2C_MASTER_TIMEOUT_MS);
 }
 
 esp_err_t waveshare_rgb_lcd_backlight_off(void)
@@ -93,8 +115,9 @@ esp_err_t waveshare_rgb_lcd_backlight_off(void)
     // CH422G EXIO2 is DISP/backlight enable on LCD-7 Rev1.2. Preserve the
     // normal output latch bits (touch reset, LCD reset and USB selection).
     uint8_t write_buf = 0x1E & ~(1U << 2);
-    ESP_ERROR_CHECK(i2c_master_init_if_needed());
-    return i2c_master_write_to_device(I2C_MASTER_NUM, 0x38, &write_buf, 1, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
+    esp_err_t ret = i2c_master_init_if_needed();
+    if (ret != ESP_OK) return ret;
+    return i2c_master_transmit(s_ch422g_output, &write_buf, 1, I2C_MASTER_TIMEOUT_MS);
 }
 
 esp_err_t waveshare_esp32_s3_rgb_lcd_init(esp_lv_adapter_tear_avoid_mode_t tear_mode,
@@ -172,9 +195,9 @@ esp_err_t waveshare_esp32_s3_rgb_lcd_init(esp_lv_adapter_tear_avoid_mode_t tear_
 
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
-    tp_io_config.scl_speed_hz = 0;
+    tp_io_config.scl_speed_hz = I2C_MASTER_FREQ_HZ;
     ESP_LOGI(TAG, "Initialize I2C panel IO");
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)I2C_MASTER_NUM, &tp_io_config, &tp_io_handle));
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(s_i2c_bus, &tp_io_config, &tp_io_handle));
 
     ESP_LOGI(TAG, "Initialize touch controller GT911");
     const esp_lcd_touch_config_t tp_cfg = {

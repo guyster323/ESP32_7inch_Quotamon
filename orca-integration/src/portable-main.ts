@@ -9,7 +9,10 @@ import {
   type AccountSource
 } from './quotamon-controller.js'
 import { RunningOrcaSource } from './running-orca-source.js'
-import { readCopilotQuota } from './copilot-quota-source.js'
+import {
+  findCopilotInstall,
+  readCopilotQuota
+} from './copilot-quota-source.js'
 import type { RuntimeMetrics } from './runtime-metrics.js'
 import {
   defaultConfig,
@@ -106,13 +109,8 @@ source.onChanged(() => {
   if (firstConnection && controller) void controller.refresh().catch(() => {})
 })
 function configureCopilot(): void {
-  const installed = existsSync(
-    join(
-      process.env.APPDATA || '',
-      'npm/node_modules/@github/copilot/node_modules/@github/copilot-win32-x64/copilot.exe'
-    )
-  )
-  if (preferences.copilot && installed) accountSource.copilot = copilot
+  if (preferences.copilot && findCopilotInstall(process.env.APPDATA || ''))
+    accountSource.copilot = copilot
   else {
     delete accountSource.copilot
     copilotCached = undefined

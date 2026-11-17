@@ -143,7 +143,7 @@ function loadDraft() {
   $('sleep-end').value = timeValue(draft.display.sleep_end_minute ?? 420)
   $('poll').value = draft.display.poll_seconds
   $('brightness').value = draft.display.brightness_percent
-  for (const name of ['reset', 'updated', 'credits', 'session'])
+  for (const name of ['reset', 'updated'])
     $('show-' + name).checked = draft.display['show_' + name]
   if (!prefsDirty) {
     $('startup').checked = state.preferences.startup
@@ -221,8 +221,108 @@ function renderAccounts() {
       controls.append(button)
     }
     row.append(check, image(a.provider), aliasLabel, planLabel, controls)
+    if (a.provider === 'codex') {
+      const credits = resetCredits(a, true)
+      if (credits) row.append(credits)
+    }
     $('account-list').append(row)
   })
+}
+function creditRemain(credit) {
+  const seconds = credit.expires_at
+  if (typeof seconds !== 'number' || !Number.isFinite(seconds)) return t('만료 시각 없음')
+  const remain = seconds * 1000 - Date.now()
+  if (remain <= 0) return '0m'
+  const total = Math.ceil(remain / 60000)
+  const days = Math.floor(total / 1440)
+  const hours = Math.floor((total % 1440) / 60)
+  const mins = total % 60
+  const parts = []
+  if (days > 0) parts.push(days + 'd')
+  if (hours > 0) parts.push(hours + 'h')
+  if (mins > 0) parts.push(mins + 'm')
+  return parts.join(' ') || '1m'
+}
+function nearestCredits(credits) {
+  return credits
+    .filter((credit) => credit && Number.isSafeInteger(credit.count) && credit.count > 0)
+    .slice()
+    .sort((a, b) => {
+      const left = typeof a.expires_at === 'number' ? a.expires_at : Number.POSITIVE_INFINITY
+      const right = typeof b.expires_at === 'number' ? b.expires_at : Number.POSITIVE_INFINITY
+      return left - right
+    })
+    .slice(0, 2)
+}
+function creditLine(credit, primary) {
+  const row = document.createElement('div')
+  row.className = 'reset-credit' + (primary ? ' primary' : ' secondary')
+  row.style.color = countdownColor(typeof credit.expires_at === 'number' && Number.isFinite(credit.expires_at)
+    ? Math.max(0, (credit.expires_at * 1000 - Date.now()) / 60000) : -1, 14 * 1440, true)
+  row.append(text('span', primary ? 'R.T.1' : 'R.T.2', 'reset-label'))
+  row.append(text('span', creditRemain(credit), 'reset-remain'))
+  return row
+}
+function resetMinutes(value) {
+  if (typeof value !== 'string' || !/^\s*(?:\d+\s*[dhm]\s*)+$/.test(value)) return -1
+  return Array.from(value.matchAll(/(\d+)\s*([dhm])/g))
+    .reduce((total, [, count, unit]) => total + Number(count) * ({ d: 1440, h: 60, m: 1 }[unit]), 0)
+}
+function countdownColor(minutes, maximum, credit = false) {
+  if (!Number.isFinite(minutes) || minutes < 0) return '#8ea8a8'
+  let red = Math.max(0, Math.min(1, minutes / maximum))
+  if (credit) red = 1 - red
+  return '#' + [0x19, 0xd7, 0x9c].map((green, index) =>
+    Math.round(green + ([0xff, 0x81, 0x7f][index] - green) * red).toString(16).padStart(2, '0')).join('')
+}
+function planSchedule(account, pool) {
+  const row = document.createElement('div')
+  row.className = 'card-note plan-reset'
+  const monthly = account.provider === 'cursor' || account.provider === 'copilot'
+  const five = account.pools.find((p) => p.name === '5H')
+  const weekly = account.pools.find((p) => p.name === 'WEEKLY')
+  function add(p, prefix, maximum) {
+    const minutes = resetMinutes(p.reset)
+    const part = text('span', prefix + (minutes === 0 ? '0m' : t(p.reset)))
+    part.style.color = countdownColor(minutes, maximum)
+    row.append(part)
+  }
+  if (monthly) add(pool, 'Plan Reset M : ', 30 * 1440)
+  else if (five || weekly) {
+    if (five) add(five, 'Plan 5h : ', 300)
+    if (weekly) {
+      if (five) row.append(document.createTextNode(' | '))
+      add(weekly, five ? 'W ' : 'Plan W : ', 7 * 1440)
+    }
+  } else add(pool, 'Plan ' + pool.name + ' : ', 7 * 1440)
+  if (!account.enabled) row.append(document.createTextNode(t(' · 표시 선택 전')))
+  return row
+}
+function resetCredits(account, heading) {
+  const credits = account.reset_credits
+  if (!Array.isArray(credits)) {
+    if (!heading) return null
+    const absent = document.createElement('div')
+    absent.className = 'reset-credits'
+    absent.append(text('strong', t('리셋권')), text('span', t('해당 없음'), 'reset-absolute'))
+    return absent
+  }
+  const rows = nearestCredits(credits)
+  if (!rows.length) {
+    if (!heading) return null
+    const empty = document.createElement('div')
+    empty.className = 'reset-credits'
+    empty.append(
+      text('strong', credits.length ? t('리셋권') : t('리셋권 0')),
+      text('span', credits.length ? t('해당 없음') : t('만료 없음'), 'reset-absolute')
+    )
+    return empty
+  }
+  const box = document.createElement('div')
+  box.className = 'reset-credits'
+  if (heading) box.append(text('strong', t('리셋권')))
+  rows.forEach((credit, index) => box.append(creditLine(credit, index === 0)))
+  return box
 }
 function renderCards() {
   $('cards').replaceChildren()
@@ -243,6 +343,8 @@ function renderCards() {
     const pools = a.provider === 'cursor'
       ? a.pools
       : [a.pools.find((p) => p.remaining >= 0) || a.pools[0]]
+    const credits = resetCredits(a, false)
+    let creditsPlaced = !credits
     for (const pool of pools) {
       const value = pool.remaining,
         label = document.createElement('div')
@@ -260,25 +362,31 @@ function renderCards() {
         text('span', pool.name, 'quota-pool')
       )
       const bar = document.createElement('div'),
-        fill = document.createElement('div')
+        fillBar = document.createElement('div')
       bar.className = 'bar'
-      fill.className =
+      fillBar.className =
         'fill' + (value <= 10 ? ' low' : value <= 20 ? ' warn' : '')
-      fill.style.width = Math.max(0, Math.min(100, value)) + '%'
-      bar.append(fill)
+      fillBar.style.width = Math.max(0, Math.min(100, value)) + '%'
+      bar.append(fillBar)
       const note =
         a.state === 'stale'
           ? t('오래된 정보 · 다시 확인 필요')
           : a.state === 'unknown'
             ? t('사용량 확인 불가')
-            : t(pool.reset)
-      card.append(
-        label,
-        bar,
+            : (a.provider === 'copilot' ? 'Plan Reset ' : '') + t(pool.reset)
+      card.append(label, bar)
+      if (!creditsPlaced) {
+        card.append(credits)
+        creditsPlaced = true
+      }
+      if (a.state === 'ready') {
+        if (a.provider !== 'cursor' || pool === pools[pools.length - 1]) card.append(planSchedule(a, pool))
+      } else card.append(
         text(
           'div',
           note + (a.enabled ? '' : t(' · 표시 선택 전')),
-          'card-note' + (a.state === 'stale' ? ' stale' : '')
+          'card-note' +
+            (a.state === 'stale' ? ' stale' : '')
         )
       )
     }
@@ -443,9 +551,7 @@ async function saveDisplay() {
     poll_seconds: Number($('poll').value),
     brightness_percent: Number($('brightness').value),
     show_reset: $('show-reset').checked,
-    show_updated: $('show-updated').checked,
-    show_credits: $('show-credits').checked,
-    show_session: $('show-session').checked
+    show_updated: $('show-updated').checked
   }
   try {
     await api('save', draft)
@@ -468,9 +574,7 @@ for (const id of [
   'poll',
   'brightness',
   'show-reset',
-  'show-updated',
-  'show-credits',
-  'show-session'
+  'show-updated'
 ])
   $(id).addEventListener('input', changed)
 for (const id of ['startup', 'copilot'])

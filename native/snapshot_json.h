@@ -24,6 +24,7 @@ inline DecodedSnapshot decode(const nlohmann::json& json) {
     out.revision=json.at("config_revision").get<int>(); if(out.revision<0) throw std::runtime_error("Invalid config revision");
     out.utcOffsetMinutes=json.value("utc_offset_minutes",0);
     if(out.utcOffsetMinutes< -840||out.utcOffsetMinutes>840)throw std::runtime_error("UTC offset bounds");
+    out.data.utcOffsetMinutes=out.utcOffsetMinutes;
     out.data.connected=json.at("connected").get<bool>(); out.data.mock=json.at("mock").get<bool>();
     out.data.refreshed=json.value("refreshed",std::string("미확인"));
     if(out.data.refreshed.size()>64) throw std::runtime_error("Refresh label size bound");
@@ -52,6 +53,25 @@ inline DecodedSnapshot decode(const nlohmann::json& json) {
             if(!std::isfinite(value)||!((value>=0&&value<=100)||value==-1||value==-2)) throw std::runtime_error("Remaining quota bound");
             target.remaining=value; target.name=p.at("name").get<std::string>(); target.reset=p.at("reset").get<std::string>();
             if(target.name.size()>96||target.reset.size()>160) throw std::runtime_error("Pool label size bound");
+        }
+        if(row.contains("reset_credits")&&row["reset_credits"].is_array()) {
+            for(const auto& credit:row["reset_credits"]) {
+                if(!credit.is_object()||!credit.contains("count")||!credit["count"].is_number_integer()) continue;
+                const int count=credit["count"].get<int>();
+                if(count<=0||count>100000) continue;
+                if(a.resetCreditCount>=static_cast<int>(a.resetCredits.size())) { a.resetCreditOverflow+=count; continue; }
+                auto& item=a.resetCredits[a.resetCreditCount++];
+                item.count=count; item.expiresAt=-1; item.timezone.clear();
+                if(credit.contains("expires_at")&&credit["expires_at"].is_number()) {
+                    const double at=credit["expires_at"].get<double>();
+                    if(std::isfinite(at)&&at>=0&&at<=4102444800.0) item.expiresAt=at;
+                }
+                if(credit.contains("timezone")&&credit["timezone"].is_string()) {
+                    const auto zone=credit["timezone"].get<std::string>();
+                    if(zone.size()<=16&&zone.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-:./")==std::string::npos)
+                        item.timezone=zone;
+                }
+            }
         }
         a.hasAmounts=row.value("has_amounts",false); a.hasSession=row.value("has_session",false);
         if(a.hasAmounts) {

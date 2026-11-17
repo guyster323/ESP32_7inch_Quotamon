@@ -13,7 +13,7 @@ A 7-inch desk display with pixel companions and quota bars.
 [![BLE](https://img.shields.io/badge/Orca-BLE-bca3ff?labelColor=111e2a)](orca-integration)
 [![License](https://img.shields.io/badge/License-MIT-91a6b8?labelColor=111e2a)](LICENSE)
 
-[한국어](README.md) · [Quick start](#quick-start) · [Portable setup](docs/PORTABLE_BRIDGE.md) · [Firmware upload](docs/UPLOAD.md) · [Architecture](docs/ARCHITECTURE.md)
+[한국어](README.md) · [Quick start](#quick-start) · [What's New](#whats-new) · [Changelog](#changelog) · [Portable setup](docs/PORTABLE_BRIDGE.md) · [Firmware upload](docs/UPLOAD.md) · [Architecture](docs/ARCHITECTURE.md)
 
 <a href="assets/readme/en/quotamon-demo.mp4">
   <img src="assets/readme/en/quotamon-demo.gif" width="1000" alt="Quotamon English demo: animated characters, touch details, language selection, direct time-entry keypad and screen-off schedule">
@@ -48,16 +48,17 @@ Quota numbers appear white over the filled bar and dark over its empty portion. 
 ## On the current display
 
 ```text
-Reset 5 2h 41m | W 5d 3h       Five-hour and weekly resets together
-Reset W 17d 0h                 One shared reset for both Cursor pools
-최근 갱신 14:34:00 | 첫 카드 수집 14:32:00
+R.T.1 14h 20m                  Nearest reset credit, larger type
+R.T.2 1d 6h 5m                 Next reset credit, smaller type
+Plan 5h : 2h 18m | W 3d 4h     Codex five-hour and weekly resets
+Plan Reset M : 17d 0h          Shared Cursor and Copilot reset
 ```
 
-`5` means the five-hour window; `W` labels the weekly or shared Cursor reset. `d / h / m` mean days, hours and minutes. Long schedules use two lines and resize the card contents to avoid overlap. Cursor shows **Cursor Models** and **Other Models**, excluding the Monthly aggregate.
+`R.T.1` and `R.T.2` are the two nearest Codex reset credits. A third credit, a count prefix, and absolute dates or time zones are omitted. `d / h / m` mean days, hours and minutes. Codex uses `Plan 5h` and `W` for the five-hour and weekly windows. Cursor and Copilot use one `Plan Reset M` line. Characters stay 88×108, and meter height and percentage type stay fixed. Cursor shows **Cursor Models** and **Other Models**, excluding the Monthly aggregate.
 
-| Touch to open account details | Long schedules wrap to two lines |
+| Home with reset credits and plan time | Codex detail |
 |:---:|:---:|
-| [![Codex detail screen](visuals/native/02-codex-detail.png)](visuals/native/02-codex-detail.png) | [![Wrapped reset schedule](visuals/native/18-wrapped-reset.png)](visuals/native/18-wrapped-reset.png) |
+| [![Home with reset credits and plan time remaining](visuals/ui-consistency/home.png)](visuals/ui-consistency/home.png) | [![Codex detail with R.T.1 and R.T.2](visuals/ui-consistency/detail-credits.png)](visuals/ui-consistency/detail-credits.png) |
 
 <details>
 <summary>More screens: settings, pairing and the PC companion</summary>
@@ -154,11 +155,11 @@ Free internal RAM stayed at 108,167–108,195 bytes during this short window. Th
 
 | Provider | Source data | Account coverage |
 |---|---|---|
-| Codex | Orca five-hour, weekly and other supplied limits | Default + managed accounts |
+| Codex | Orca five-hour and weekly limits, plus reset-credit expiry | Default + managed accounts |
 | Claude | Orca weekly and additional model limits | Default + managed accounts |
 | Cursor | Cursor Models · Other Models | Current active account |
 | Grok | Quota pools exposed by Orca | Current active account |
-| Copilot | Quota SDK from an existing Windows Copilot CLI | Current CLI account · experimental |
+| Copilot | Quota SDK from the Windows Copilot CLI, including a global npm install and the GitHub Copilot CLI path | Current CLI account · experimental |
 
 Quota is never inferred from account count or a plan name. Copilot **session usage and monthly allowance are separate**. SDK request units still need independent AIC verification; a 6,500-credit allowance is not assumed for every plan. See [source research and limits](docs/RESEARCH.md).
 
@@ -168,7 +169,7 @@ This is a **development preview**. Beyond the shared LVGL UI and portable bridge
 
 | Scope | Evidence |
 |---|---|
-| Software | 49 TypeScript tests, eight CTest suites including actual BLE transport with a simulated host/store, and five-language LCD/web checks |
+| Software | 52 TypeScript tests, eight CTest suites including actual BLE transport with a simulated host/store, and five-language LCD/web checks |
 | Character animation | Five providers × six states, 40 page cycles, unchanged pixels outside sprite regions and 54 lossless assets verified. All 380 rendered frames match before/after compression |
 | Live data | Three Codex accounts and Cursor from unmodified Orca 1.4.224, plus the existing Copilot SDK account |
 | Hardware | Full backup, application upload and readback verification; bootloader, partitions and pairing NVS preserved |
@@ -176,7 +177,35 @@ This is a **development preview**. Beyond the shared LVGL UI and portable bridge
 
 Refresh timestamps and compact reset layouts were checked in the native renderer. Individual on-device text layouts, extended operation and every recovery scenario have not all been verified. The [verification record](docs/VERIFICATION.md) separates these boundaries.
 
+## What's New
+
+### 2026-11-17 — Codex reset credits and plan time remaining
+
+Each Codex card shows only the **two nearest** reset credits. `R.T.1` is larger and `R.T.2` is smaller. A third credit is omitted, as are count prefixes, dates and time zones. Remaining time uses **d / h / m**, as in `14h 20m` and `1d 6h 5m`.
+
+Color follows the time left. Reset credits go from red at zero minutes to green at 14 days and stay green after that. Codex plan text uses `Plan 5h : 2h 18m | W 3d 4h`, with the five-hour and seven-day windows colored independently. Cursor and Copilot use `Plan Reset M : 17d 0h`, red at 30 days. Unknown times stay neutral.
+
+The PC dashboard uses the same two lines and the same colors as the LCD. Characters stay 88×108, and meter height and percentage type stay fixed. The extra reset-credit badge beside home titles is gone.
+
+| Five-account home | Codex detail |
+|:---:|:---:|
+| [![Five-account home with reset credits and plan time](visuals/ui-consistency/home.png)](visuals/ui-consistency/home.png) | [![Codex detail with R.T.1 and R.T.2](visuals/ui-consistency/detail-credits.png)](visuals/ui-consistency/detail-credits.png) |
+
+| Three Codex accounts | PC dashboard |
+|:---:|:---:|
+| [![Three Codex accounts with distinct reset credits](visuals/ui-consistency/home-three-accounts.png)](visuals/ui-consistency/home-three-accounts.png) | [![PC dashboard showing the same reset-credit lines as the LCD](visuals/portable/01-dashboard-mock.png)](visuals/portable/01-dashboard-mock.png) |
+
+These frames use illustrative data in the real LVGL renderer and web UI. Only the application partition was uploaded; the bootloader, partitions and pairing NVS were left in place. [Display rules](docs/UI_CONSISTENCY.md) · [Hardware upload record](docs/ui-no-credit-badge-build.json)
+
 ## Changelog
+
+### 2026-11-17 — Codex reset credits, plan countdowns and Copilot CLI discovery
+
+- Codex cards show the two nearest reset credits as `R.T.1` / `R.T.2` in `d/h/m`. The first line is larger. Counts, dates and time zones are omitted. The PC dashboard matches the LCD. [What's New](#whats-new)
+- Reset credits fade from red at zero minutes to green at 14 days. Codex `Plan 5h` / `W` reach red at five hours and seven days. Cursor and Copilot `Plan Reset M` reaches red at 30 days.
+- The Windows GitHub Copilot CLI install path is recognized, not only a global npm install.
+- GT911 touch and the CH422G moved to the ESP-IDF I2C master driver. This mitigates an interrupt watchdog reboot; a long-duration recurrence test is still open.
+- The application partition was uploaded while preserving the bootloader, partitions and pairing NVS. [Display rules](docs/UI_CONSISTENCY.md) · [Upload record](docs/ui-no-credit-badge-build.json)
 
 ### 2026-10-20 — Paired-phone presence · PC 0.3.0
 

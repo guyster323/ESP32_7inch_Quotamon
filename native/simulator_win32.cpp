@@ -14,6 +14,8 @@
 #include <stdexcept>
 #include <vector>
 #include <chrono>
+#include <cstdio>
+#include <ctime>
 #include <set>
 
 namespace {
@@ -249,7 +251,64 @@ void renderSuite(const std::filesystem::path& folder) {
     wire["refreshed"]=std::string(65,'x');
     bool rejected=false;try{monitor::decode(wire);}catch(const std::exception&){rejected=true;}
     require(rejected,"Oversized refresh label accepted");
+    nlohmann::json creditWire={{"protocol","quotamon.v1"},{"produced_at",1800000000},{"utc_offset_minutes",540},{"config_revision",0},
+        {"connected",true},{"mock",false},{"refreshed","14:33:00"},
+        {"accounts",nlohmann::json::array({{
+            {"id","codex-0123456789abcdef"},{"provider","codex"},{"title","Codex"},{"profile","Codex"},{"plan","Plus"},
+            {"enabled",true},{"state","ready"},{"pools",nlohmann::json::array({{{"name","5H"},{"remaining",70},{"reset","2h"}}})},
+            {"reset_credits",nlohmann::json::array({
+                {{"count",2},{"expires_at",1800003600},{"timezone","UTC"}},
+                {{"count",1},{"expires_at",1800086400},{"timezone","not a zone"}}
+            })}
+        }})},
+        {"display",{{"poll_seconds",60},{"brightness_percent",70},{"show_reset",true},{"show_updated",true},{"show_credits",true},{"show_session",true}}}};
+    auto decodedCredits=monitor::decode(creditWire);
+    require(decodedCredits.data.utcOffsetMinutes==540,"UTC offset was not kept for local expiry labels");
+    require(decodedCredits.data.accounts[0].resetCreditCount==2,"Reset credits missing from the device snapshot");
+    require(decodedCredits.data.accounts[0].resetCredits[0].timezone=="UTC","Explicit reset-credit zone was dropped");
+    require(decodedCredits.data.accounts[0].resetCredits[1].timezone.empty(),"Unknown reset-credit zone was invented");
     auto s=monitor::demo(); monitor::init(s); advance();
+    // Test time-based colours independently of remaining quota, including clamps.
+    auto timing=s;
+    const auto now=static_cast<double>(std::time(nullptr));
+    timing.accounts[0].resetCreditCount=2;
+    timing.accounts[0].resetCredits[0]={1,now-60,""};
+    timing.accounts[0].resetCredits[1]={1,now+15*86400,""};
+    timing.accounts[0].pools[0].reset="5h";
+    timing.accounts[0].pools[1].reset="7d";
+    for(int account:{3,4}) for(int p=0;p<timing.accounts[account].poolCount;p++) timing.accounts[account].pools[p].reset="30d";
+    monitor::apply(timing); advance();
+    auto* timed=findLabel(monitor::cardObject(0),"Plan 5h :");
+    require(timed&&lv_label_get_recolor(timed),"Plan countdown colours disabled");
+    require(std::string(lv_label_get_text(timed)).find("#ff817f Plan 5h : 5h#")!=std::string::npos,"5-hour maximum is not red");
+    require(std::string(lv_label_get_text(timed)).find("#ff817f W 7d#")!=std::string::npos,"Weekly maximum is not red");
+    for(int account:{3,4}) require(findLabel(monitor::cardObject(account),"#ff817f Plan Reset M : 30d#")!=nullptr,"Monthly maximum is not red");
+    auto checkCreditInk=[&](lv_obj_t* parent,const char* text,unsigned ink) {
+        auto* item=findLabel(parent,text);
+        require(item&&lv_color_to32(lv_obj_get_style_text_color(item,0))==lv_color_to32(lv_color_hex(ink)),"R.T. expiry colour is incorrect");
+    };
+    checkCreditInk(monitor::cardObject(0),"R.T.1 0m",0xff817f);
+    checkCreditInk(monitor::cardObject(0),"R.T.2 ",0x19d79c);
+    capture(folder/"22-countdown-maxima.ppm");
+    monitor::showDetail(0); advance();
+    checkCreditInk(lv_scr_act(),"R.T.1 0m",0xff817f);
+    require(findLabel(lv_scr_act(),"#ff817f Plan 5h : 5h#")!=nullptr,"Detail countdown maximum is not red");
+    monitor::showHome();
+    timing.accounts[0].pools[0].reset="2h 30m";
+    timing.accounts[0].pools[1].reset="0m";
+    monitor::apply(timing); advance();
+    require(findLabel(monitor::cardObject(0),"#8cac8e Plan 5h : 2h 30m#")!=nullptr,"Plan colour does not interpolate with time");
+    require(findLabel(monitor::cardObject(0),"#19d79c W 0m#")!=nullptr,"Weekly segment does not have its own colour");
+    capture(folder/"23-countdown-midpoint.ppm");
+    for(auto& account:timing.accounts) for(int p=0;p<account.poolCount;p++) account.pools[p].reset="0m";
+    monitor::apply(timing); advance();
+    require(findLabel(monitor::cardObject(0),"#19d79c Plan 5h : 0m#")!=nullptr,"Zero plan countdown is not green");
+    for(int account:{3,4}) require(findLabel(monitor::cardObject(account),"#19d79c Plan Reset M : 0m#")!=nullptr,"Monthly minimum is not green");
+    capture(folder/"24-countdown-minima.ppm");
+    timing.accounts[0].pools[0].reset="시각 미확인";
+    monitor::apply(timing); advance();
+    require(findLabel(monitor::cardObject(0),"#8ea8a8 Plan 5h :")!=nullptr,"Unknown countdown is not neutral");
+    monitor::apply(s); advance();
     const auto* first=monitor::cardObject(0);
     for(int i=0;i<5;i++) {
         auto* c=monitor::cardObject(i); require(c!=nullptr,"Missing overview card");
@@ -258,16 +317,21 @@ void renderSuite(const std::filesystem::path& folder) {
     }
     require(!lv_obj_has_flag(lv_scr_act(),LV_OBJ_FLAG_SCROLLABLE),"Overview scrolls");
     capture(folder/"01-home.ppm");
+    require(findLabel(monitor::cardObject(4),"Plan Reset M : 16d 0h")!=nullptr,"Copilot home omitted the plan reset countdown");
+    require(findLabel(monitor::cardObject(4),"AIC")==nullptr,"Copilot home still displays AIC amounts");
     checkFooter("14:33:00","첫 카드 수집 ");
-    auto* combinedReset=findLabel(monitor::cardObject(0),"Reset 5 2h 18m");
+    auto* combinedReset=findLabel(monitor::cardObject(0),"Plan 5h : 2h 18m");
     require(combinedReset!=nullptr&&std::string(lv_label_get_text(combinedReset)).find("W 3d 4h")!=std::string::npos,"5-hour card omitted weekly reset");
-    require(findLabel(monitor::cardObject(3),"Reset W 17d 0h")!=nullptr,"Cursor common reset missing");
+    require(lv_obj_get_style_text_font(combinedReset,0)->line_height>=22,"Plan reset text was not enlarged");
+    require(findLabel(monitor::cardObject(3),"Plan Reset M : 17d 0h")!=nullptr,"Cursor common reset missing");
     auto wrapped=s;
     wrapped.accounts[0].pools[0].reset="리셋 후 확인 대기";
     wrapped.accounts[0].pools[1].reset="리셋 후 확인 대기";
     monitor::apply(wrapped); advance();
-    auto* wrappedReset=findLabel(monitor::cardObject(0),"Reset 5 리셋 후 확인 대기\nW 리셋 후 확인 대기");
-    require(wrappedReset!=nullptr&&lv_obj_get_height(wrappedReset)==40,"Long reset schedule did not switch to two lines");
+    auto* wrappedReset=findLabel(monitor::cardObject(0),"Plan 5h :");
+    require(wrappedReset!=nullptr&&lv_label_get_long_mode(wrappedReset)==LV_LABEL_LONG_DOT,"Dense reset schedule must ellipsize without shrinking primary content");
+    require(lv_img_get_zoom(findImage(monitor::cardObject(0)))==256,"Long reset schedule shrank the character");
+    require(lv_obj_get_style_text_font(findLabel(monitor::cardObject(0),"72%"),0)->line_height==25,"Long reset schedule changed the percentage font");
     lv_area_t resetArea;lv_obj_get_coords(wrappedReset,&resetArea);
     require(resetArea.y2<=241,"Wrapped reset schedule escaped its card");
     capture(folder/"18-wrapped-reset.ppm");
@@ -284,10 +348,12 @@ void renderSuite(const std::filesystem::path& folder) {
     click(180,175); require(monitor::selectedAccount()==0,"Meter/card touch did not open detail");
     capture(folder/"02-codex-detail.ppm");
     checkFooter("14:34:00","계정 수집 ");
-    require(findLabel(lv_scr_act(),"Reset 5 2h 18m")!=nullptr&&findLabel(lv_scr_act(),"Reset W 3d 4h")!=nullptr,"Detail reset abbreviations missing");
+    require(findLabel(lv_scr_act(),"Plan 5h : 2h 18m")!=nullptr&&findLabel(lv_scr_act(),"Plan W : 3d 4h")!=nullptr,"Detail reset abbreviations missing");
     click(65,36); require(monitor::selectedAccount()==-1,"Back touch failed");
     click(690,310); require(monitor::selectedAccount()==4,"Copilot touch failed");
     capture(folder/"03-copilot-detail.ppm");
+    require(findLabel(lv_scr_act(),"Plan Reset M : 16d 0h")!=nullptr,"Copilot detail omitted the plan reset countdown");
+    require(findLabel(lv_scr_act(),"AIC")==nullptr,"Copilot detail still displays AIC amounts or session usage");
     monitor::showHome(); advance(); click(730,36);
     require(monitor::selectedAccount()==-2,"Settings touch failed");
     capture(folder/"04-settings.ppm");
@@ -296,10 +362,10 @@ void renderSuite(const std::filesystem::path& folder) {
     require(monitor::selectedAccount()==-1&&monitor::settings().pollSeconds==interval,"Cancel committed draft settings");
     monitor::showSettings(); advance(); click(530,116); click(720,432);
     require(monitor::selectedAccount()==-1&&monitor::settings().pollSeconds==interval+15,"Save did not commit settings");
-    monitor::showSettings(); advance(); click(90,255); click(90,320); click(720,432);
-    require(!monitor::settings().showReset&&!monitor::settings().showCredits,"Display-field settings did not commit");
-    monitor::showSettings(); advance(); click(90,255); click(90,320); click(720,432);
-    require(monitor::settings().showReset&&monitor::settings().showCredits,"Display-field settings failed to restore");
+    monitor::showSettings(); advance(); click(90,255); click(480,255); click(720,432);
+    require(!monitor::settings().showReset&&!monitor::settings().showUpdated,"Display-field settings did not commit");
+    monitor::showSettings(); advance(); click(90,255); click(480,255); click(720,432);
+    require(monitor::settings().showReset&&monitor::settings().showUpdated,"Display-field settings failed to restore");
     click(620,36); require(monitor::refreshRequests()==1,"Refresh intent missing");
     checkFooter("14:34:00","첫 카드 수집 ");
     advance(8100);
@@ -582,6 +648,131 @@ void renderLocales(const std::filesystem::path& folder) {
     monitor::showSettings();click(665,185);click(65,118);click(735,432);
     require(!monitor::settings().sleepEnabled,"Schedule disable/save failed");
     monitor::showHome();advance();
+    {
+        auto credited=monitor::demo();
+        const auto now=std::time(nullptr);
+        const double soon=static_cast<double>(now)+14*3600+19*60+50;
+        const double later=static_cast<double>(now)+30*3600+5*60;
+        credited.utcOffsetMinutes=9*60;
+        credited.accounts[0].resetCreditCount=3;
+        credited.accounts[0].resetCredits[0]={1,soon,"UTC"};
+        credited.accounts[0].resetCredits[1]={1,later,""};
+        credited.accounts[0].resetCredits[2]={1,static_cast<double>(now)+200*3600,""};
+        credited.accounts[1].resetCreditCount=2;
+        credited.accounts[1].resetCredits[0]={1,static_cast<double>(now)+2*3600+9*60+50,""};
+        credited.accounts[1].resetCredits[1]={1,static_cast<double>(now)+52*3600,""};
+        credited.accounts[2].resetCreditCount=2;
+        credited.accounts[2].resetCredits[0]={1,static_cast<double>(now)+7*3600+44*60+50,""};
+        credited.accounts[2].resetCredits[1]={1,static_cast<double>(now)+74*3600,""};
+        auto display=monitor::settings(); display.language="ko"; monitor::setSettings(display);
+        monitor::apply(credited); advance();
+        for(int slot=0;slot<5;slot++) require(findLabel(monitor::cardObject(slot),"리셋권")==nullptr,"Home card still displays the redundant reset-credit badge");
+        const char* creditTimes[]={"14h 20m","2h 10m","7h 45m"};
+        const char* secondCreditTimes[]={"1d 6h 5m","2d 4h","3d 2h"};
+        for(int slot=0;slot<3;slot++) {
+            auto* card=monitor::cardObject(slot);
+            auto* expiry=findLabel(card,creditTimes[slot]);
+            require(expiry!=nullptr,"A Codex card omitted its reset-credit expiry on the five-account home screen");
+            require(std::string(lv_label_get_text(expiry)).find("R.T.1 ")==0,"First credit is not labelled R.T.1");
+            require(!lv_obj_has_flag(expiry,LV_OBJ_FLAG_HIDDEN),"A Codex card hid its reset-credit expiry");
+            lv_area_t cardBounds,expiryBounds,imageBounds;
+            lv_obj_get_coords(card,&cardBounds);lv_obj_get_coords(expiry,&expiryBounds);
+            lv_obj_get_coords(findImage(card),&imageBounds);
+            require(expiryBounds.y1>imageBounds.y2&&expiryBounds.y2<cardBounds.y2,"Codex reset credit overlaps primary content or leaves its card");
+            auto* secondExpiry=findLabel(card,secondCreditTimes[slot]);
+            auto* planReset=findLabel(card,"Plan 5h :");
+            require(secondExpiry!=nullptr,"A Codex card omitted its second reset-credit expiry");
+            require(std::string(lv_label_get_text(secondExpiry)).find("R.T.2 ")==0,"Second credit is not labelled R.T.2");
+            require(findLabel(card,"UTC")==nullptr,"Home still displays reset-credit timezones");
+            require(planReset!=nullptr,"Showing Codex reset credits removed the plan reset schedule");
+            lv_area_t secondBounds,planBounds;
+            lv_obj_get_coords(secondExpiry,&secondBounds);lv_obj_get_coords(planReset,&planBounds);
+            require(secondBounds.y1>expiryBounds.y2&&secondBounds.y2<planBounds.y1,"Codex credit rows overlap one another or the plan reset");
+            require(secondBounds.x1>=cardBounds.x1&&secondBounds.x2<=cardBounds.x2&&planBounds.y2<=cardBounds.y2,"Codex credit or plan reset leaves its card");
+        }
+        capture(folder/"credits-home-5-codex.ppm");
+        for(int count=1;count<=5;count++) {
+            auto layout=credited;
+            layout.accounts.resize(count);
+            for(auto& account:layout.accounts) {
+                account.resetCreditCount=credited.accounts[0].resetCreditCount;
+                account.resetCredits=credited.accounts[0].resetCredits;
+            }
+            monitor::apply(layout); advance();
+            for(int slot=0;slot<count;slot++) {
+                auto* card=monitor::cardObject(slot);
+                require(lv_img_get_zoom(findImage(card))==256,"Credits changed a home character scale");
+                lv_area_t cardBounds,firstBounds,secondBounds;
+                lv_obj_get_coords(card,&cardBounds);
+                auto* firstExpiry=findLabel(card,"R.T.1 ");
+                auto* secondExpiry=findLabel(card,"R.T.2 ");
+                require(firstExpiry&&secondExpiry,"Changing the account count hid reset-credit expiries");
+                lv_obj_get_coords(firstExpiry,&firstBounds);lv_obj_get_coords(secondExpiry,&secondBounds);
+                for(const auto& bounds:{firstBounds,secondBounds})
+                    require(bounds.x1>=cardBounds.x1&&bounds.x2<=cardBounds.x2&&bounds.y1>=cardBounds.y1&&bounds.y2<=cardBounds.y2,"A home reset-credit expiry is clipped");
+                require(firstBounds.x2<secondBounds.x1||firstBounds.y2<secondBounds.y1,"Home reset-credit expiries overlap");
+                const auto& account=layout.accounts[slot];
+                for(int pool=0;pool<std::min(account.poolCount,2);pool++) {
+                    const auto percentage=std::to_string(static_cast<int>(account.pools[pool].remaining))+"%";
+                    auto* value=findLabel(card,percentage);
+                    require(value!=nullptr&&std::string(lv_label_get_text(value))==percentage,"Credits merged the pool name into the percentage");
+                    require(lv_obj_get_style_text_font(value,0)->line_height==25,"Credits changed the pixel percentage font");
+                    require(lv_obj_get_height(lv_obj_get_parent(lv_obj_get_parent(value)))==51,"Credits compressed a quota meter");
+                }
+            }
+            capture(folder/("credits-home-"+std::to_string(count)+".ppm"));
+        }
+        auto roomy=credited; roomy.accounts.resize(3);
+        monitor::apply(roomy); advance();
+        auto* remain=findLabel(monitor::cardObject(0),"14h 20m");
+        auto* second=findLabel(monitor::cardObject(0),"1d 6h 5m");
+        require(remain!=nullptr,"Reset credit remaining time missing on the home card");
+        require(lv_obj_get_style_text_font(remain,0)->line_height>=27,"First reset credit remaining time is not enlarged");
+        require(second!=nullptr,"Second reset credit missing on the home card");
+        require(lv_obj_get_style_text_font(second,0)->line_height<lv_obj_get_style_text_font(remain,0)->line_height,"Second reset credit is not smaller than the first");
+        require(findLabel(monitor::cardObject(0),"UTC")==nullptr,"Home still displays reset-credit timezones");
+        require(findLabel(monitor::cardObject(0),"8d 8h")==nullptr,"Third reset credit was drawn on the home card");
+        require(findLabel(monitor::cardObject(0),"개")==nullptr,"Reset credit count prefix was drawn");
+        lv_area_t cardArea, textArea; lv_obj_get_coords(monitor::cardObject(0),&cardArea); lv_obj_get_coords(remain,&textArea);
+        require(textArea.x1>=cardArea.x1&&textArea.y1>=cardArea.y1&&textArea.x2<=cardArea.x2&&textArea.y2<=cardArea.y2,"Reset credit text escaped its card");
+        lv_area_t firstArea; lv_obj_get_coords(remain,&firstArea); lv_obj_get_coords(second,&textArea);
+        require(textArea.y1>=cardArea.y1&&textArea.y2<=cardArea.y2,"Second reset credit escaped its card");
+        require(textArea.y1>firstArea.y1,"Second reset credit is not below the first");
+        capture(folder/"19-reset-credits.ppm");
+        monitor::apply(credited); advance();
+        auto* plan=findLabel(monitor::cardObject(3),"Plan Reset M :");
+        require(plan!=nullptr&&lv_obj_get_style_text_font(plan,0)->line_height>=22,"Plan reset stayed at the old size");
+        monitor::showDetail(0); advance();
+        require(lv_img_get_zoom(findImage(lv_scr_act()))==512,"Reset credits shrank the detail character");
+        auto* detailValue=findLabel(lv_scr_act(),"72%");
+        require(detailValue!=nullptr&&lv_obj_get_style_text_font(detailValue,0)->line_height==40,"Detail percentage lost its original font");
+        lv_area_t meterBounds,valueBounds;
+        lv_obj_get_coords(lv_obj_get_parent(detailValue),&meterBounds);lv_obj_get_coords(detailValue,&valueBounds);
+        require(valueBounds.y1>=meterBounds.y1&&valueBounds.y2<=meterBounds.y2,"Detail percentage is clipped vertically");
+        require(findLabel(lv_scr_act(),"14h 20m")!=nullptr,"Detail reset-credit remaining time missing");
+        auto* detailRemain=findLabel(lv_scr_act(),"14h 20m");
+        auto* detailSecond=findLabel(lv_scr_act(),"1d 6h 5m");
+        require(detailRemain!=nullptr&&lv_obj_get_style_text_font(detailRemain,0)->line_height>=27,"Detail remaining time was not enlarged");
+        require(detailSecond!=nullptr&&lv_obj_get_style_text_font(detailSecond,0)->line_height<lv_obj_get_style_text_font(detailRemain,0)->line_height,"Detail second reset credit is not smaller");
+        require(findLabel(lv_scr_act(),"8d 8h")==nullptr,"Third reset credit was drawn on the detail screen");
+        require(findLabel(lv_scr_act(),"1개  ")==nullptr,"Detail reset credit count prefix was drawn");
+        require(findLabel(lv_scr_act(),"UTC")==nullptr,"Detail still displays reset-credit timezones");
+        const time_t local=static_cast<time_t>(soon+9*3600);
+        std::tm parts{}; require(gmtime_s(&parts,&local)==0,"Could not format the expected expiry");
+        char when[24]; std::snprintf(when,sizeof(when),"%d/%d %02d:%02d",parts.tm_mon+1,parts.tm_mday,parts.tm_hour,parts.tm_min);
+        require(findLabel(lv_scr_act(),when)==nullptr,"Detail still displays the absolute credit expiry");
+        auto* detailPlan=findLabel(lv_scr_act(),"Plan 5h : 2h 18m");
+        require(detailPlan!=nullptr&&lv_obj_get_style_text_font(detailPlan,0)->line_height>=22,"Detail plan reset was not enlarged");
+        capture(folder/"20-reset-credit-detail.ppm");
+        auto* limits=lv_obj_get_parent(detailRemain);
+        require(lv_obj_has_flag(limits,LV_OBJ_FLAG_SCROLLABLE),"Detail credits are not reachable by scrolling");
+        lv_obj_scroll_to_y(limits,LV_COORD_MAX,LV_ANIM_OFF); advance();
+        lv_area_t viewport, creditBounds;
+        lv_obj_get_coords(limits,&viewport);lv_obj_get_coords(detailSecond,&creditBounds);
+        require(creditBounds.y1>=viewport.y1&&creditBounds.y2<=viewport.y2,"Scrolled detail credit is outside the viewport");
+        capture(folder/"21-reset-credit-detail-scrolled.ppm");
+        monitor::showHome(); advance();
+    }
     monitor::setDisplayAwake(false);const std::vector<uint32_t> sleepingPixels(pixels.begin(),pixels.end());advance(2000);
     require(std::equal(pixels.begin(),pixels.end(),sleepingPixels.begin()),"Sleeping display kept animating");
     monitor::setDisplayAwake(true);advance(1500);

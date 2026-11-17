@@ -23,6 +23,36 @@ try:
         expect(cursor.locator('.quota-number')).to_have_text(['82%','47%'])
         expect(cursor.locator('.bar')).to_have_count(2)
         expect(cursor).not_to_contain_text('MONTHLY')
+        codex=page.locator('.quota-card').filter(has=page.locator('.provider',has_text='codex'))
+        expect(codex.locator('.reset-label')).to_have_text(['R.T.1','R.T.2'])
+        expect(codex.locator('.reset-credit')).not_to_contain_text(['UTC','UTC'])
+        expect(codex.locator('.reset-credit .reset-absolute')).to_have_count(0)
+        copilot=page.locator('.quota-card').filter(has=page.locator('.provider',has_text='copilot'))
+        expect(copilot.locator('.card-note')).to_contain_text('Plan Reset')
+        expect(copilot).not_to_contain_text('AIC')
+        expect(cursor.locator('.card-note')).to_have_count(1)
+        expect(cursor.locator('.card-note')).to_contain_text('Plan Reset M : ')
+        expect(copilot.locator('.card-note')).to_contain_text('Plan Reset M : ')
+        assert page.evaluate('''() => {
+          const max = { ...state.accounts.find(a => a.provider === 'codex'), enabled: true,
+            pools: [{ name: '5H', reset: '5h' }, { name: 'WEEKLY', reset: '7d' }] }
+          const row = planSchedule(max, max.pools[0])
+          if (row.textContent !== 'Plan 5h : 5h | W 7d') return false
+          if (![...row.querySelectorAll('span')].every(s => s.style.color === 'rgb(255, 129, 127)')) return false
+          max.pools[0].reset = '0m'
+          max.pools[1].reset = '3d 12h'
+          const mixed = planSchedule(max, max.pools[0]).querySelectorAll('span')
+          if (mixed[0].style.color !== 'rgb(25, 215, 156)' || mixed[1].style.color !== 'rgb(140, 172, 142)') return false
+          for (const provider of ['cursor', 'copilot']) {
+            for (const [reset, colour] of [['30d', 'rgb(255, 129, 127)'], ['0m', 'rgb(25, 215, 156)']]) {
+              const part = planSchedule({ provider, pools: [], enabled: true }, { reset }).firstChild
+              if (part.textContent !== 'Plan Reset M : ' + reset || part.style.color !== colour) return false
+            }
+          }
+          if (creditLine({expires_at: Date.now()/1000 - 60}, true).style.color !== 'rgb(255, 129, 127)') return false
+          if (creditLine({expires_at: Date.now()/1000 + 15*86400}, false).style.color !== 'rgb(25, 215, 156)') return false
+          return countdownColor(-1, 300) === '#8ea8a8'
+        }'''), 'Countdown labels, ranges or individual segment colours differ from the device'
         idle_requests=len(state_requests)
         page.wait_for_timeout(2300)
         assert len(state_requests)==idle_requests,'Idle UI must not poll every two seconds'
@@ -46,6 +76,7 @@ try:
         page.get_by_role('button',name='같은 번호 · 승인',exact=True).click()
         expect(page.locator('#device-link')).to_have_text('연결됨')
         page.get_by_role('button',name='설정',exact=True).click()
+        expect(page.locator('#show-credits, #show-session')).to_have_count(0)
         page.locator('#poll').fill('90');page.locator('#brightness').fill('60')
         page.get_by_role('button',name='디스플레이 설정 저장').click()
         expect(page.get_by_role('status')).to_contain_text('설정을 저장')

@@ -45,7 +45,14 @@ export class OrcaAccountProjector {
 }
 
 function cloneAccount(account: DisplayAccount): DisplayAccount {
-  return { ...account, pools: account.pools.map((pool) => ({ ...pool })) }
+  return {
+    ...account,
+    pools: account.pools.map((pool) => ({ ...pool })),
+    reset_credits:
+      account.reset_credits == null
+        ? account.reset_credits
+        : account.reset_credits.map((credit) => ({ ...credit }))
+  }
 }
 function hasUsage(account: DisplayAccount): boolean {
   return account.pools.some((pool) => pool.remaining !== -1)

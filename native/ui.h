@@ -14,6 +14,11 @@ struct Pool {
     double remaining = -1; // -1 unknown, -2 unlimited, otherwise 0..100
     std::string reset;
 };
+struct ResetCredit {
+    int count = 0;
+    double expiresAt = -1;
+    std::string timezone;
+};
 struct Account {
     std::string title, profile, plan;
     std::array<Pool, 8> pools;
@@ -27,12 +32,16 @@ struct Account {
     bool hasAmounts = false;
     bool hasSession = false;
     std::string sourceNote;
+    std::array<ResetCredit, 8> resetCredits{};
+    int resetCreditCount = 0;
+    int resetCreditOverflow = 0;
 };
 struct Snapshot {
     bool connected = true;
     bool mock = true;
     std::vector<Account> accounts;
     std::string refreshed = "미확인";
+    int utcOffsetMinutes = 0;
 };
 struct Settings {
     std::string language="ko";

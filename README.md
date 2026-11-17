@@ -13,7 +13,7 @@ Codex · Cursor · Copilot · Claude · Grok<br>
 [![BLE](https://img.shields.io/badge/Orca-BLE-bca3ff?labelColor=111e2a)](orca-integration)
 [![License](https://img.shields.io/badge/License-MIT-91a6b8?labelColor=111e2a)](LICENSE)
 
-[English](README.en.md) · [빠른 시작](#빠른-시작) · [변경 기록](#변경-기록) · [연결 가이드](docs/PORTABLE_BRIDGE.md) · [펌웨어 업로드](docs/UPLOAD.md) · [설계 문서](docs/ARCHITECTURE.md)
+[English](README.en.md) · [빠른 시작](#빠른-시작) · [What's New](#whats-new) · [변경 기록](#변경-기록) · [연결 가이드](docs/PORTABLE_BRIDGE.md) · [펌웨어 업로드](docs/UPLOAD.md) · [설계 문서](docs/ARCHITECTURE.md)
 
 <a href="assets/readme/quotamon-demo.mp4">
   <img src="assets/readme/quotamon-demo.gif" width="1000" alt="Quotamon 한국어 데모: 움직이는 캐릭터, 터치 상세, 언어 선택, 시간 숫자 키패드와 화면 끄기 예약">
@@ -48,16 +48,17 @@ Codex · Cursor · Copilot · Claude · Grok<br>
 ## 지금 디스플레이에서 읽을 수 있는 것
 
 ```text
-Reset 5 2h 41m | W 5d 3h       5시간과 주간 리셋을 함께
-Reset W 17d 0h                 Cursor 두 모델 풀의 공통 리셋
-최근 갱신 14:34:00 | 첫 카드 수집 14:32:00
+R.T.1 14h 20m                  가까운 리셋권, 더 큰 글자
+R.T.2 1d 6h 5m                 그다음 리셋권, 더 작은 글자
+Plan 5h : 2h 18m | W 3d 4h     Codex 5시간·주간 리셋
+Plan Reset M : 17d 0h          Cursor·Copilot 공통 리셋
 ```
 
-`5`는 5시간 한도, `W`는 주간 또는 Cursor의 공통 리셋 표시입니다. `d / h / m`은 일·시간·분입니다. 일정이 길면 두 줄로 바꾸고 막대·캐릭터와 겹치지 않게 배치합니다. **Cursor Models**와 **Other Models**는 각각 잔여량을 표시하며 Monthly 합계는 제외합니다.
+`R.T.1`과 `R.T.2`는 만료가 가까운 리셋권 두 개입니다. 세 번째는 표시하지 않고, 개수·날짜·시간대도 붙이지 않습니다. `d / h / m`은 일·시간·분입니다. Codex의 `Plan 5h`와 `W`는 각각 5시간·주간 리셋이고, Cursor·Copilot은 `Plan Reset M` 한 줄입니다. 캐릭터는 88×108, 막대와 퍼센트 글꼴 크기는 유지합니다. **Cursor Models**와 **Other Models**는 각각 잔여량을 표시하며 Monthly 합계는 제외합니다.
 
-| 터치해서 여는 계정 상세 | 긴 리셋 일정도 두 줄로 |
+| 홈의 리셋권과 플랜 남은 시간 | 터치해서 여는 Codex 상세 |
 |:---:|:---:|
-| [![Codex 상세 화면](visuals/native/02-codex-detail.png)](visuals/native/02-codex-detail.png) | [![긴 리셋 일정의 두 줄 배치](visuals/native/18-wrapped-reset.png)](visuals/native/18-wrapped-reset.png) |
+| [![리셋권과 플랜 남은 시간이 있는 홈](visuals/ui-consistency/home.png)](visuals/ui-consistency/home.png) | [![Codex 상세의 R.T.1과 R.T.2](visuals/ui-consistency/detail-credits.png)](visuals/ui-consistency/detail-credits.png) |
 
 <details>
 <summary>설정·페어링·PC 관리 화면 더 보기</summary>
@@ -154,11 +155,11 @@ Fold7 기본 설정 등록·입력 정상·잠금 연결 30분·실제 거리 �
 
 | 서비스 | 가져오는 데이터 | 계정 범위 |
 |---|---|---|
-| Codex | Orca의 5시간·주간 등 사용량 한도 | 기본 계정 + 관리 계정 |
+| Codex | Orca의 5시간·주간 한도와 리셋권 만료 | 기본 계정 + 관리 계정 |
 | Claude | Orca의 주간·추가 모델 한도 | 기본 계정 + 관리 계정 |
 | Cursor | Cursor Models · Other Models | 현재 활성 계정 |
 | Grok | Orca가 제공하는 사용량 풀 | 현재 활성 계정 |
-| Copilot | 기존 Windows Copilot CLI의 quota SDK | 현재 CLI 계정 · 실험적 연결 |
+| Copilot | Windows Copilot CLI의 quota SDK. npm 전역 설치와 GitHub Copilot CLI 설치 경로를 찾습니다 | 현재 CLI 계정 · 실험적 연결 |
 
 계정 수나 요금제 이름으로 잔여량을 추정하지 않습니다. Copilot의 **Session 사용량과 월간 포함량은 별개**이며, SDK 요청 단위와 AIC 대응은 추가 검증이 필요합니다. 6,500 AIC를 모든 구독의 한도로 가정하지 않습니다. [원천 검토와 제한](docs/RESEARCH.md)을 확인하세요.
 
@@ -168,7 +169,7 @@ Fold7 기본 설정 등록·입력 정상·잠금 연결 30분·실제 거리 �
 
 | 범위 | 확인한 내용 |
 |---|---|
-| 소프트웨어 | TypeScript 49개, 실제 BLE 전송 소스를 모의 호스트/저장소로 실행하는 검사를 포함한 CTest 8개, 5개 언어 LCD·웹 검사 통과 |
+| 소프트웨어 | TypeScript 52개, 실제 BLE 전송 소스를 모의 호스트/저장소로 실행하는 검사를 포함한 CTest 8개, 5개 언어 LCD·웹 검사 통과 |
 | 캐릭터 애니메이션 | 5종×6상태, 40회 화면 전환, 캐릭터 영역 밖 픽셀 불변, 54개 자산 무손실 검사 통과. 압축 전후 실제 렌더 380프레임 일치 |
 | 실제 데이터 | Orca 1.4.224 무수정으로 Codex 3계정·Cursor, 기존 Copilot SDK 계정 조회 |
 | 실제 보드 | 전체 백업 후 앱 업로드·읽기 검증, 부트로더·파티션·페어링 NVS 보존 확인 |
@@ -176,7 +177,35 @@ Fold7 기본 설정 등록·입력 정상·잠금 연결 30분·실제 거리 �
 
 최근 갱신 시각과 축약 리셋 배치는 네이티브 렌더러로 검사했습니다. 실물 문구별 배치·장시간 동작·모든 오류 복구를 검증한 것은 아닙니다. 상세 근거는 [검증 기록](docs/VERIFICATION.md)에 있습니다.
 
+## What's New
+
+### 2026-11-17 — Codex 리셋권과 플랜 남은 시간
+
+Codex 카드는 만료가 가까운 리셋권 **두 개만** 보여 줍니다. 첫 줄 `R.T.1`이 더 크고, 둘째 줄 `R.T.2`는 작게 둡니다. 세 번째는 표시하지 않으며, `1개` 같은 개수와 날짜·시간대는 넣지 않습니다. 시간은 `14h 20m`, `1d 6h 5m`처럼 **d / h / m**입니다.
+
+남은 시간에 따라 글자색이 바뀝니다. 리셋권은 0분에 적색, 14일에 초록색이고 그 이상은 초록을 유지합니다. Codex 플랜은 `Plan 5h : 2h 18m | W 3d 4h`로, 5시간과 7일을 각 구간의 적색 끝으로 둡니다. Cursor와 Copilot은 `Plan Reset M : 17d 0h`이며 30일이 적색 끝입니다. 시각을 모르면 중립색입니다.
+
+PC 대시보드도 LCD와 같은 두 줄·같은 색입니다. 리셋권을 넣어도 캐릭터는 88×108, 막대 높이와 퍼센트 글꼴은 그대로입니다. 홈 제목 옆의 `리셋권` 배지는 빼었습니다.
+
+| 5계정 홈 | Codex 상세 |
+|:---:|:---:|
+| [![리셋권과 플랜 남은 시간이 있는 5계정 홈](visuals/ui-consistency/home.png)](visuals/ui-consistency/home.png) | [![Codex 상세의 R.T.1과 R.T.2](visuals/ui-consistency/detail-credits.png)](visuals/ui-consistency/detail-credits.png) |
+
+| Codex 3계정 | PC 대시보드 |
+|:---:|:---:|
+| [![Codex 세 계정의 서로 다른 리셋권](visuals/ui-consistency/home-three-accounts.png)](visuals/ui-consistency/home-three-accounts.png) | [![LCD와 같은 리셋권 줄을 보여주는 PC 대시보드](visuals/portable/01-dashboard-mock.png)](visuals/portable/01-dashboard-mock.png) |
+
+예시 데이터로 실제 LVGL과 웹 UI를 렌더한 화면입니다. 앱 영역만 업로드했고 부트로더·파티션·페어링 NVS는 유지했습니다. [표시 규칙](docs/UI_CONSISTENCY.md) · [실물 업로드 기록](docs/ui-no-credit-badge-build.json)
+
 ## 변경 기록
+
+### 2026-11-17 — Codex 리셋권 · 플랜 남은 시간 · Copilot CLI 경로
+
+- Codex 리셋권은 가까운 2개만 `R.T.1`/`R.T.2`와 `d/h/m`으로 표시합니다. 첫 줄이 더 크고, 개수·날짜·시간대는 표시하지 않습니다. PC 대시보드는 LCD와 같은 정보입니다. [What's New](#whats-new)
+- 리셋권은 0분 적색에서 14일 초록으로, Codex `Plan 5h`/`W`는 5시간·7일 끝까지, Cursor·Copilot `Plan Reset M`은 30일 끝까지 색이 변합니다.
+- Windows용 GitHub Copilot CLI 설치 경로도 인식합니다. npm 전역 설치만 보던 제한을 없앴습니다.
+- GT911 터치와 CH422G를 ESP-IDF 신규 I2C 버스로 옮겼습니다. 인터럽트 워치독 재부팅 완화이며, 장시간 재발 시험은 끝나지 않았습니다.
+- 앱만 업로드했고 부트로더·파티션·페어링 NVS는 유지했습니다. [표시 규칙](docs/UI_CONSISTENCY.md) · [업로드 기록](docs/ui-no-credit-badge-build.json)
 
 ### 2026-10-20 — 직접 페어링 휴대폰 감지 · PC 0.3.0
 

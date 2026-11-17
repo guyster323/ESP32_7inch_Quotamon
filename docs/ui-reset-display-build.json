@@ -1,0 +1,35 @@
+{
+  "status": "flashed-readback-boot-reconnect-verified",
+  "built_utc": "2026-11-17T04:49:56.194926+00:00",
+  "binary_bytes": 4939296,
+  "sha256": "41c109385dacd033f2c4e3c93684db6406665106489d63c90292d5e00c0b933b",
+  "partition_bytes": 8323072,
+  "native_tests_passed": 8,
+  "integration_tests_passed": 52,
+  "render_checks_passed": true,
+  "web_checks_passed": true,
+  "installed_web_updated": true,
+  "hardware_uploaded": true,
+  "changes": [
+    "Reset1/Reset2 labels and relative remaining times only",
+    "Remove absolute credit expiry dates and timezones",
+    "Keep Codex Plan Reset schedules",
+    "Copilot percentage and Plan Reset countdown; no monthly/session AIC"
+  ],
+  "private_evidence": ".local/ui-upload-20261117",
+  "uploaded_utc": "2026-11-17T04:51:55.525716+00:00",
+  "application_readback_verified": true,
+  "bootloader_partitions_nvs_unchanged": true,
+  "previous_app_backup_verified": true,
+  "boot_verified": true,
+  "pc_automatically_reconnected": true,
+  "five_account_home_verified": true,
+  "fresh_runtime_samples": 3,
+  "runtime_uptime_ms": [
+    55826,
+    60830,
+    65831
+  ],
+  "boot_console_failure": false,
+  "verified_utc": "2026-11-17T04:53:49.188086+00:00"
+}
