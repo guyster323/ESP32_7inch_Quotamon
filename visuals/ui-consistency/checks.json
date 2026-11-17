@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "actual_shared_lvgl_renderer": true,
+  "hardware_verified": false,
+  "mock_data": true,
+  "checks": [
+    "1–5 home cards retain original 256 zoom with reset credits",
+    "Home percentage text stays numeric, with the 25px pixel font and 51px meters",
+    "Detail retains 512 character zoom and visible 40px pixel percentages",
+    "All three Codex cards show two distinct account-specific credit expiries and plan reset together",
+    "Credit rows are labelled R.T.1 and R.T.2 without absolute dates or timezones",
+    "R.T. expiry interpolates from red at zero to green at 14 days and stays green beyond 14 days",
+    "Plan 5h and W independently interpolate from green at zero to red at 5 hours and 7 days",
+    "Cursor and Copilot use Plan Reset M with green at zero and red at 30 days",
+    "Unknown countdowns are neutral and home/detail colours agree",
+    "Copilot home/detail show percentage and Plan Reset countdown without monthly or session AIC",
+    "1–5 selected accounts retain visible, non-overlapping credit expiries within each card",
+    "Roomy cards retain both expiry rows with a larger first row",
+    "Detail credits are reachable by scrolling and stay inside the viewport",
+    "Long dense reset schedules ellipsize without shrinking characters or numbers",
+    "Percentage ink is white on fill and dark on the empty track",
+    "Five languages render without missing glyph warnings",
+    "Zero, low, unknown, unlimited, fractional and disconnected quota states",
+    "0–5 selected accounts, non-contiguous selections and 6/20-account pagination",
+    "30 provider/animation states and 40 page lifecycle cycles"
+  ],
+  "screenshots": [
+    "home.png",
+    "home-three-accounts.png",
+    "detail.png",
+    "detail-credits.png",
+    "long-reset.png",
+    "quota-states.png",
+    "fractional-quota.png",
+    "copilot-detail.png",
+    "countdown-maxima.png",
+    "countdown-midpoint.png",
+    "countdown-minima.png"
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "recorded_utc": "2026-10-29T00:48:27.386558+00:00",
+  "reproduction": {
+    "image_sha256": "5f87fb711e7de9a2e0b207a17505ec8319ebd5ba7fa28accef23fef4cbbc7d31",
+    "image_identity": "Confirmed previous app by flash readback SHA256 before write",
+    "private_console": ".local/paired-trial-console/20261029-091812.log",
+    "phone_confirmed_by_user": true,
+    "sessions": [
+      {
+        "generation": 17,
+        "connected_ms": 89045291,
+        "authenticated_ms": 89045441,
+        "disconnected_ms": 89075412,
+        "duration_ms": 30121,
+        "reason_decimal": 531
+      },
+      {
+        "generation": 18,
+        "connected_ms": 90440485,
+        "authenticated_ms": 90440635,
+        "disconnected_ms": 90470606,
+        "duration_ms": 30121,
+        "reason_decimal": 531
+      }
+    ],
+    "negotiated_parameters": {
+      "interval_ms": 30,
+      "latency": 0,
+      "supervision_timeout_ms": 5000
+    },
+    "hid_subscribed": true,
+    "phone_initiated_disconnect": true,
+    "reason_hci": "0x13 Remote User Terminated Connection (NimBLE0x200+0x13)",
+    "lcd_off": "60s after disconnect, as configured; effect not initiating cause"
+  },
+  "conclusion": {
+    "confirmed": "Phone completes secure reconnection and HID subscription, then disconnects at30.121s twice. PC traffic continues. Not a5s supervision timeout.",
+    "hypothesis": "Specific phone-side protocol or policy reason remains unknown. Neutral periodic reports did not resolve the30s remote disconnection.",
+    "not_confirmed": "No claim that every Android phone uses30s idle disconnect; do not infer a timer extension fixes a remote0x13 termination."
+  },
+  "mitigation": {
+    "type": "neutral-report compatibility trial",
+    "payload_hex": "00",
+    "period_ms": 10000,
+    "conditions": [
+      "active authenticated phone",
+      "HID notification subscription",
+      "not HID suspended"
+    ],
+    "preserves": [
+      "report map and GATT handles",
+      "PC traffic authorization",
+      "pairing and screen settings"
+    ],
+    "failure_policy": "Retry no faster than10s; no disconnect or false connected state on send failure",
+    "hardware_uploaded": true,
+    "hardware_verified": true,
+    "firmware_sha256": "5689a07255ceb9a7103d410b5db35a66cf172f671de626610e284a65503f43e0",
+    "uploaded_utc": "2026-10-29T00:54:49.694365+00:00",
+    "application_readback_verified": true,
+    "bootloader_partitions_nvs_unchanged": true,
+    "backup_private": ".local/board-ble-paired-trial-20261029-095137",
+    "boot_console_private": ".local/board-ble-paired-trial-20261029-095137/boot.log",
+    "effective": false,
+    "active": false,
+    "result": "Four neutral reports transmitted successfully;phone still initiated HCI0x13 disconnect at30391ms. Ineffective trial removed from source and restored previous verified application.",
+    "trial_observation": {
+      "generation": 2,
+      "connected_ms": 406075,
+      "disconnected_ms": 436466,
+      "duration_ms": 30391,
+      "reason_decimal": 531,
+      "neutral_reports_sent": 4,
+      "authenticated_at_disconnect": true
+    }
+  },
+  "validation": {
+    "native_ctest": "8/8 passed after transport rebuild",
+    "firmware_build": "passed: ESP-IDF5.5.3,4930416/8323072bytes, staticRAM55352bytes",
+    "next": "Read phone logs over user-authorized USB; identify host-side timeout/profile error before further firmware changes.",
+    "deployment": "app-only flash/readback PASS, boot/partition/NVS unchanged",
+    "boot": "Original app rebooted;PC authenticated automatically at32881ms; phone diagnosis remains pending",
+    "phone_trial": "failed on trial image; pending phone-side Bluetooth process diagnostics",
+    "pc_bond_preserved": true,
+    "phone_bond_metadata_preserved": true,
+    "hardware_crash_observed": false,
+    "current_firmware": "5f87fb711e7de9a2e0b207a17505ec8319ebd5ba7fa28accef23fef4cbbc7d31",
+    "restored_source_ctest": "8/8 passed after rebuild"
+  },
+  "references": [
+    "https://android.googlesource.com/platform/packages/modules/Bluetooth/+/refs/heads/main/system/bta/hh/bta_hh_le.cc",
+    "https://mynewt.apache.org/master/network/ble_hs/ble_gap.html"
+  ],
+  "rollback": {
+    "recorded_utc": "2026-10-29T01:08:28.761117+00:00",
+    "restored_sha256": "5f87fb711e7de9a2e0b207a17505ec8319ebd5ba7fa28accef23fef4cbbc7d31",
+    "application_readback_verified": true,
+    "bootloader_partitions_nvs_unchanged": true,
+    "neutral_reports_removed": true,
+    "boot_verified": true,
+    "private_folder": ".local\\phone-idle-rollback-20261029-100705",
+    "pc_authenticated_after_rollback": true,
+    "boot_console_private": ".local\\phone-idle-rollback-20261029-100705\\boot.log"
+  }
+}

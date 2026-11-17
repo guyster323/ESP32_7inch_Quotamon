@@ -553,3 +553,142 @@ test('configured slots keep order and plans when source rows reverse or disappea
     missing.accounts.map((a) => a.id)
   )
 })
+
+test('Codex reset credits keep each expiry and travel with the device snapshot', () => {
+  const soon = (now + 3600) * 1000
+  const later = (now + 86400) * 1000
+  const accounts = fromOrca(
+    {
+      codex: {
+        systemDefault: { hasAuth: true },
+        accounts: [
+          { id: 'zero-account', label: 'Zero' },
+          { id: 'summary-account', label: 'Summary' }
+        ]
+      },
+      claude: { accounts: [{ id: 'claude-account', label: 'Claude' }] },
+      rateLimits: {
+        codex: {
+          provider: 'codex',
+          status: 'ok',
+          updatedAt: now,
+          session: { usedPercent: 10, resetsAt: now + 3600 },
+          rateLimitResetCredits: {
+            availableCount: 3,
+            credits: [
+              { status: 'available', expiresAt: later },
+              { status: 'available', expiresAt: soon },
+              { status: 'available', expiresAt: soon },
+              { status: 'used', expiresAt: (now + 10) * 1000 }
+            ]
+          }
+        },
+        claude: { status: 'ok', updatedAt: now, weekly: { usedPercent: 12 } },
+        inactiveCodexAccounts: [
+          {
+            accountId: 'zero-account',
+            rateLimits: {
+              provider: 'codex',
+              status: 'ok',
+              updatedAt: now,
+              weekly: { usedPercent: 5 },
+              rateLimitResetCredits: { availableCount: 0, credits: [] }
+            }
+          },
+          {
+            accountId: 'summary-account',
+            rateLimits: {
+              provider: 'codex',
+              status: 'ok',
+              updatedAt: now,
+              weekly: { usedPercent: 6 },
+              rateLimitResetCredits: { availableCount: 4, nextExpiresAt: later }
+            }
+          }
+        ]
+      }
+    },
+    now
+  )
+  assert.deepEqual(
+    accounts.map((account) => [account.provider, account.reset_credits]),
+    [
+      [
+        'codex',
+        [
+          { count: 1, expires_at: now + 3600 },
+          { count: 1, expires_at: now + 3600 },
+          { count: 1, expires_at: now + 86400 }
+        ]
+      ],
+      ['codex', []],
+      ['codex', [{ count: 4, expires_at: now + 86400 }]],
+      ['claude', undefined]
+    ]
+  )
+  const missing = fromOrca(
+    {
+      codex: { systemDefault: { hasAuth: true } },
+      rateLimits: { codex: { status: 'unavailable' } }
+    },
+    now
+  )
+  assert.equal(missing[0].reset_credits, null)
+  const config = defaultConfig()
+  config.accounts = accounts.map((account) => ({
+    id: account.id,
+    alias: '',
+    plan: '',
+    enabled: true
+  }))
+  const device = JSON.parse(JSON.stringify(makeSnapshot(accounts, config, now)))
+  assert.deepEqual(device.accounts[0].reset_credits, accounts[0].reset_credits)
+  assert.deepEqual(device.accounts[1].reset_credits, [])
+  assert.deepEqual(device.accounts[2].reset_credits, accounts[2].reset_credits)
+  assert.equal('reset_credits' in device.accounts[3], false)
+  assert.equal(JSON.stringify(device).includes(String(later)), false)
+  assert.equal(device.accounts[0].reset_credits[0].expires_at, now + 3600)
+  const ui = makeSnapshot(accounts, config, now, true)
+  assert.deepEqual(ui.accounts[0].reset_credits, accounts[0].reset_credits)
+  assert.deepEqual(ui.accounts[1].reset_credits, [])
+})
+
+test('reset credit timezones stay empty unless the source states one', () => {
+  const zoned = new Date((now + 7200) * 1000).toISOString()
+  const offsetInstant = now + 10000
+  const shifted = new Date((offsetInstant - 8 * 3600) * 1000)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const offset =
+    `${shifted.getUTCFullYear()}-${pad(shifted.getUTCMonth() + 1)}-${pad(shifted.getUTCDate())}` +
+    `T${pad(shifted.getUTCHours())}:${pad(shifted.getUTCMinutes())}:${pad(shifted.getUTCSeconds())}-08:00`
+  const accounts = fromOrca(
+    {
+      codex: { systemDefault: { hasAuth: true } },
+      rateLimits: {
+        codex: {
+          provider: 'codex',
+          status: 'ok',
+          updatedAt: now,
+          session: { usedPercent: 10, resetsAt: now + 3600 },
+          rateLimitResetCredits: {
+            credits: [
+              { status: 'available', expiresAt: zoned },
+              { status: 'available', expiresAt: (now + 7200) * 1000, timezone: 'PT' },
+              { status: 'available', expiresAt: offset },
+              { status: 'available', expiresAt: (now + 86400) * 1000, timeZone: 'Asia/Seoul' },
+              { status: 'available', expiresAt: (now + 90000) * 1000, timezone: 'America/Los_Angeles' }
+            ]
+          }
+        }
+      }
+    },
+    now
+  )
+  assert.deepEqual(
+    accounts[0].reset_credits?.map((credit) => credit.timezone ?? null),
+    ['UTC', 'PT', 'UTC-8', 'KST', null]
+  )
+  assert.equal(accounts[0].reset_credits?.[0].expires_at, now + 7200)
+  assert.equal(accounts[0].reset_credits?.[1].count, 1)
+  assert.equal('timezone' in (accounts[0].reset_credits?.[4] ?? {}), false)
+})

@@ -49,6 +49,11 @@ export interface Pool {
   reset: string
   resets_at: number | null
 }
+export interface ResetCredit {
+  count: number
+  expires_at: number | null
+  timezone?: string
+}
 export interface DisplayAccount {
   id: string
   provider: Provider
@@ -65,6 +70,7 @@ export interface DisplayAccount {
   has_session: boolean
   monthly_used?: number
   monthly_limit?: number
+  reset_credits?: ResetCredit[] | null
 }
 export interface Snapshot {
   utc_offset_minutes: number
@@ -189,7 +195,7 @@ function normalize(
   )
     state = 'stale'
   const profile = safeLabel(label, names[provider])
-  return {
+  const account: DisplayAccount = {
     id: publicId(provider, id),
     provider,
     title: profile.startsWith(names[provider])
@@ -220,6 +226,91 @@ function normalize(
     has_amounts: false,
     has_session: false
   }
+  if (provider === 'codex') account.reset_credits = codexResetCredits(q)
+  return account
+}
+const ZONE_NAMES = new Set([
+  'UTC', 'GMT', 'KST', 'JST', 'PT', 'PST', 'PDT', 'ET', 'EST', 'EDT',
+  'CT', 'CST', 'CDT', 'MT', 'MST', 'MDT', 'CET', 'CEST', 'BST'
+])
+const IANA_ZONES: Record<string, string> = {
+  'asia/seoul': 'KST',
+  'asia/tokyo': 'JST',
+  utc: 'UTC',
+  'etc/utc': 'UTC',
+  'etc/gmt': 'GMT'
+}
+function namedZone(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const text = value.trim()
+  if (!text || text.length > 32) return undefined
+  const token = text.toUpperCase()
+  if (ZONE_NAMES.has(token)) return token
+  return IANA_ZONES[text.toLowerCase()]
+}
+function offsetZone(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const text = value.trim()
+  if (/[zZ]$/.test(text) || /[+-]00:00$/.test(text)) return 'UTC'
+  const match = text.match(/([+-])(\d{2}):(\d{2})$/)
+  if (!match) return undefined
+  const hours = Number(match[2])
+  const minutes = Number(match[3])
+  if (hours > 14 || minutes > 59) return undefined
+  if (minutes === 0) return `UTC${match[1]}${hours}`
+  return `UTC${match[1]}${hours}:${match[3]}`
+}
+function creditZone(row: Record<string, unknown>, instant: unknown): string | undefined {
+  return (
+    namedZone(row.timezone) ||
+    namedZone(row.timeZone) ||
+    namedZone(row.tz) ||
+    namedZone(row.expiresAtTimeZone) ||
+    offsetZone(instant)
+  )
+}
+function makeCredit(
+  count: number,
+  expires_at: number | null,
+  timezone?: string
+): ResetCredit {
+  const credit: ResetCredit = { count, expires_at }
+  if (timezone) credit.timezone = timezone
+  return credit
+}
+function codexResetCredits(raw: Record<string, unknown>): ResetCredit[] | null {
+  if (!hasOwn(raw, 'rateLimitResetCredits')) return null
+  const block = raw.rateLimitResetCredits
+  if (!record(block)) return null
+  const listed = hasOwn(block, 'credits') && Array.isArray(block.credits)
+  const credits: ResetCredit[] = []
+  if (listed && Array.isArray(block.credits)) {
+    for (const row of block.credits) {
+      if (!record(row) || row.status !== 'available') continue
+      credits.push(makeCredit(1, timestamp(row.expiresAt), creditZone(row, row.expiresAt)))
+    }
+  }
+  if (credits.length)
+    return credits.sort((a, b) => {
+      if (a.expires_at === null) return 1
+      if (b.expires_at === null) return -1
+      return a.expires_at - b.expires_at
+    })
+  if (
+    finite(block.availableCount) &&
+    Number.isSafeInteger(block.availableCount) &&
+    block.availableCount >= 0
+  ) {
+    if (block.availableCount === 0) return []
+    return [
+      makeCredit(
+        block.availableCount,
+        timestamp(block.nextExpiresAt),
+        creditZone(block, block.nextExpiresAt)
+      )
+    ]
+  }
+  return listed ? [] : null
 }
 type Owner =
   | { kind: 'managed'; id: string }
@@ -617,24 +708,26 @@ export function makeSnapshot(
     connected: true,
     mock: false,
     accounts: fresh.map((a): DisplayAccount => {
-      if (a.enabled || includeUnselectedQuota) return a
-      return {
-        id: a.id,
-        provider: a.provider,
-        title: a.title,
-        profile: a.profile,
-        plan: a.plan,
-        enabled: false,
-        pools: [
-          { name: 'PLAN', remaining: -1, reset: '시각 미확인', resets_at: null }
-        ],
-        state: 'unknown',
-        updated: '미확인',
-        updated_at: null,
-        source_note: '비선택 계정 · 수치 전송 없음',
-        has_amounts: false,
-        has_session: false
+      if (!(a.enabled || includeUnselectedQuota)) {
+        return {
+          id: a.id,
+          provider: a.provider,
+          title: a.title,
+          profile: a.profile,
+          plan: a.plan,
+          enabled: false,
+          pools: [
+            { name: 'PLAN', remaining: -1, reset: '시각 미확인', resets_at: null }
+          ],
+          state: 'unknown',
+          updated: '미확인',
+          updated_at: null,
+          source_note: '비선택 계정 · 수치 전송 없음',
+          has_amounts: false,
+          has_session: false
+        }
       }
+      return a
     }),
     display: config.display
   }

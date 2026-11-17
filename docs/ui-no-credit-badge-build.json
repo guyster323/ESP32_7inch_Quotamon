@@ -1,0 +1,29 @@
+{
+  "status": "flashed-readback-boot-reconnect-verified",
+  "built_utc": "2026-11-17T06:12:23.935078+00:00",
+  "binary_bytes": 4940512,
+  "sha256": "3683915ae943825d266c67b2b003324931cf8ece9f156592bbf50fe86b47aca1",
+  "partition_bytes": 8323072,
+  "native_tests_passed": 8,
+  "render_checks_passed": true,
+  "hardware_uploaded": true,
+  "private_evidence": ".local/ui-no-credit-badge-20261117",
+  "changes": [
+    "Remove redundant reset-credit badge beside home account titles; retain R.T.1/R.T.2 and countdown colours"
+  ],
+  "uploaded_utc": "2026-11-17T06:13:47.710367+00:00",
+  "application_readback_verified": true,
+  "bootloader_partitions_nvs_unchanged": true,
+  "previous_app_backup_verified": true,
+  "boot_verified": true,
+  "pc_automatically_reconnected": true,
+  "five_account_home_verified": true,
+  "boot_console_failure": false,
+  "verified_utc": "2026-11-17T06:14:30.720318+00:00",
+  "fresh_runtime_samples": 3,
+  "runtime_uptime_ms": [
+    15671,
+    20718,
+    25734
+  ]
+}

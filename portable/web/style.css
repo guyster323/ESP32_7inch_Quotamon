@@ -260,8 +260,19 @@ header p {
   background: var(--red);
 }
 .card-note {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
+}
+.card-note.plan-reset {
+  font-size: 16px;
+  font-weight: 650;
+  color: #d7f6ea;
+}
+.card-note.plan-reset.warn {
+  color: var(--amber);
+}
+.card-note.plan-reset.low {
+  color: var(--red);
 }
 .stale {
   color: var(--amber);
@@ -338,6 +349,57 @@ ol small {
 .account-row small {
   font-size: 10px;
   color: var(--muted);
+}
+.reset-credits {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  margin: 2px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+.quota-card .reset-credits {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: 0;
+}
+.reset-credits strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+}
+.reset-credit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+}
+.reset-credit.primary .reset-remain {
+  color: inherit;
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -0.3px;
+}
+.reset-credit.secondary .reset-remain {
+  color: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+}
+.reset-label {
+  color: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+.reset-absolute {
+  color: var(--muted);
+  font-size: 11px;
 }
 input[type='text'],
 input[type='number'] {
@@ -646,8 +708,11 @@ select {
   .account-row {
     grid-template-columns: 22px 28px 1fr 64px;
   }
-  .account-row label:nth-last-child(2) {
+  .account-row label:nth-of-type(2) {
     grid-column: 3;
+  }
+  .reset-credits {
+    grid-row: 3;
   }
   .account-order {
     grid-column: 4;

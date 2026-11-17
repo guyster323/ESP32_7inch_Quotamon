@@ -31,7 +31,13 @@ const controller = new QuotamonController(
       return {
         codex: { systemDefault: { hasAuth: true } },
         rateLimits: {
-          codex: quota(36),
+          codex: {
+            ...quota(36),
+            rateLimitResetCredits: { credits: [
+              { status: 'available', expiresAt: now + 3600000, timezone: 'UTC' },
+              { status: 'available', expiresAt: now + 90000000 }
+            ] }
+          },
           claude: quota(23),
           cursor: {
             status: 'ok', updatedAt: now, planType: 'Ultra',

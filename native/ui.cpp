@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <ctime>
 
 extern "C" {
 LV_FONT_DECLARE(font_ko14);
@@ -19,6 +20,7 @@ namespace {
 constexpr unsigned BG=0x081019, PANEL=0x101c29, BORDER=0x29414a;
 constexpr unsigned TEXT=0xf7fbf7, MUTED=0x8ea8a8, TRACK=0xdee7de;
 constexpr unsigned GREEN=0x19d79c, BLUE=0x65bbff, AMBER=0xffcb66, RED=0xff817f;
+constexpr unsigned RESET=0xd7f6ea, ZONE=0xb7dcff;
 Snapshot current;
 Settings committed, draft;
 int page=-1, refreshCount=0;
@@ -45,8 +47,12 @@ lv_obj_t *timeInput=nullptr,*timeInputValue=nullptr;
 std::string timeDigits;
 int timeInputRow=0;
 bool replaceTimeDigits=true;
-struct Meter { lv_obj_t *outer=nullptr, *fill=nullptr, *dark=nullptr, *light=nullptr, *track=nullptr; int width=0; const lv_font_t* font=&font_pixel25; };
-struct Card { lv_obj_t* obj=nullptr; lv_obj_t* image=nullptr; lv_obj_t* note=nullptr; lv_obj_t* extra=nullptr; std::array<Meter,2> bars; };
+struct Meter { lv_obj_t *outer=nullptr, *fill=nullptr, *dark=nullptr, *light=nullptr, *track=nullptr; int width=0,height=0; const lv_font_t* font=&font_pixel25; };
+struct Card {
+    lv_obj_t* obj=nullptr; lv_obj_t* image=nullptr; lv_obj_t* note=nullptr; lv_obj_t* extra=nullptr;
+    std::array<Meter,2> bars;
+    std::array<lv_obj_t*,2> creditRemain{};
+};
 std::array<Card,5> cards;
 struct AnimatedCharacter {
     lv_obj_t* image=nullptr;
@@ -71,12 +77,12 @@ lv_obj_t* box(lv_obj_t* parent,int x,int y,int w,int h,unsigned bg,unsigned bord
     if(border) { lv_obj_set_style_border_color(o,color(border),0); lv_obj_set_style_border_width(o,1,0); }
     lv_obj_clear_flag(o,LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE); return o;
 }
-lv_obj_t* label(lv_obj_t* parent,int x,int y,int w,const char* value,const lv_font_t* font=&font_ko14,unsigned ink=TEXT) {
+lv_obj_t* label(lv_obj_t* parent,int x,int y,int w,const char* value,const lv_font_t* font=&font_ko14,unsigned ink=TEXT,bool recolor=false) {
     auto* o=lv_label_create(parent); lv_obj_remove_style_all(o);
     lv_obj_set_style_text_font(o,font,0); lv_obj_set_style_text_color(o,color(ink),0);
     lv_obj_set_pos(o,static_cast<lv_coord_t>(x),static_cast<lv_coord_t>(y)); lv_obj_set_width(o,static_cast<lv_coord_t>(w));
     lv_obj_set_height(o,font->line_height); lv_label_set_long_mode(o,LV_LABEL_LONG_DOT);
-    lv_label_set_text(o,value); return o;
+    lv_label_set_recolor(o,recolor); lv_label_set_text(o,value); return o;
 }
 void action(lv_event_t* e);
 void showTimeInput(int row);
@@ -103,7 +109,7 @@ unsigned meterColor(double value,int index) {
 }
 Meter meter(lv_obj_t* parent,int x,int y,int w,int h,const Pool& p,int index) {
     auto* outer=box(parent,x,y,w,h,0x0f1f29,BORDER,2);
-    Meter m; m.outer=outer; m.width=w-4; m.font=h>=66?&font_pixel40:&font_pixel25; m.track=box(outer,2,2,w-4,h-4,TRACK);
+    Meter m; m.outer=outer; m.width=w-4; m.height=h; m.font=h>=66?&font_pixel40:&font_pixel25; m.track=box(outer,2,2,w-4,h-4,TRACK);
     label(m.track,4,1,w-12,p.name.c_str(),&font_ko14,0x081010);
     m.dark=label(m.track,4,h-m.font->line_height-6,w-12,"",m.font,0x081010);
     lv_obj_set_style_text_align(m.dark,LV_TEXT_ALIGN_RIGHT,0);
@@ -120,9 +126,14 @@ void setMeter(Meter& m,const Pool& p,int index,bool valid) {
     if(value>0&&value<1) std::snprintf(buf,sizeof(buf),"<1%%");
     else if(value>=0) std::snprintf(buf,sizeof(buf),"%d%%",static_cast<int>(std::floor(std::clamp(value,0.0,100.0))));
     else std::snprintf(buf,sizeof(buf),"%s",value==-2?tr("무제한"):"--");
-    auto* f=value==-2||(value>0&&value<1)?&font_ko20:m.font;
+    const int h=m.height;
+    auto* f=value==-2||(value>0&&value<1)?(h>=66?&font_ko20:&font_ko16):m.font;
     lv_obj_set_style_text_font(m.dark,f,0); lv_obj_set_style_text_font(m.light,f,0);
-    lv_label_set_text(m.dark,buf); lv_label_set_text(m.light,buf);
+    for(auto* text:{m.dark,m.light}) {
+        lv_obj_set_height(text,f->line_height);
+        lv_obj_set_y(text,static_cast<lv_coord_t>(h-f->line_height-6));
+        lv_label_set_text(text,buf);
+    }
     int width=value>=0 ? static_cast<int>(std::lround(m.width*std::clamp(value,0.0,100.0)/100.0)):0;
     lv_obj_set_width(m.fill,static_cast<lv_coord_t>(std::max(1,width)));
     lv_obj_set_style_bg_color(m.fill,color(meterColor(value,index)),0);
@@ -208,37 +219,65 @@ void trackCharacter(lv_obj_t* image,int account) {
     if(characterTimer&&displayAwake) lv_timer_resume(characterTimer);
 }
 std::string resetName(const std::string& name) {
-    return name=="5H"?"5":name=="WEEKLY"?"W":name;
+    return name=="5H"?"5h":name=="WEEKLY"?"W":name;
 }
-std::string resetTime(const Pool& pool) {
-    return pool.reset.empty()?tr("미확인"):translated(pool.reset);
+// Compact provider countdowns use d/h/m; unknown and pending text stays neutral.
+double resetMinutes(const std::string& text) {
+    double total=0, value=0; bool digits=false, found=false;
+    for(char c:text) {
+        if(c>='0'&&c<='9') { value=value*10+c-'0'; digits=true; }
+        else if(digits&&(c=='d'||c=='h'||c=='m')) {
+            total+=value*(c=='d'?1440:c=='h'?60:1); value=0; digits=false; found=true;
+        } else if(c!=' ') return -1;
+    }
+    return found&&!digits?total:-1;
+}
+unsigned countdownColor(double minutes,double maximum,bool credit=false) {
+    if(!std::isfinite(minutes)||minutes<0) return MUTED;
+    double red=std::clamp(minutes/maximum,0.0,1.0);
+    if(credit) red=1-red;
+    unsigned ink=0;
+    for(int shift:{16,8,0}) {
+        const double start=(GREEN>>shift)&255, end=(RED>>shift)&255;
+        ink|=static_cast<unsigned>(std::lround(start+(end-start)*red))<<shift;
+    }
+    return ink;
+}
+double planMaximum(const Account& a,const Pool& p) {
+    return a.provider==Provider::Cursor||a.provider==Provider::Copilot?30*1440:p.name=="5H"?300:7*1440;
+}
+std::string planPrefix(const Account& a,const Pool& p) {
+    return a.provider==Provider::Cursor||a.provider==Provider::Copilot?"Plan Reset M : ":"Plan "+resetName(p.name)+" : ";
+}
+std::string planPart(const Account& a,const Pool& p,const std::string& prefix) {
+    char ink[10]; std::snprintf(ink,sizeof(ink),"#%06x ",countdownColor(resetMinutes(p.reset),planMaximum(a,p)));
+    return std::string(ink)+prefix+(resetMinutes(p.reset)==0?"0m":(p.reset.empty()?tr("미확인"):translated(p.reset)))+"#";
 }
 std::string resetSchedule(const Account& a) {
     if(a.provider==Provider::Cursor) {
         for(int j=0;j<a.poolCount;j++) if(!a.pools[j].reset.empty()&&a.pools[j].reset!="시각 미확인")
-            return "Reset W "+resetTime(a.pools[j]);
-        return tr("Reset W 미확인");
+            return planPart(a,a.pools[j],"Plan Reset M : ");
+        return "Plan Reset M : "+std::string(tr("미확인"));
     }
     const Pool *five=nullptr,*weekly=nullptr;
     for(int j=0;j<a.poolCount;j++) {
         if(a.pools[j].name=="5H") five=&a.pools[j];
         if(a.pools[j].name=="WEEKLY") weekly=&a.pools[j];
     }
-    if(five) return "Reset 5 "+resetTime(*five)+(weekly?" | W "+resetTime(*weekly):"");
-    if(weekly) return "Reset W "+resetTime(*weekly);
+    if(five) return planPart(a,*five,"Plan 5h : ")+(weekly?" | "+planPart(a,*weekly,"W "):"");
+    if(weekly) return planPart(a,*weekly,"Plan W : ");
     int selected=0;
     for(int j=0;j<a.poolCount;j++) if(a.pools[j].remaining>=0&&(a.pools[selected].remaining<0||a.pools[j].remaining<a.pools[selected].remaining)) selected=j;
     const auto& p=a.pools[selected];
     if(p.remaining==-1) return tr("일부 잔여량 미확인");
     if(p.remaining==-2) return tr("무제한 · 제공된 정책 기준");
-    return "Reset "+resetName(p.name)+" "+resetTime(p);
+    return planPart(a,p,planPrefix(a,p));
 }
 std::string note(int index) {
     const auto& a=current.accounts[index];
     if(!current.connected) return tr("연결 대기 · 데이터 없음");
     if(a.state==SourceState::Unknown) return a.sourceNote.empty()?tr("확인 불가 · 수집 상태 확인"):translated(a.sourceNote);
     if(a.state==SourceState::Stale) return tr("오래된 정보 · 마지막 수집 확인");
-    if(a.provider==Provider::Copilot&&committed.showCredits&&a.hasAmounts) { char b[96]; std::snprintf(b,sizeof(b),tr("%.1f / %.1f AIC 남음"),std::max(0.0,a.monthlyLimit-a.monthlyUsed),a.monthlyLimit); return b; }
     if(!committed.showReset) return translated(a.plan);
     return resetSchedule(a);
 }
@@ -263,33 +302,100 @@ void createFooter() {
     lv_obj_set_style_text_line_space(footer,0,0);
     lv_label_set_long_mode(footer,LV_LABEL_LONG_CLIP);
 }
+const lv_font_t* creditFont(int index) { return index==0?&font_ko20:&font_ko14; }
+void nearestCredits(const Account& account,int (&picked)[2],int& shown) {
+    int order[8];
+    const int n=std::min(account.resetCreditCount,8);
+    for(int i=0;i<n;i++) order[i]=i;
+    std::stable_sort(order,order+n,[&](int a,int b) {
+        const double left=account.resetCredits[a].expiresAt,right=account.resetCredits[b].expiresAt;
+        const bool missingLeft=left<0,missingRight=right<0;
+        if(missingLeft!=missingRight) return !missingLeft;
+        return left<right;
+    });
+    shown=std::min(n,2);
+    for(int i=0;i<shown;i++) picked[i]=order[i];
+}
+std::string creditRemain(const ResetCredit& credit) {
+    if(credit.expiresAt<0) return tr("만료 시각 없음");
+    const double left=credit.expiresAt-static_cast<double>(std::time(nullptr));
+    if(left<=0) return "0m";
+    const int total=static_cast<int>(std::ceil(left/60.0));
+    const int days=total/1440, hours=(total%1440)/60, mins=total%60;
+    std::string text;
+    auto add=[&](int value,const char* unit) {
+        if(value<=0) return;
+        if(!text.empty()) text.push_back(' ');
+        text+=std::to_string(value);
+        text+=unit;
+    };
+    add(days,"d"); add(hours,"h"); add(mins,"m");
+    return text.empty()?"1m":text;
+}
+std::string creditLabel(const ResetCredit& credit,int index,bool compact=false) {
+    auto remaining=creditRemain(credit);
+    if(compact&&credit.expiresAt>=0)
+        remaining.erase(std::remove(remaining.begin(),remaining.end(),' '),remaining.end());
+    return "R.T."+std::to_string(index+1)+" "+remaining;
+}
 void updateNote(Card& c,int account) {
     auto text=note(account);
     const int width=lv_obj_get_width(c.obj)-20,height=lv_obj_get_height(c.obj);
-    const bool twoLines=lv_txt_get_width(text.c_str(),static_cast<uint32_t>(text.size()),&font_ko14,0,LV_TEXT_FLAG_NONE)>width;
+    const auto* noteFont=height==184?&font_ko14:&font_ko16;
+    const int line=noteFont->line_height;
+    const bool twoLines=height>=300&&lv_txt_get_width(text.c_str(),static_cast<uint32_t>(text.size()),&font_ko16,0,LV_TEXT_FLAG_RECOLOR)>width;
     if(twoLines) {
         const auto divider=text.find(" | ");
         if(divider!=std::string::npos) text.replace(divider,3,"\n");
     }
-    const int bodyY=std::max(34,(height-108)/2),noteY=height-(twoLines?43:23);
+    const int noteH=twoLines?line*2:line;
+    const int noteY=height-noteH-2;
+    lv_obj_set_style_text_font(c.note,noteFont,0);
     lv_obj_set_y(c.note,static_cast<lv_coord_t>(noteY));
-    lv_obj_set_height(c.note,twoLines?40:20);
+    lv_obj_set_height(c.note,static_cast<lv_coord_t>(noteH));
+    if(twoLines) lv_label_set_long_mode(c.note,LV_LABEL_LONG_WRAP);
+    else lv_label_set_long_mode(c.note,LV_LABEL_LONG_DOT);
     lv_label_set_text(c.note,text.c_str());
-    if(c.extra) {
-        lv_obj_set_y(c.extra,static_cast<lv_coord_t>(noteY-21));
+    const auto& owned=current.accounts[account];
+    int picked[2]={-1,-1}, shown=0;
+    if(owned.resetCreditCount>0&&c.creditRemain[0]) nearestCredits(owned,picked,shown);
+    const bool inlineCredits=height<200;
+    const lv_font_t* fonts[2]={inlineCredits?&font_ko14:height<300?&font_ko16:&font_ko20,&font_ko14};
+    std::string remains[2];
+    int widths[2]={0,0};
+    for(int k=0;k<shown;k++) remains[k]=creditLabel(owned.resetCredits[picked[k]],k,inlineCredits);
+    auto measure=[&]() {
+        for(int k=0;k<shown;k++) widths[k]=static_cast<int>(lv_txt_get_width(remains[k].c_str(),static_cast<uint32_t>(remains[k].size()),fonts[k],0,LV_TEXT_FLAG_NONE));
+    };
+    measure();
+    if(inlineCredits&&shown==2&&widths[0]+widths[1]+12>width) { fonts[0]=&font_ko14; measure(); }
+    int span=0;
+    for(int k=0;k<shown;k++) span=inlineCredits?std::max(span,static_cast<int>(fonts[k]->line_height)):span+fonts[k]->line_height;
+    const int creditY=noteY-span-2;
+    int rowY=creditY;
+    for(int k=0;k<2;k++) if(c.creditRemain[k]) {
+        if(k>=shown) {
+            lv_obj_add_flag(c.creditRemain[k],LV_OBJ_FLAG_HIDDEN);
+            continue;
+        }
+        const auto* font=fonts[k];
+        const auto& remain=remains[k];
+        const int rowX=inlineCredits&&k==1?10+widths[0]+12:10;
+        const int remainW=std::min(10+width-rowX,widths[k]);
+        lv_obj_set_style_text_font(c.creditRemain[k],font,0);
+        const auto& credit=owned.resetCredits[picked[k]];
+        lv_obj_set_style_text_color(c.creditRemain[k],color(countdownColor(credit.expiresAt<0?-1:std::max(0.0,(credit.expiresAt-std::time(nullptr))/60.0),14*1440,true)),0);
+        lv_obj_set_height(c.creditRemain[k],static_cast<lv_coord_t>(font->line_height));
+        lv_obj_clear_flag(c.creditRemain[k],LV_OBJ_FLAG_HIDDEN);
+        lv_label_set_text(c.creditRemain[k],remain.c_str());
+        lv_obj_set_width(c.creditRemain[k],static_cast<lv_coord_t>(std::max(1,remainW)));
+        const int y=inlineCredits?creditY+span-font->line_height:rowY;
+        lv_obj_set_pos(c.creditRemain[k],static_cast<lv_coord_t>(rowX),static_cast<lv_coord_t>(y));
+        rowY+=font->line_height;
     }
-    const int barHeight=twoLines?(c.extra?33:44):51;
-    for(int j=0;j<2;j++) if(c.bars[j].outer) {
-        auto& m=c.bars[j];
-        lv_obj_set_y(m.outer,static_cast<lv_coord_t>(bodyY+j*(barHeight+4)));
-        lv_obj_set_height(m.outer,static_cast<lv_coord_t>(barHeight));
-        lv_obj_set_height(m.track,static_cast<lv_coord_t>(barHeight-4));
-        lv_obj_set_height(m.fill,static_cast<lv_coord_t>(barHeight-4));
-        lv_obj_set_y(m.dark,static_cast<lv_coord_t>(barHeight-m.font->line_height-6));
-        lv_obj_set_y(m.light,static_cast<lv_coord_t>(barHeight-m.font->line_height-6));
-    }
-    const int imageHeight=std::clamp(noteY-bodyY-(c.extra?21:0),1,108);
-    if(c.image) lv_img_set_zoom(c.image,static_cast<uint16_t>(imageHeight*256/108));
+    if(c.extra) lv_obj_set_y(c.extra,static_cast<lv_coord_t>((shown?creditY:noteY)-21));
+    // Primary content has fixed geometry. Metadata never rescales pixel art
+    // or replaces the numeric font. Every home card keeps its credit expiries.
 }
 void updateCards() {
     lv_obj_update_layout(root);
@@ -300,7 +406,7 @@ void updateCards() {
         updateNote(c,account);
         for(int j=0;j<std::min(a.poolCount,2);j++) setMeter(c.bars[j],a.pools[j],account,valid);
         double minimum=100; for(int j=0;j<a.poolCount;j++) if(a.pools[j].remaining>=0) minimum=std::min(minimum,a.pools[j].remaining);
-        unsigned ink=!valid?MUTED:a.state==SourceState::Stale?AMBER:minimum<=10?RED:minimum<=20?AMBER:MUTED;
+        unsigned ink=!valid?MUTED:a.state==SourceState::Stale?AMBER:minimum<=10?RED:minimum<=20?AMBER:RESET;
         lv_obj_set_style_text_color(c.note,color(ink),0);
     }
     footerText();
@@ -322,8 +428,15 @@ void card(int slot,int i,int x,int y,int w,int h) {
     c.obj=box(root,x,y,w,h,PANEL,BORDER,8); lv_obj_add_flag(c.obj,LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_style_bg_color(c.obj,color(0x1b3040),LV_STATE_PRESSED);
     lv_obj_add_event_cb(c.obj,action,LV_EVENT_CLICKED,reinterpret_cast<void*>(static_cast<intptr_t>(100+i)));
-    label(c.obj,10,7,w-20,a.title.c_str(),&font_ko16);
-    int bodyY=std::max(34,(h-108)/2);
+    std::string badgeText;
+    if(a.poolCount>2&&h<300) badgeText="+"+std::to_string(a.poolCount-2);
+    const int badgeW=badgeText.empty()?0:static_cast<int>(lv_txt_get_width(badgeText.c_str(),static_cast<uint32_t>(badgeText.size()),&font_ko14,0,LV_TEXT_FLAG_NONE))+12;
+    label(c.obj,10,4,w-20-(badgeW?badgeW+6:0),a.title.c_str(),&font_ko16);
+    if(badgeW) {
+        auto* badge=label(c.obj,w-10-badgeW,5,badgeW,badgeText.c_str(),&font_ko14,ZONE);
+        lv_obj_set_style_text_align(badge,LV_TEXT_ALIGN_RIGHT,0);
+    }
+    int bodyY=h<210?28:std::max(34,(h-108)/2);
     c.image=lv_img_create(c.obj); lv_obj_set_pos(c.image,10,static_cast<lv_coord_t>(bodyY)); lv_img_set_pivot(c.image,0,0); lv_img_set_src(c.image,sprite(i,a,current.connected));
     trackCharacter(c.image,i);
     const int mx=108,mw=w-118;
@@ -331,12 +444,17 @@ void card(int slot,int i,int x,int y,int w,int h) {
     if(a.poolCount==1) {
         label(c.obj,mx,bodyY+62,mw,tr(a.plan.c_str()),&font_ko14,MUTED);
         label(c.obj,mx,bodyY+85,mw,tr("터치해서 상세 확인"),&font_ko14,MUTED);
-    } else if(a.poolCount>2) {
+    } else if(a.poolCount>2&&h>=300) {
         c.extra=label(c.obj,10,h-44,w-20,formatted("추가 %d개 한도 · 상세에서 확인",a.poolCount-2).c_str(),&font_ko14,MUTED);
     }
-    c.note=label(c.obj,10,h-23,w-20,"",&font_ko14,MUTED);
+    c.note=label(c.obj,10,h-23,w-20,"",&font_ko16,RESET);
+    lv_label_set_recolor(c.note,true);
     lv_label_set_long_mode(c.note,LV_LABEL_LONG_WRAP);
     lv_obj_set_style_text_line_space(c.note,0,0);
+    const int slots=std::min(a.resetCreditCount,2);
+    for(int k=0;k<slots;k++) {
+        c.creditRemain[k]=label(c.obj,10,0,w-20,"",creditFont(k),TEXT);
+    }
 }
 void settingsLabels() {
     lv_label_set_text_fmt(intervalLabel,tr("%d초"),draft.pollSeconds);
@@ -462,7 +580,7 @@ void apply(const Snapshot& data) {
     bool shapeChanged=data.accounts.size()!=current.accounts.size();
     for(size_t i=0;!shapeChanged&&i<data.accounts.size();i++) {
         const auto& a=data.accounts[i]; const auto& b=current.accounts[i];
-        shapeChanged=a.id!=b.id||a.title!=b.title||a.enabled!=b.enabled||a.provider!=b.provider||a.poolCount!=b.poolCount;
+        shapeChanged=a.id!=b.id||a.title!=b.title||a.enabled!=b.enabled||a.provider!=b.provider||a.poolCount!=b.poolCount||a.resetCreditCount!=b.resetCreditCount;
         for(int j=0;!shapeChanged&&j<std::clamp(a.poolCount,0,8);j++) shapeChanged=a.pools[j].name!=b.pools[j].name;
     }
     current=data;
@@ -487,6 +605,11 @@ void showHome() {
     visible.fill(-1);
     if(selected.size()>5) { button(root,380,12,60,"<",15); button(root,450,12,60,">",16); }
     int count=std::min(5,static_cast<int>(selected.size())-homePage*5);
+    bool homeCredits=false,lowerCredits=false;
+    for(int slot=0;slot<count;slot++) if(current.accounts[selected[homePage*5+slot]].resetCreditCount>0) {
+        homeCredits=true;
+        if(slot>=3) lowerCredits=true;
+    }
     if(count==0) {
         auto* p=box(root,20,72,760,360,PANEL,BORDER,8);
         label(p,32,48,680,current.connected?tr("나만의 구독 모니터를 시작하세요"):tr("Orca 연결을 기다리고 있습니다"),&font_ko20);
@@ -499,12 +622,35 @@ void showHome() {
     for(int slot=0;slot<count;slot++) {
         int i=selected[homePage*5+slot]; visible[slot]=i;
         if(count==5) {
-            if(slot<3) card(slot,i,20+slot*257,72,slot==2?246:245,170);
+            if(homeCredits) {
+                // Reserve expiry rows while preserving 108px characters and
+                // 51px meters. Header and footer retain their own hit areas.
+                const int topH=lowerCredits?184:206,lowerY=lowerCredits?250:276,lowerH=lowerCredits?184:158;
+                if(slot<3) card(slot,i,20+slot*257,62,slot==2?246:245,topH);
+                else card(slot,i,20+(slot-3)*386,lowerY,374,lowerH);
+            } else if(slot<3) card(slot,i,20+slot*257,72,slot==2?246:245,170);
             else card(slot,i,20+(slot-3)*386,254,374,178);
-        } else if(count==4) card(slot,i,20+(slot%2)*386,72+(slot/2)*182,374,slot<2?170:178);
+        } else if(count==4) {
+            if(homeCredits) card(slot,i,20+(slot%2)*386,62+(slot/2)*188,374,184);
+            else card(slot,i,20+(slot%2)*386,72+(slot/2)*182,374,slot<2?170:178);
+        }
         else { int w=(760-(count-1)*12)/count; card(slot,i,20+slot*(w+12),72,w,360); }
     }
     createFooter(); updateCards();
+}
+void paintDetailCredits(lv_obj_t* parent,int x,int y,int w,int maxH,const Account& account) {
+    if(account.resetCreditCount<=0||maxH<font_ko14.line_height) return;
+    int picked[2]={-1,-1}, shown=0;
+    nearestCredits(account,picked,shown);
+    int row=0;
+    for(int k=0;k<shown;k++) {
+        const auto* remainFont=creditFont(k);
+        const auto& credit=account.resetCredits[picked[k]];
+        if(row&&row+remainFont->line_height>maxH) break;
+        if(!row&&remainFont->line_height>maxH) break;
+        label(parent,x,y+row,w,creditLabel(credit,k).c_str(),remainFont,countdownColor(credit.expiresAt<0?-1:std::max(0.0,(credit.expiresAt-std::time(nullptr))/60.0),14*1440,true));
+        row+=remainFont->line_height;
+    }
 }
 void showDetail(int i) {
     if(i<0||static_cast<size_t>(i)>=current.accounts.size()) return;
@@ -514,12 +660,13 @@ void showDetail(int i) {
     button(root,680,12,100,tr("새로고침"),2);
     auto* panel=box(root,20,80,760,350,PANEL,BORDER,8);
     label(panel,20,17,720,a.profile.c_str(),&font_ko20);
-    label(panel,20,51,720,tr(a.plan.c_str()),&font_ko14,MUTED);
-    auto* img=lv_img_create(panel); lv_img_set_src(img,sprite(i,a,current.connected)); lv_img_set_antialias(img,false); lv_img_set_zoom(img,512); lv_obj_set_pos(img,64,124);
+    label(panel,20,51,a.poolCount>2||a.resetCreditCount>0?230:720,tr(a.plan.c_str()),&font_ko14,MUTED);
+    auto* img=lv_img_create(panel); lv_img_set_src(img,sprite(i,a,current.connected)); lv_img_set_antialias(img,false);
+    lv_img_set_zoom(img,512); lv_obj_set_pos(img,64,124);
     trackCharacter(img,i); animateCharacters();
     auto* limits=box(panel,258,92,480,207,PANEL);
     detailLimits=limits;
-    if(a.poolCount>2) {
+    if(a.poolCount>2||a.resetCreditCount>0) {
         lv_obj_add_flag(limits,LV_OBJ_FLAG_SCROLLABLE); lv_obj_set_scroll_dir(limits,LV_DIR_VER);
         lv_obj_set_scrollbar_mode(limits,LV_SCROLLBAR_MODE_AUTO);
         lv_obj_set_style_bg_color(limits,color(MUTED),LV_PART_SCROLLBAR);
@@ -530,20 +677,15 @@ void showDetail(int i) {
     for(int j=0;j<a.poolCount;j++) {
         auto m=meter(limits,2,j*98,465,66,a.pools[j],i);
         setMeter(m,a.pools[j],i,current.connected&&a.state!=SourceState::Unknown);
-        const std::string reset=!current.connected?tr("연결 대기"):a.state==SourceState::Unknown?tr("확인 불가"):a.pools[j].remaining==-2?tr("무제한 · 비율 계산 없음"):a.pools[j].remaining==-1?tr("잔여량 확인 불가"):committed.showReset&&a.provider!=Provider::Cursor?"Reset "+resetName(a.pools[j].name)+" "+resetTime(a.pools[j]):"";
-        label(limits,8,69+j*98,450,reset.c_str(),&font_ko14,MUTED);
+        const std::string reset=!current.connected?tr("연결 대기"):a.state==SourceState::Unknown?tr("확인 불가"):a.pools[j].remaining==-2?tr("무제한 · 비율 계산 없음"):a.pools[j].remaining==-1?tr("잔여량 확인 불가"):committed.showReset&&a.provider!=Provider::Cursor?planPart(a,a.pools[j],planPrefix(a,a.pools[j])):"";
+        label(limits,8,67+j*98,450,reset.c_str(),&font_ko16,RESET,true);
     }
-    if(a.provider==Provider::Copilot) {
-        char b[180];
-        bool valid=current.connected&&a.state!=SourceState::Unknown;
-        if(valid&&a.hasAmounts) std::snprintf(b,sizeof(b),tr("월간 %.1f / %.1f AIC 사용"),a.monthlyUsed,a.monthlyLimit);
-        else std::snprintf(b,sizeof(b),tr("월간 사용량 --"));
-        if(committed.showCredits) label(limits,8,109,450,b,&font_ko16);
-        if(valid&&a.hasSession) std::snprintf(b,sizeof(b),tr("Session %.1f AIC 사용 · 월간 한도와 별도"),a.sessionUsed);
-        else std::snprintf(b,sizeof(b),tr("Session -- · 원천 제공 없음"));
-        if(committed.showSession) label(limits,8,149,450,b,&font_ko16);
+    if(a.resetCreditCount>0) {
+        const int creditY=a.poolCount*98+8;
+        label(limits,8,creditY,450,tr("리셋권"),&font_ko16,ZONE);
+        paintDetailCredits(limits,8,creditY+font_ko16.line_height+4,450,140,a);
     }
-    label(panel,260,303,474,note(i).c_str(),&font_ko14,MUTED);
+    label(panel,260,300,474,note(i).c_str(),&font_ko16,RESET,true);
     lv_obj_update_layout(limits); if(scroll>0) lv_obj_scroll_to_y(limits,static_cast<lv_coord_t>(scroll),LV_ANIM_OFF);
     createFooter(); footerText();
 }
@@ -578,8 +720,6 @@ void showSettings(bool keepDraft) {
     };
     check(20,146,tr("리셋까지 남은 시간 표시"),draft.showReset,10);
     check(390,146,tr("마지막 갱신 시각 표시"),draft.showUpdated,11);
-    check(20,212,tr("Copilot 월간 AIC 표시"),draft.showCredits,12);
-    check(390,212,tr("Copilot Session AIC 표시"),draft.showSession,13);
     settingsLabels();
     cancel=button(root,548,408,108,tr("취소"),5); save=button(root,672,408,108,tr("저장"),4);
     label(root,20,422,510,tr("저장한 설정은 연결된 Orca와 동기화됩니다."),&font_ko14,MUTED);

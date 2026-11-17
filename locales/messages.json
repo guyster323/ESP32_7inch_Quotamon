@@ -1582,5 +1582,77 @@
     "ja": "機器が見つかりません。端末のBLE広告を確認してください。",
     "en": "No devices found. Check the phone’s BLE advertising.",
     "de": "Kein Gerät gefunden. BLE-Werbung des Telefons prüfen."
+  },
+  "%d개  %d시간 %d분 남음": {
+    "zh-CN": "%d个  %d小时%d分剩余",
+    "ja": "%d個  %d時間%d分残り",
+    "en": "%d x %dh %dm left",
+    "de": "%d x noch %d Std. %d Min."
+  },
+  "%d개  %d시간 남음": {
+    "zh-CN": "%d个  %d小时剩余",
+    "ja": "%d個  %d時間残り",
+    "en": "%d x %dh left",
+    "de": "%d x noch %d Std."
+  },
+  "%d개  %d분 남음": {
+    "zh-CN": "%d个  %d分剩余",
+    "ja": "%d個  %d分残り",
+    "en": "%d x %dm left",
+    "de": "%d x noch %d Min."
+  },
+  "만료됨": {
+    "zh-CN": "已到期",
+    "ja": "期限切れ",
+    "en": "expired",
+    "de": "abgelaufen"
+  },
+  "만료 시각 없음": {
+    "zh-CN": "到期时间未知",
+    "ja": "期限不明",
+    "en": "expiry unknown",
+    "de": "Ablauf unbekannt"
+  },
+  "%d개  만료됨": {
+    "zh-CN": "%d个  已到期",
+    "ja": "%d個  期限切れ",
+    "en": "%d x expired",
+    "de": "%d x abgelaufen"
+  },
+  "%d개  만료 시각 없음": {
+    "zh-CN": "%d个  到期时间未知",
+    "ja": "%d個  期限不明",
+    "en": "%d x expiry unknown",
+    "de": "%d x Ablauf unbekannt"
+  },
+  "외 %d개": {
+    "zh-CN": "另%d个",
+    "ja": "他%d個",
+    "en": "+%d more",
+    "de": "+%d weitere"
+  },
+  "리셋권": {
+    "zh-CN": "重置券",
+    "ja": "リセット券",
+    "en": "Reset credits",
+    "de": "Reset-Guthaben"
+  },
+  "리셋권 0": {
+    "zh-CN": "重置券 0",
+    "ja": "リセット券 0",
+    "en": "Reset credits 0",
+    "de": "Reset-Guthaben 0"
+  },
+  "해당 없음": {
+    "zh-CN": "不适用",
+    "ja": "対象外",
+    "en": "Not available",
+    "de": "Nicht verfügbar"
+  },
+  "만료 없음": {
+    "zh-CN": "无到期",
+    "ja": "期限なし",
+    "en": "None expiring",
+    "de": "Kein Ablauf"
   }
 }

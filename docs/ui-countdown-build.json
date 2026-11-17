@@ -1,0 +1,35 @@
+{
+  "status": "flashed-readback-boot-reconnect-verified",
+  "built_utc": "2026-11-17T05:23:48.342981+00:00",
+  "binary_bytes": 4940688,
+  "sha256": "40d393a231d8bc4baaced774a422b839161672a64d13bd375b69798a958b6935",
+  "partition_bytes": 8323072,
+  "native_tests_passed": 8,
+  "integration_tests_passed": 52,
+  "render_checks_passed": true,
+  "web_checks_passed": true,
+  "hardware_uploaded": true,
+  "private_evidence": ".local/ui-countdown-20261117",
+  "changes": [
+    "R.T.1/R.T.2: red at 0m, green at or above 14d",
+    "Plan 5h and W: independent green-to-red time colours up to 5h/7d",
+    "Cursor/Copilot Plan Reset M: green at 0m, red at or above 30d",
+    "Home, detail and PC web agree; unknown times remain neutral"
+  ],
+  "installed_web_updated": true,
+  "uploaded_utc": "2026-11-17T05:28:58.741873+00:00",
+  "application_readback_verified": true,
+  "bootloader_partitions_nvs_unchanged": true,
+  "previous_app_backup_verified": true,
+  "boot_verified": true,
+  "pc_automatically_reconnected": true,
+  "five_account_home_verified": true,
+  "boot_console_failure": false,
+  "verified_utc": "2026-11-17T05:29:54.359575+00:00",
+  "fresh_runtime_samples": 3,
+  "runtime_uptime_ms": [
+    35789,
+    40936,
+    45976
+  ]
+}

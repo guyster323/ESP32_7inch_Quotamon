@@ -1,0 +1,72 @@
+{
+  "recorded_utc": "2026-10-29T03:44:41.566051+00:00",
+  "symptom": "LCD corruption followed by Waiting for Orca connection screen",
+  "confirmed": {
+    "panic": "Interrupt wdt timeout on CPU0",
+    "panic_uptime_ms_approx": 2851930,
+    "reboot_reset": "0xc RTC_SW_CPU_RST",
+    "pc": "0x4037a115",
+    "active_isr": "i2c_isr_handler_default (legacy I2C)",
+    "source_line": "ESP-IDF 5.5.3 components/driver/i2c/i2c.c:589",
+    "crash_site_instructions_match_installed_image": true,
+    "installed_image_sha256": "5f87fb711e7de9a2e0b207a17505ec8319ebd5ba7fa28accef23fef4cbbc7d31"
+  },
+  "interpretation": "At least one real watchdog reboot is captured. The active legacy I2C ISR is consistent with a published ESP32-S3 issue; the precise electrical/interrupt trigger and whether every reported visual event has this cause remain unconfirmed.",
+  "mitigation": {
+    "description": "Move GT911 touch and CH422G reset/backlight to one ESP-IDF new-driver I2C bus",
+    "glitch_filter_cycles": 7,
+    "runtime_backlight_errors": "Return errors for main-loop logging/retry instead of aborting",
+    "watchdog_disabled_or_extended": false,
+    "ble_or_screen_state_logic_changed": false
+  },
+  "build": {
+    "framework": "ESP-IDF 5.5.3; espressif32 6.13.0",
+    "binary_bytes": 4931152,
+    "sha256": "be7af829f4f0795efdf8a1fa025d7be5700108445ed5e26451ddcd819fd934ae",
+    "elf_sha256": "9823dad3f4786f1e8f7cc950ca2d02f90a4a52190866131bab59e50ea6425de8",
+    "partition_bytes": 8323072,
+    "static_ram_bytes": 55312,
+    "firmware_build_passed": true,
+    "new_i2c_bus_isr_and_panel_io_linked": true,
+    "legacy_i2c_driver_and_panel_io_absent": true,
+    "existing_native_regression_tests": "8/8 passed; do not emulate I2C hardware"
+  },
+  "hardware": {
+    "uploaded": true,
+    "boot_verified": true,
+    "long_duration_recurrence_test": "not completed; short smoke observation cannot prove the intermittent issue is eliminated",
+    "uploaded_utc": "2026-10-29T03:46:48.220630+00:00",
+    "application_readback_verified": true,
+    "bootloader_partitions_nvs_unchanged": true,
+    "previous_app_backup_verified": true,
+    "verified_utc": "2026-10-29T03:50:05.447913+00:00",
+    "boot_elf_matches_uploaded_firmware": true,
+    "new_i2c_bus_initialized": true,
+    "pc_automatically_authenticated": true,
+    "phone_automatically_authenticated": true,
+    "five_account_home_restored": true,
+    "console_observation_seconds": 180,
+    "runtime_observation_seconds": 120,
+    "fresh_runtime_samples": 24,
+    "uptime_monotonic_during_observation": true,
+    "panic_or_i2c_error_during_observation": false,
+    "runtime_uptime_range_ms": [
+      20591,
+      135859
+    ],
+    "free_psram_range_bytes": [
+      1971788,
+      1971788
+    ],
+    "touch_user_confirmation": "pending"
+  },
+  "private_evidence": {
+    "original_console": ".local/phone-idle-rollback-20261029-100705/boot.log",
+    "original_panic_line": 8743,
+    "diagnostic_directory": ".local/lcd-reboot-diagnosis"
+  },
+  "references": [
+    "https://github.com/espressif/esp-idf/issues/18315",
+    "https://docs.espressif.com/projects/esp-idf/en/v5.5.3/esp32s3/api-reference/peripherals/i2c.html"
+  ]
+}
