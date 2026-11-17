@@ -47,7 +47,6 @@ inline constexpr const char* messages[][5]={
   {"시각 미확인","时间未知","時刻不明","Time unknown","Zeit unbekannt"},
   {"요금제 미확인","套餐未知","プラン不明","Plan unknown","Tarif unbekannt"},
   {"리셋 후 확인 대기","重置后等待更新","リセット後の更新待ち","Awaiting update after reset","Update nach Zurücksetzen ausstehend"},
-  {"Reset W 미확인","周重置时间未知","週リセット時刻不明","Reset W unknown","Reset W unbekannt"},
   {"일부 잔여량 미확인","部分余额未知","一部の残量は不明","Some quotas unknown","Einige Kontingente unbekannt"},
   {"무제한 · 제공된 정책 기준","无限制 · 以服务政策为准","無制限 · 提供元の方針による","Unlimited · per provider policy","Unbegrenzt · laut Anbieter"},
   {"연결 대기 · 데이터 없음","等待连接 · 无数据","接続待ち · データなし","Waiting · no data","Warte auf Verbindung · keine Daten"},
@@ -134,7 +133,6 @@ inline constexpr const char* messages[][5]={
   {"중계 종료","中继已停止","中継終了","Bridge stopped","Bridge beendet"},
   {"시작하지 못했습니다. 포터블 폴더와 설정 파일을 확인하세요.","无法启动。请检查便携版文件夹及设置文件。","起動できませんでした。ポータブルフォルダーと設定ファイルを確認してください。","Could not start. Check the portable folder and settings file.","Start fehlgeschlagen. Portablen Ordner und Einstellungsdatei prüfen."},
   {"휴대폰 감지","手机检测","スマートフォン検出","Phone presence","Telefonerkennung"},
-  {"만료됨","已到期","期限切れ","expired","abgelaufen"},
   {"만료 시각 없음","到期时间未知","期限不明","expiry unknown","Ablauf unbekannt"},
   {"리셋권","重置券","リセット券","Reset credits","Reset-Guthaben"},
 };
