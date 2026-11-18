@@ -26,6 +26,16 @@ const pages = {
 }
 const localeData = globalThis.QuotamonI18n
 let language = 'ko', currentPage = 'overview'
+let savingLanguage = false
+const languagePickers = [$('home-language'), $('language')]
+for (const picker of languagePickers) {
+  localeData.languages.forEach((code, index) => {
+    const option = new Option(localeData.names[index], code)
+    option.lang = code
+    option.dir = localeData.rtl.includes(code) ? 'rtl' : 'ltr'
+    picker.add(option)
+  })
+}
 const staticNodes = []
 const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
 while (walker.nextNode()) {
@@ -46,6 +56,8 @@ function t(source) {
 function setLanguage(code) {
   language = localeData.languages.includes(code) ? code : 'ko'
   document.documentElement.lang = language
+  document.documentElement.dir = localeData.rtl.includes(language) ? 'rtl' : 'ltr'
+  for (const picker of languagePickers) picker.value = language
   document.title = t('Quotamon · 설정')
   for (const [node, source] of staticNodes) node.textContent = t(source)
   for (const [el, source] of staticAttributes) el.setAttribute('aria-label', t(source))
@@ -137,7 +149,6 @@ function loadDraft() {
   draft = structuredClone(state.config)
   dirty = false
   setLanguage(draft.display.language || 'ko')
-  $('language').value = language
   $('sleep-enabled').checked = draft.display.sleep_enabled === true
   $('sleep-start').value = timeValue(draft.display.sleep_start_minute ?? 1380)
   $('sleep-end').value = timeValue(draft.display.sleep_end_minute ?? 420)
@@ -429,6 +440,7 @@ function renderPresence() {
 }
 function render() {
   if (!draft || (!dirty && draft.revision !== state.config.revision)) loadDraft()
+  $('home-language').disabled = savingLanguage
   $('source-label').textContent = state.source_available
     ? t('Orca 연결됨')
     : t('Orca 연결 대기')
@@ -495,7 +507,10 @@ async function poll() {
   }
   busyPoll = true
   try {
-    state = await api('state')
+    const configAtStart = state?.config
+    const next = await api('state')
+    if (state?.config !== configAtStart && state.config.revision > next.config.revision) return
+    state = next
     render()
   } catch {
     notice(
@@ -607,9 +622,46 @@ $('pair-dialog').addEventListener('cancel', (event) => {
     action('confirm', { pin: state.pairingPin, accept: false })
 })
 $('language').addEventListener('change', () => {
+  if (draft) draft.display.language = $('language').value
   setLanguage($('language').value)
   localNotice = ''
   if (state) { render(); renderAccounts() }
+})
+$('home-language').addEventListener('change', async () => {
+  if (!state || savingLanguage) return
+  const previous = state.config
+  const selected = $('home-language').value
+  if (selected === previous.display.language) {
+    draft.display.language = selected
+    setLanguage(selected)
+    render()
+    renderAccounts()
+    return
+  }
+  savingLanguage = true
+  $('home-language').disabled = true
+  try {
+    const { config } = await api('save', {
+      ...previous,
+      display: { ...previous.display, language: selected }
+    })
+    if (config.revision >= state.config.revision) state.config = config
+    if (dirty && draft.revision === previous.revision) {
+      draft.revision = config.revision
+      draft.display.language = config.display.language
+      setLanguage(config.display.language)
+      renderAccounts()
+    }
+    render()
+    notice(t('언어를 저장했습니다.'))
+  } catch (error) {
+    notice(t(error.message))
+    await poll()
+  } finally {
+    savingLanguage = false
+    $('home-language').value = language
+    $('home-language').disabled = false
+  }
 })
 // One authenticated stream replaces periodic state requests. The bridge signals
 // two seconds before the next snapshot, or immediately for connection/settings.

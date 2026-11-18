@@ -136,6 +136,7 @@ export async function startPortableServer(ui: PortableUi, port = 0) {
         try {
           const input = await body(req),
             controller = ui.controller()
+          let result: unknown = { ok: true }
           switch (path) {
             case '/api/scan':
               await controller.scan()
@@ -174,7 +175,7 @@ export async function startPortableServer(ui: PortableUi, port = 0) {
               await controller.confirm(input.pin, input.accept)
               break
             case '/api/save':
-              controller.save(input)
+              result = { ok: true, config: controller.save(input) }
               break
             case '/api/disconnect':
               await controller.disconnect(
@@ -204,7 +205,7 @@ export async function startPortableServer(ui: PortableUi, port = 0) {
           }
           uiError = null
           notify()
-          json(200, { ok: true })
+          json(200, result)
         } catch {
           json(409, {
             error:

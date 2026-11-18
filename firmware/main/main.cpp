@@ -24,6 +24,8 @@ bool screenOff=false, backlightOff=false, clockValid=false;
 int utcOffsetMinutes=0;
 int64_t wakeUntilUs=0;
 monitor::Settings localDisplay;
+std::string pendingLanguage, savedPendingLanguage;
+int languageSentRevision=-1;
 monitor::PairedPresenceTracker pairedPresence;
 bool pairedPresenceEnabled=true; // Explicit phone registration enables paired sensing; legacy scan settings are ignored.
 int pendingPairedPresence=-1;
@@ -46,6 +48,9 @@ void loadDisplay() {
     if(nvs_open("quotamon-ui",NVS_READONLY,&handle)!=ESP_OK)return;
     char language[12];size_t size=sizeof(language);
     if(nvs_get_str(handle,"language",language,&size)==ESP_OK&&monitor::i18n::valid(language))localDisplay.language=language;
+    uint8_t syncLanguage=0;
+    if(nvs_get_u8(handle,"sync_lang",&syncLanguage)==ESP_OK&&syncLanguage)
+        savedPendingLanguage=pendingLanguage=localDisplay.language;
     uint8_t enabled=0;uint16_t start=1380,end=420;
     nvs_get_u8(handle,"sleep_on",&enabled);nvs_get_u16(handle,"sleep_start",&start);nvs_get_u16(handle,"sleep_end",&end);
     uint8_t pairedOn=1;
@@ -65,11 +70,12 @@ void loadDisplay() {
     }
 }
 bool persistDisplay(const monitor::Settings& s) {
-    if(s.language==localDisplay.language&&s.sleepEnabled==localDisplay.sleepEnabled&&s.brightnessPercent==localDisplay.brightnessPercent&&
+    if(pendingLanguage==savedPendingLanguage&&s.language==localDisplay.language&&s.sleepEnabled==localDisplay.sleepEnabled&&s.brightnessPercent==localDisplay.brightnessPercent&&
        s.sleepStartMinute==localDisplay.sleepStartMinute&&s.sleepEndMinute==localDisplay.sleepEndMinute)return false;
     nvs_handle_t handle;
     if(nvs_open("quotamon-ui",NVS_READWRITE,&handle)!=ESP_OK)return false;
     esp_err_t result=nvs_set_str(handle,"language",s.language.c_str());
+    if(result==ESP_OK&&pendingLanguage!=savedPendingLanguage)result=nvs_set_u8(handle,"sync_lang",!pendingLanguage.empty());
     if(result==ESP_OK)result=nvs_set_u8(handle,"brightness",static_cast<uint8_t>(s.brightnessPercent));
     if(result==ESP_OK)result=nvs_set_u8(handle,"sleep_on",s.sleepEnabled);
     if(result==ESP_OK)result=nvs_set_u16(handle,"sleep_start",static_cast<uint16_t>(s.sleepStartMinute));
@@ -78,6 +84,7 @@ bool persistDisplay(const monitor::Settings& s) {
     nvs_close(handle);
     if(result==ESP_OK) {
         localDisplay=s;
+        savedPendingLanguage=pendingLanguage;
         ESP_LOGI("quotamon-ui","Display saved: language=%s schedule=%d start=%d end=%d",
             s.language.c_str(),s.sleepEnabled,s.sleepStartMinute,s.sleepEndMinute);
     } else ESP_LOGW("quotamon-ui","Display save failed: %s",esp_err_to_name(result));
@@ -108,7 +115,16 @@ void brightness(int value) {
     if(screenOff)lv_obj_add_flag(dimmer,LV_OBJ_FLAG_CLICKABLE);else lv_obj_clear_flag(dimmer,LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_style_bg_opa(dimmer,screenOff?static_cast<lv_opa_t>(LV_OPA_COVER):static_cast<lv_opa_t>((100-value)*255/100),0);
 }
-void clear() {const auto page=monitor::selectedAccount();current.connected=false;current.accounts.clear();monitor::apply(current);if(page==-1||page>=0)monitor::showHome();}
+void clear() {const auto page=monitor::selectedAccount();languageSentRevision=-1;current.connected=false;current.accounts.clear();monitor::apply(current);if(page==-1||page>=0)monitor::showHome();}
+void queueLanguage(const std::string& language) {pendingLanguage=language;languageSentRevision=-1;}
+void commitPendingLanguage() {
+    if(pendingLanguage.empty()||languageSentRevision>=0)return;
+    auto settings=localDisplay;
+    settings.language=pendingLanguage;
+    persistDisplay(settings);
+    if(current.connected&&transport::sendControl(nlohmann::json({{"type","language"},
+        {"base_revision",revision},{"language",pendingLanguage}}).dump()))languageSentRevision=revision;
+}
 void settings(const monitor::Settings& s,const monitor::Snapshot& data) {
     if(editRevision!=revision) {monitor::setSettings(confirmedSettings);monitor::apply(current);monitor::notify(tr("설정이 변경되어 저장하지 않았습니다. 다시 확인하세요."));return;}
     auto pending=std::make_unique<PendingSettings>();
@@ -122,6 +138,8 @@ void commitPendingSettings() {
     auto pending=std::move(pendingSettings);
     if(pending->baseRevision!=revision) {monitor::setSettings(confirmedSettings);monitor::apply(current);monitor::notify(tr("설정이 변경되어 저장하지 않았습니다. 다시 확인하세요."));return;}
     const auto& s=pending->value;
+    if((!current.connected&&s.language!=localDisplay.language)||
+       (!pendingLanguage.empty()&&s.language!=pendingLanguage))queueLanguage(s.language);
     persistDisplay(s);wakeUntilUs=0;
     brightness(s.brightnessPercent);
     nlohmann::json request={{"type","settings"},{"base_revision",pending->baseRevision},{"accounts",std::move(pending->accounts)},{"display",{
@@ -150,6 +168,7 @@ extern "C" void app_main() {
     diagnostics::start(display);
     monitor::init(current);monitor::setSettings(localDisplay);confirmedSettings=localDisplay;
     monitor::setCommitCallback(settings);monitor::setRefreshCallback(refresh);
+    monitor::setLanguageCallback(queueLanguage);
     monitor::setEditingCallback(beginEditing);
     monitor::setPairingCallbacks(transport::openPairing,confirmShownPairing,transport::forgetPairing);
     monitor::setPairedTrialCallbacks(transport::openPhonePairing,transport::forgetPhonePairing,transport::cancelPairing);
@@ -184,11 +203,16 @@ extern "C" void app_main() {
                     auto decoded=monitor::decode(json);
                     if(!decoded.data.connected||decoded.data.mock)throw std::runtime_error("Live snapshot required");
                     current=std::move(decoded.data);revision=decoded.revision;confirmedSettings=decoded.settings;
+                    if(decoded.settings.language==pendingLanguage||(languageSentRevision>=0&&revision!=languageSentRevision)) {
+                        pendingLanguage.clear();
+                        languageSentRevision=-1;
+                    }
+                    if(!pendingLanguage.empty())decoded.settings.language=pendingLanguage;
                     timeval clock{static_cast<time_t>(decoded.producedAt),0};settimeofday(&clock,nullptr);
                     utcOffsetMinutes=decoded.utcOffsetMinutes;clockValid=true;
                     static int64_t lastPersistUs=0;
                     const int64_t nowUs=esp_timer_get_time();
-                    if((!lastPersistUs||nowUs-lastPersistUs>=60LL*1000000)&&persistDisplay(decoded.settings))lastPersistUs=nowUs;
+                    if((pendingLanguage!=savedPendingLanguage||!lastPersistUs||nowUs-lastPersistUs>=60LL*1000000)&&persistDisplay(decoded.settings))lastPersistUs=nowUs;
                     monitor::setSettings(decoded.settings);brightness(decoded.settings.brightnessPercent);monitor::apply(current);
                     transport::sendControl(nlohmann::json({{"type","ack"},{"sequence",event->message.sequence}}).dump());
                     }
@@ -196,6 +220,7 @@ extern "C" void app_main() {
             }
         }
         if(current.connected&&(!transport::isConnected()||esp_timer_get_time()/1000-transport::lastContactMs()>35000)) {clear();transport::disconnect();}
+        commitPendingLanguage();
         const auto& displaySettings=monitor::settings();
         const bool scheduleOff=monitor::screenShouldSleep(displaySettings.sleepEnabled,displaySettings.sleepStartMinute,
             displaySettings.sleepEndMinute,time(nullptr),utcOffsetMinutes,clockValid,esp_timer_get_time(),wakeUntilUs);

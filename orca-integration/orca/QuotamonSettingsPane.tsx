@@ -7,6 +7,7 @@ import type {
   Selection
 } from '../../../../main/quotamon/quota-snapshot'
 import type { ControllerState } from '../../../../main/quotamon/quotamon-controller'
+import { languages, languageNames } from '../../../../main/quotamon/languages'
 export function QuotamonSettingsPane(): React.JSX.Element {
   const [state, setState] = useState<ControllerState | null>(null),
     [draft, setDraft] = useState<Config | null>(null)
@@ -82,9 +83,9 @@ export function QuotamonSettingsPane(): React.JSX.Element {
     setDraft({ ...draft, accounts })
     setDirty(true)
   }
-  const display = (
-    key: keyof Config['display'],
-    value: number | boolean
+  const display = <K extends keyof Config['display'],>(
+    key: K,
+    value: Config['display'][K]
   ): void => {
     if (draft) {
       setDraft({ ...draft, display: { ...draft.display, [key]: value } })
@@ -264,6 +265,23 @@ export function QuotamonSettingsPane(): React.JSX.Element {
       {draft && (
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
+            <label className="col-span-2 space-y-1 text-xs">
+              언어 / Language
+              <select
+                className="block w-full rounded-md border border-input bg-background p-2"
+                value={draft.display.language}
+                onChange={(event) => {
+                  const code = languages.find((value) => value === event.target.value)
+                  if (code) display('language', code)
+                }}
+              >
+                {languages.map((code) => (
+                  <option key={code} lang={code} dir="auto" value={code}>
+                    {languageNames[code]}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label className="space-y-1 text-xs">
               전송 주기 (15–3600초)
               <Input
