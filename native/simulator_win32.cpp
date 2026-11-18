@@ -569,7 +569,8 @@ void renderPairedTrial(const std::filesystem::path& folder) {
         capture(folder/(std::string(language)+"-unavailable.ppm"));
         click(100,430);require(monitor::selectedAccount()==-1,"Phone trial back failed");
     }
-    require(starts==5&&forgets==5&&approvals==5&&cancels==10,"Phone trial callbacks or cancel isolation failed");
+    const int languageCount=monitor::i18n::languageCount;
+    require(starts==languageCount&&forgets==languageCount&&approvals==languageCount&&cancels==languageCount*2,"Phone trial callbacks or cancel isolation failed");
     static int toggles=0;static bool enabled=true;
     monitor::setPairedPresenceControl([](bool value){++toggles;enabled=value;});
     for(const auto* language:monitor::i18n::languages) {
@@ -595,13 +596,15 @@ void renderPairedTrial(const std::filesystem::path& folder) {
         monitor::updatePairedPresence(status);advance();
         capture(folder/(std::string(language)+"-presence-unavailable.ppm"));
     }
+    nlohmann::json languages=nlohmann::json::array();
+    for(const auto* language:monitor::i18n::languages) languages.push_back(language);
     std::ofstream report(folder/"checks.json");
     report<<nlohmann::json({{"passed",true},{"mock_ble",true},{"hardware_tested",false},
         {"paired_presence_controls",true},{"presence_state_screens",true},
-        {"languages",{"ko","zh-CN","ja","en","de"}},
+        {"languages",languages},
         {"checks",{"enrollment navigation","PC disconnect preserves phone page","PC snapshot preserves phone comparison",
          "number approval","connected/disconnected/unavailable status","phone-only forget and cancel","back cancels enrollment"}}}).dump(2)<<'\n';
-    std::cout<<"Five-language paired trial LCD: PASS\n";
+    std::cout<<"Paired trial LCD: PASS\n";
 }
 void renderLocales(const std::filesystem::path& folder) {
     std::filesystem::create_directories(folder);
