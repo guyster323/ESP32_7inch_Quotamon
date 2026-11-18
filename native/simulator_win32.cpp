@@ -392,7 +392,7 @@ void renderSuite(const std::filesystem::path& folder) {
     s.accounts={s.accounts[0],s.accounts[3],s.accounts[4],claude,grok}; monitor::apply(s); monitor::showHome(); capture(folder/"09-five-providers.ppm");
     s.accounts.push_back(claude); s.accounts.back().id="demo-claude-team"; s.accounts.back().title="Claude / Team";
     s.accounts.push_back(grok); s.accounts.back().id="demo-grok-team"; s.accounts.back().title="Grok / Team";
-    monitor::apply(s); advance(); click(480,36); capture(folder/"10-account-page-two.ppm");
+    monitor::apply(s); advance(); click(535,36); capture(folder/"10-account-page-two.ppm");
     click(730,36); click(700,36); require(monitor::selectedAccount()==-3,"Account management navigation failed");
     capture(folder/"11-account-selector.ppm"); click(100,114); click(720,432);
     require(monitor::selectedAccount()==-1,"Account selection save failed");
@@ -466,7 +466,7 @@ void renderAccountCounts(const std::filesystem::path& folder) {
         for(int pageIndex=0;pageIndex<(count+4)/5;pageIndex++) {
             const int visible=std::min(5,count-pageIndex*5);
             for(int slot=0;slot<5;slot++)require((monitor::cardObject(slot)!=nullptr)==(slot<visible),"Page has wrong card count");
-            if(pageIndex+1<(count+4)/5)click(480,35);
+            if(pageIndex+1<(count+4)/5)click(535,35);
         }
         capture(folder/("home-"+std::to_string(count)+"-last-page.ppm"));
         auto* first=monitor::cardObject(0);lv_area_t area;lv_obj_get_coords(first,&area);click(area.x1+30,area.y1+30);
@@ -569,7 +569,8 @@ void renderPairedTrial(const std::filesystem::path& folder) {
         capture(folder/(std::string(language)+"-unavailable.ppm"));
         click(100,430);require(monitor::selectedAccount()==-1,"Phone trial back failed");
     }
-    require(starts==5&&forgets==5&&approvals==5&&cancels==10,"Phone trial callbacks or cancel isolation failed");
+    const int languageCount=monitor::i18n::languageCount;
+    require(starts==languageCount&&forgets==languageCount&&approvals==languageCount&&cancels==languageCount*2,"Phone trial callbacks or cancel isolation failed");
     static int toggles=0;static bool enabled=true;
     monitor::setPairedPresenceControl([](bool value){++toggles;enabled=value;});
     for(const auto* language:monitor::i18n::languages) {
@@ -595,18 +596,35 @@ void renderPairedTrial(const std::filesystem::path& folder) {
         monitor::updatePairedPresence(status);advance();
         capture(folder/(std::string(language)+"-presence-unavailable.ppm"));
     }
+    nlohmann::json languages=nlohmann::json::array();
+    for(const auto* language:monitor::i18n::languages) languages.push_back(language);
     std::ofstream report(folder/"checks.json");
     report<<nlohmann::json({{"passed",true},{"mock_ble",true},{"hardware_tested",false},
         {"paired_presence_controls",true},{"presence_state_screens",true},
-        {"languages",{"ko","zh-CN","ja","en","de"}},
+        {"languages",languages},
         {"checks",{"enrollment navigation","PC disconnect preserves phone page","PC snapshot preserves phone comparison",
          "number approval","connected/disconnected/unavailable status","phone-only forget and cancel","back cancels enrollment"}}}).dump(2)<<'\n';
-    std::cout<<"Five-language paired trial LCD: PASS\n";
+    std::cout<<"Paired trial LCD: PASS\n";
 }
 void renderLocales(const std::filesystem::path& folder) {
     std::filesystem::create_directories(folder);
+    monitor::init({false,true,{}});
+    static std::string requestedLanguage;
+    monitor::setLanguageCallback([](const std::string& code) {requestedLanguage=code;});
+    auto* homeLanguage=findDropdown(lv_scr_act());
+    require(homeLanguage!=nullptr,"First screen language selector missing");
+    click(370,28);
+    require(lv_dropdown_is_open(homeLanguage),"First screen language selector did not open");
+    lv_dropdown_close(homeLanguage);
+    const int last=monitor::i18n::languageCount-1;
+    lv_dropdown_set_selected(homeLanguage,static_cast<uint16_t>(last));
+    lv_event_send(homeLanguage,LV_EVENT_VALUE_CHANGED,nullptr);
+    require(requestedLanguage==monitor::i18n::languages[last]&&monitor::settings().language==requestedLanguage,
+            "First screen language did not take effect immediately");
+    capture(folder/"lcd-first-run-language.ppm");
+    monitor::setLanguageCallback(nullptr);
     auto data=monitor::demo();monitor::init(data);
-    for(int index=0;index<5;index++) {
+    for(int index=0;index<monitor::i18n::languageCount;index++) {
         monitor::showSettings();click(530,116); // Keep an unsaved interval while translating.
         auto* dropdown=findDropdown(lv_scr_act());require(dropdown!=nullptr,"Language selector missing");
         lv_dropdown_set_selected(dropdown,static_cast<uint16_t>(index));
@@ -617,6 +635,7 @@ void renderLocales(const std::filesystem::path& folder) {
         capture(folder/("lcd-"+code+"-settings.ppm"));
         click(735,432);require(monitor::settings().language==code,"Language save failed");
         require(monitor::settings().pollSeconds==60+15*(index+1),"Language switch lost another draft field");
+        require(lv_dropdown_get_selected(findDropdown(lv_scr_act()))==index,"Home and settings selectors differ");
         capture(folder/("lcd-"+code+"-home.ppm"));
         monitor::showSettings();click(665,185);require(monitor::selectedAccount()==-7,"Schedule button failed");
         capture(folder/("lcd-"+code+"-schedule.ppm"));
@@ -666,6 +685,14 @@ void renderLocales(const std::filesystem::path& folder) {
         credited.accounts[2].resetCredits[1]={1,static_cast<double>(now)+74*3600,""};
         auto display=monitor::settings(); display.language="ko"; monitor::setSettings(display);
         monitor::apply(credited); advance();
+        lv_area_t cardTop,control;
+        lv_obj_get_coords(monitor::cardObject(0),&cardTop);
+        for(const auto* title:{"새로고침","설정"}) {
+            auto* controlText=findLabel(lv_scr_act(),title);
+            require(controlText!=nullptr,"Home header button missing");
+            lv_obj_get_coords(lv_obj_get_parent(controlText),&control);
+            require(cardTop.y1-control.y2-1>=16,"Home button is too close to the first card");
+        }
         for(int slot=0;slot<5;slot++) require(findLabel(monitor::cardObject(slot),"리셋권")==nullptr,"Home card still displays the redundant reset-credit badge");
         const char* creditTimes[]={"14h 20m","2h 10m","7h 45m"};
         const char* secondCreditTimes[]={"1d 6h 5m","2d 4h","3d 2h"};
@@ -783,7 +810,7 @@ void renderLocales(const std::filesystem::path& folder) {
         {"display",{{"poll_seconds",60},{"brightness_percent",70},{"show_reset",true},
                     {"show_updated",true},{"show_credits",true},{"show_session",true}}}};
     require(monitor::decode(fixture).settings.language=="ko","Legacy language default failed");
-    fixture["display"]["language"]="fr";bool rejected=false;
+    fixture["display"]["language"]="zz";bool rejected=false;
     try {monitor::decode(fixture);}catch(const std::exception&){rejected=true;}
     require(rejected,"Unsupported language accepted");
     fixture["display"]["language"]="de";fixture["display"]["sleep_enabled"]=true;
@@ -791,7 +818,12 @@ void renderLocales(const std::filesystem::path& folder) {
     try {monitor::decode(fixture);}catch(const std::exception&){rejected=true;}
     require(rejected,"Equal sleep endpoints accepted");
     std::ofstream result(folder/"lcd-checks.json");
-    result<<R"({"passed":true,"mock_data":true,"hardware_tested":false,"languages":["ko","zh-CN","ja","en","de"],"checks":["real language selector event","unsaved interval survives language switch","language save","schedule checkbox/time/save","direct HH:MM keypad entry/save","invalid direct time kept for correction","keypad cancel preserves draft","home/settings/schedule/keypad/detail/pairing rendered","legacy snapshot","invalid language and schedule rejected"]})";
+    result<<nlohmann::json({{"passed",true},{"mock_data",true},{"hardware_tested",false},
+        {"languages",monitor::i18n::languages},
+        {"checks",{"first screen language selection","header button spacing","real language selector event",
+            "unsaved interval survives language switch","language save","schedule checkbox/time/save",
+            "direct HH:MM keypad entry/save","invalid direct time kept for correction","keypad cancel preserves draft",
+            "home/settings/schedule/keypad/detail/pairing rendered","legacy snapshot","invalid language and schedule rejected"}}}).dump(2);
     std::cout<<"Localized LCD UI: PASS\n";
 }
 LRESULT CALLBACK wndProc(HWND hwnd,UINT msg,WPARAM w,LPARAM l) {

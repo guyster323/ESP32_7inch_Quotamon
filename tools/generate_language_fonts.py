@@ -28,10 +28,12 @@ assert hashlib.sha256(sc.read_bytes()).hexdigest()==expected,'Unreviewed SC font
 kr=folder/'NotoSansKR-Medium.ttf'
 assert kr.exists(),'Generate the existing Noto Sans KR Medium font first'
 text=''.join((ROOT/p).read_text(encoding='utf-8') for p in ['native/ui.cpp','native/bluetooth_name.h','firmware/main/main.cpp','native/generated/translations.h'])
-characters={c for c in text if ord(c)>127}
+characters={c for c in text if ord(c)>127 and not 0xe000<=ord(c)<0xf900}
 krmap=TTFont(kr).getBestCmap();scmap=TTFont(sc).getBestCmap()
 missing=characters-set(map(chr,krmap))
-assert all(ord(c) in scmap for c in missing),f'Missing glyphs: {sorted(c for c in missing if ord(c) not in scmap)}'
+world={c for c in missing if ord(c) not in scmap}
+characters-=world
+missing-=world
 static=folder/'NotoSansSC-Medium.ttf'
 if not static.exists():instantiateVariableFont(TTFont(sc),{'wght':500},inplace=True).save(static)
 binary=ROOT/'.tools/fontconv/node_modules/lv_font_conv/lv_font_conv.js'
@@ -60,7 +62,7 @@ extra=(wanted&krmap.keys())-cjk
 args=['node',str(binary),'--size','16','--bpp','2','--format','lvgl',
       '--font',str(static),'--range',ranges(cjk)]
 if extra:args+=['--font',str(kr),'--range',ranges(extra)]
-args+=['--no-kerning','-o',str(ROOT/'native/generated/font_cjk16.c')]
+args+=['--no-kerning','--lv-fallback','font_world16','-o',str(ROOT/'native/generated/font_cjk16.c')]
 subprocess.run(args,check=True,cwd=ROOT)
 shutil.copyfile(folder/'NotoSansSC-OFL.txt',ROOT/'native/generated/NotoSansSC-OFL.txt')
 path=ROOT/'native/generated/asset-manifest.json';manifest=json.loads(path.read_text(encoding='utf-8'))
@@ -68,8 +70,9 @@ manifest['ui_languages']={'codes':['ko','zh-CN','ja','en','de'],'catalog':'local
     'font_sizes':[14,16,20],'additional_font':'Noto Sans SC Medium (weight 500)',
     'source':f'https://github.com/google/fonts/tree/{pin}/ofl/notosanssc','source_sha256':expected,
     'additional_symbols':''.join(sorted(characters)),'fallback_symbols':''.join(sorted(missing)),
-    'coverage':'All translated LCD UI text, modern Hangul, ASCII and Latin extended; shared compressed 16px fallback for BMP CJK unified/Extension A ideographs, kana, punctuation and fullwidth characters supported by Noto Sans SC/KR.',
+    'coverage':'All translated LCD UI text, modern Hangul, ASCII and Latin extended. Shared 16px fallbacks cover CJK, Cyrillic and pre-shaped UI words for Devanagari, Bengali and Arabic scripts.',
     'cjk_fallback':{'font':'font_cjk16','size':16,'bpp':2,'compressed':True,'glyphs':len(cjk|extra)},
     'ui_compressed':True,'shared_hangul_size':16}
 path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 print(f'Localized UI fonts: {len(characters)} non-ASCII symbols, {len(missing)} simplified fallback glyphs.')
+subprocess.run([sys.executable,str(ROOT/'tools/generate_world_font.py')],check=True,cwd=ROOT)

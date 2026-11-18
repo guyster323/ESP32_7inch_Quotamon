@@ -26,6 +26,7 @@ Settings committed, draft;
 int page=-1, refreshCount=0;
 int homePage=0;
 CommitCallback onCommit=nullptr;
+LanguageCallback onLanguage=nullptr;
 ActionCallback onRefresh=nullptr, onPairingStart=nullptr, onPairingForget=nullptr, onEditing=nullptr;
 ActionCallback onPhonePairingStart=nullptr,onPhonePairingForget=nullptr,onPairingCancel=nullptr;
 bool phonePairingScreen=false,pairedTrial=false,trialAvailable=false,trialBonded=false,trialConnected=false;
@@ -86,8 +87,8 @@ lv_obj_t* label(lv_obj_t* parent,int x,int y,int w,const char* value,const lv_fo
 }
 void action(lv_event_t* e);
 void showTimeInput(int row);
-lv_obj_t* button(lv_obj_t* parent,int x,int y,int w,const char* text,int actionId) {
-    auto* o=box(parent,x,y,w,48,PANEL,BORDER,8);
+lv_obj_t* button(lv_obj_t* parent,int x,int y,int w,const char* text,int actionId,int height=48) {
+    auto* o=box(parent,x,y,w,height,PANEL,BORDER,8);
     lv_obj_add_flag(o,LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_style_bg_color(o,color(0x223949),LV_STATE_PRESSED);
     const auto* font=lv_txt_get_width(text,static_cast<uint32_t>(std::strlen(text)),&font_ko16,0,LV_TEXT_FLAG_NONE)>w-12?&font_ko14:&font_ko16;
@@ -95,6 +96,30 @@ lv_obj_t* button(lv_obj_t* parent,int x,int y,int w,const char* text,int actionI
     lv_obj_set_style_text_align(t,LV_TEXT_ALIGN_CENTER,0);
     lv_obj_add_event_cb(o,action,LV_EVENT_CLICKED,reinterpret_cast<void*>(static_cast<intptr_t>(actionId)));
     return o;
+}
+void languagePicker(lv_obj_t* parent,lv_coord_t x,lv_coord_t y,lv_coord_t width,lv_coord_t height,const std::string& language,int actionId) {
+    auto* picker=lv_dropdown_create(parent);
+    lv_obj_set_pos(picker,x,y);
+    lv_obj_set_size(picker,width,height);
+    lv_dropdown_set_options_static(picker,i18n::options);
+    lv_obj_set_style_bg_color(picker,color(PANEL),0);
+    lv_obj_set_style_border_color(picker,color(BORDER),0);
+    lv_obj_set_style_border_width(picker,1,0);
+    lv_obj_set_style_radius(picker,8,0);
+    lv_obj_set_style_text_color(picker,color(TEXT),0);
+    lv_obj_set_style_text_color(picker,color(MUTED),LV_PART_INDICATOR);
+    lv_obj_set_style_text_font(picker,&lv_font_montserrat_14,LV_PART_INDICATOR);
+    lv_obj_set_style_text_font(picker,height<42?&font_ko14:&font_ko16,0);
+    auto* list=lv_dropdown_get_list(picker);
+    lv_obj_set_style_bg_color(list,color(PANEL),0);
+    lv_obj_set_style_border_color(list,color(BORDER),0);
+    lv_obj_set_style_text_color(list,color(TEXT),0);
+    lv_obj_set_style_bg_color(list,color(0x223949),LV_PART_SELECTED|LV_STATE_CHECKED);
+    lv_obj_set_style_text_color(list,color(TEXT),LV_PART_SELECTED|LV_STATE_CHECKED);
+    lv_obj_set_style_text_font(list,&font_ko16,0);
+    lv_obj_set_style_text_line_space(list,12,0);
+    lv_dropdown_set_selected(picker,static_cast<uint16_t>(i18n::index(language)));
+    lv_obj_add_event_cb(picker,action,LV_EVENT_VALUE_CHANGED,reinterpret_cast<void*>(static_cast<intptr_t>(actionId)));
 }
 unsigned meterColor(double value,int index) {
     if(value>=0&&value<=10) return RED;
@@ -125,14 +150,14 @@ void setMeter(Meter& m,const Pool& p,int index,bool valid) {
     char buf[24]; double value=valid?p.remaining:-1;
     if(value>0&&value<1) std::snprintf(buf,sizeof(buf),"<1%%");
     else if(value>=0) std::snprintf(buf,sizeof(buf),"%d%%",static_cast<int>(std::floor(std::clamp(value,0.0,100.0))));
-    else std::snprintf(buf,sizeof(buf),"%s",value==-2?tr("무제한"):"--");
+    else std::snprintf(buf,sizeof(buf),"--");
     const int h=m.height;
     auto* f=value==-2||(value>0&&value<1)?(h>=66?&font_ko20:&font_ko16):m.font;
     lv_obj_set_style_text_font(m.dark,f,0); lv_obj_set_style_text_font(m.light,f,0);
     for(auto* text:{m.dark,m.light}) {
         lv_obj_set_height(text,f->line_height);
         lv_obj_set_y(text,static_cast<lv_coord_t>(h-f->line_height-6));
-        lv_label_set_text(text,buf);
+        lv_label_set_text(text,value==-2?tr("무제한"):buf);
     }
     int width=value>=0 ? static_cast<int>(std::lround(m.width*std::clamp(value,0.0,100.0)/100.0)):0;
     lv_obj_set_width(m.fill,static_cast<lv_coord_t>(std::max(1,width)));
@@ -498,9 +523,18 @@ void action(lv_event_t* e) {
         label(root,40,130,720,tr("현재 연결이 끊어지고 Windows에서도 기존 장치를 제거해야 합니다."),&font_ko16,MUTED);
         button(root,40,340,344,tr("취소"),1);button(root,416,340,344,tr("페어링 지우기"),21);
     }
-    else if(id==22) {
-        draft.language=i18n::languages[std::min<unsigned>(4,lv_dropdown_get_selected(lv_event_get_target(e)))];
-        showSettings(true);
+    else if(id==22||id==46) {
+        const auto selected=lv_dropdown_get_selected(lv_event_get_target(e));
+        if(selected>=i18n::languageCount)return;
+        const auto* language=i18n::languages[selected];
+        if(id==22) {
+            draft.language=language;
+            showSettings(true);
+        } else if(committed.language!=language) {
+            committed.language=language;
+            if(onLanguage)onLanguage(committed.language);
+            showHome();
+        }
     }
     else if(id==23) showScreenSchedule();
     else if(id==24) showSettings(true);
@@ -597,13 +631,14 @@ void apply(const Snapshot& data) {
 }
 void showHome() {
     page=-1; newPage();
-    label(root,20,17,340,tr("QUOTA  /  구독 잔여량"),&font_ko20);
-    button(root,570,12,100,tr("새로고침"),2); button(root,682,12,98,tr("설정"),3);
+    label(root,20,17,270,tr("QUOTA  /  구독 잔여량"),&font_ko20);
+    languagePicker(root,300,10,158,36,committed.language,46);
+    button(root,564,10,112,tr("새로고침"),2,36); button(root,688,10,92,tr("설정"),3,36);
     std::vector<int> selected;
     for(size_t i=0;i<current.accounts.size();i++) if(current.accounts[i].enabled) selected.push_back(static_cast<int>(i));
     homePage=std::clamp(homePage,0,std::max(0,(static_cast<int>(selected.size())-1)/5));
     visible.fill(-1);
-    if(selected.size()>5) { button(root,380,12,60,"<",15); button(root,450,12,60,">",16); }
+    if(selected.size()>5) { button(root,466,10,42,"<",15,36); button(root,514,10,42,">",16,36); }
     int count=std::min(5,static_cast<int>(selected.size())-homePage*5);
     bool homeCredits=false,lowerCredits=false;
     for(int slot=0;slot<count;slot++) if(current.accounts[selected[homePage*5+slot]].resetCreditCount>0) {
@@ -702,14 +737,7 @@ void showSettings(bool keepDraft) {
     brightnessLabel=label(panel,354,93,130,"",&font_ko20);
     button(panel,280,82,60,"−",8); button(panel,480,82,60,"+",9);
     label(panel,558,3,180,tr("언어"),&font_ko14);
-    auto* languages=lv_dropdown_create(panel);
-    lv_obj_set_pos(languages,550,30);lv_obj_set_size(languages,190,42);
-    lv_dropdown_set_options(languages,"한국어\n简体中文\n日本語\nEnglish\nDeutsch");
-    lv_obj_set_style_text_font(languages,&lv_font_montserrat_14,LV_PART_INDICATOR);
-    lv_obj_set_style_text_font(languages,&font_ko16,0);
-    lv_obj_set_style_text_font(lv_dropdown_get_list(languages),&font_ko16,0);
-    lv_dropdown_set_selected(languages,static_cast<uint16_t>(i18n::index(draft.language)));
-    lv_obj_add_event_cb(languages,action,LV_EVENT_VALUE_CHANGED,reinterpret_cast<void*>(22));
+    languagePicker(panel,550,30,190,42,draft.language,22);
     button(panel,550,84,190,tr("화면 끄기 예약"),23);
     auto check=[panel](int x,int y,const char* text,bool value,int id) {
         auto* cb=lv_checkbox_create(panel); lv_obj_set_pos(cb,static_cast<lv_coord_t>(x),static_cast<lv_coord_t>(y)); lv_checkbox_set_text(cb,text);
@@ -760,6 +788,7 @@ void setSettings(const Settings& value) {
     if(page==-1) {if(languageChanged)showHome();else updateCards();}
 }
 void setCommitCallback(CommitCallback callback) { onCommit=callback; }
+void setLanguageCallback(LanguageCallback callback) { onLanguage=callback; }
 void setRefreshCallback(ActionCallback callback) { onRefresh=callback; }
 void setEditingCallback(ActionCallback callback) { onEditing=callback; }
 void notify(const char* message) {feedback=message;feedbackAt=lv_tick_get();footerText();}

@@ -106,7 +106,8 @@ export function installQuotamonIntegration(): void {
         case 'refresh':
           return c.refresh()
         case 'save':
-          return c.save(args[0])
+          c.save(args[0])
+          return
         case 'connect':
           if (typeof args[0] !== 'string') throw Error('Invalid device')
           return c.connect(args[0])

@@ -44,7 +44,8 @@ button:disabled {
   cursor: wait;
 }
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
@@ -65,7 +66,7 @@ input:focus-visible {
   position: sticky;
   top: 0;
   height: 100vh;
-  border-right: 1px solid var(--line);
+  border-inline-end: 1px solid var(--line);
   padding: 32px 22px;
   display: flex;
   flex-direction: column;
@@ -98,7 +99,7 @@ nav {
   gap: 8px;
 }
 nav button {
-  text-align: left;
+  text-align: start;
   border-color: transparent;
   padding: 14px 16px;
   color: var(--muted);
@@ -123,7 +124,7 @@ nav button.active {
   height: 8px;
   border-radius: 50%;
   background: var(--muted);
-  margin-right: 9px;
+  margin-inline-end: 9px;
 }
 .dot.good {
   background: var(--green);
@@ -139,6 +140,26 @@ header {
   justify-content: space-between;
   gap: 18px;
   margin-bottom: 32px;
+}
+.header-actions,
+.quick-language {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.quick-language {
+  color: var(--muted);
+  font-size: 13px;
+}
+.header-actions select,
+.header-actions button {
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 13px;
 }
 .eyebrow {
   font-size: 10px;
@@ -473,7 +494,7 @@ dt {
 }
 dd {
   margin: 0;
-  text-align: right;
+  text-align: end;
 }
 .device-row {
   display: flex;
@@ -674,7 +695,7 @@ select {
     width: 100%;
     height: auto;
     padding: 18px 20px;
-    border-right: 0;
+    border-inline-end: 0;
     border-bottom: 1px solid var(--line);
   }
   .brand {
@@ -702,7 +723,8 @@ select {
   header {
     display: block;
   }
-  header > .secondary {
+  .header-actions {
+    justify-content: flex-start;
     margin-top: 18px;
   }
   .account-row {

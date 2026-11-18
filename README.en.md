@@ -97,7 +97,7 @@ Requires Windows 10 2004 or later / Windows 11, x64 and Bluetooth LE. Keep the p
 
 ## Languages and scheduled screen-off
 
-The web UI and ESP32 support **Korean, Simplified Chinese, Japanese, English and German**. Choose **Settings → Language → Save** to synchronize the language between the PC and display.
+Choose from 16 languages on the home screen of the portable web UI or the ESP32. You can also change the language under **Settings → Language → Save**. The connected screens share the same setting.
 
 Under **Settings → Screen-off schedule**, set daily off/on times. The default is **disabled, 23:00–07:00**. The schedule uses the PC's local time and switches off the backlight while BLE and data reception continue. Touch the dark display to wake it for **five minutes**.
 
@@ -169,7 +169,7 @@ This is a **development preview**. Beyond the shared LVGL UI and portable bridge
 
 | Scope | Evidence |
 |---|---|
-| Software | 52 TypeScript tests, eight CTest suites including actual BLE transport with a simulated host/store, and five-language LCD/web checks |
+| Software | 52 TypeScript tests, eight CTest suites including actual BLE transport with a simulated host/store, and 16-language LCD/web checks |
 | Character animation | Five providers × six states, 40 page cycles, unchanged pixels outside sprite regions and 54 lossless assets verified. All 380 rendered frames match before/after compression |
 | Live data | Three Codex accounts and Cursor from unmodified Orca 1.4.224, plus the existing Copilot SDK account |
 | Hardware | Full backup, application upload and readback verification; bootloader, partitions and pairing NVS preserved |
@@ -178,6 +178,22 @@ This is a **development preview**. Beyond the shared LVGL UI and portable bridge
 Refresh timestamps and compact reset layouts were checked in the native renderer. Individual on-device text layouts, extended operation and every recovery scenario have not all been verified. The [verification record](docs/VERIFICATION.md) separates these boundaries.
 
 ## What's New
+
+### 2026-11-18 — Home controls and 16 languages
+
+The home **Refresh** and **Settings** buttons are 36px tall and sit at least **16px** above the first card. A language selector shares that row. On the PC dashboard, the language selector and refresh button use the same 36px height and 13px type.
+
+Choosing a language on the portable web or ESP32 **home screen** saves it immediately. Alongside Korean, the display supports English, Simplified Chinese, Japanese, Hindi, Spanish, Arabic, French, Bengali, Portuguese, Indonesian, Urdu, Russian, German, Nigerian Pidgin and Egyptian Arabic. Arabic and Urdu read right to left. Hindi, Bengali and Arabic script are shaped for the LCD. [Languages and fonts](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md)
+
+| Korean home | Arabic home |
+|:---:|:---:|
+| [![Korean home with the language selector and compact refresh and settings buttons](visuals/locales/lcd-ko-home.png)](visuals/locales/lcd-ko-home.png) | [![Arabic home reading right to left](visuals/locales/lcd-ar-home.png)](visuals/locales/lcd-ar-home.png) |
+
+| Hindi home |
+|:---:|
+| [![Hindi home with shaped text](visuals/locales/lcd-hi-home.png)](visuals/locales/lcd-hi-home.png) |
+
+These frames use illustrative data in the real LVGL renderer.
 
 ### 2026-11-17 — Codex reset credits and plan time remaining
 
@@ -198,6 +214,11 @@ The PC dashboard uses the same two lines and the same colors as the LCD. Charact
 These frames use illustrative data in the real LVGL renderer and web UI. Only the application partition was uploaded; the bootloader, partitions and pairing NVS were left in place. [Display rules](docs/UI_CONSISTENCY.md) · [Hardware upload record](docs/ui-no-credit-badge-build.json)
 
 ## Changelog
+
+### 2026-11-18 — Home control spacing and 16 languages
+
+- Home Refresh and Settings buttons are 36px tall, with at least 16px before the first card. The PC dashboard language selector and refresh button match that height. [What's New](#whats-new)
+- The home screen saves any of 16 languages immediately. Arabic and Urdu run right to left; Hindi, Bengali and Arabic script are shaped on the LCD. [Languages and screen schedule](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md)
 
 ### 2026-11-17 — Codex reset credits, plan countdowns and Copilot CLI discovery
 

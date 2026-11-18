@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { BleHost } from './ble-host.js'
 import { fragment, Reassembler } from './ble-protocol.js'
+import { languages } from './languages.js'
 import { OrcaAccountProjector } from './orca-account-projector.js'
 import { parseRuntimeMetrics } from './runtime-metrics.js'
 import { type PairedPresence, parsePairedPresence, unknownPresence } from './paired-presence.js'
@@ -170,7 +171,7 @@ export class QuotamonController extends EventEmitter {
     this.presence = unknownPresence()
     this.publish()
   }
-  save(input: unknown): void {
+  save(input: unknown): Config {
     const next = validateConfig(input)
     if (next.revision !== this.config.revision)
       throw Error('Settings changed; reload before saving')
@@ -184,6 +185,7 @@ export class QuotamonController extends EventEmitter {
     this.config = committed
     this.dirty = true
     this.publish()
+    return committed
   }
   async refresh(): Promise<void> {
     if (this.refreshPending) return this.refreshPending
@@ -301,6 +303,14 @@ export class QuotamonController extends EventEmitter {
       } else if (request.type === 'refresh') {
         await this.refresh()
         this.dirty = true
+      } else if (request.type === 'language') {
+        if (request.base_revision === this.config.revision &&
+            request.language !== this.config.display.language &&
+            languages.some((language) => language === request.language)) {
+          this.save({ ...this.config, display: { ...this.config.display, language: request.language } })
+        } else {
+          this.dirty = true
+        }
       } else if (
         request.type === 'settings' &&
         this.source.isAvailable?.() === false

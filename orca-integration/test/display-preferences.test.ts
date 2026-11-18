@@ -13,7 +13,7 @@ test('legacy settings migrate to Korean with screen scheduling disabled', () => 
   for (const key of ['language', 'sleep_enabled', 'sleep_start_minute', 'sleep_end_minute']) delete old.display[key]
   assert.deepEqual(validateConfig(old), config)
 })
-test('five languages and overnight screen schedules survive validation, storage and snapshots', () => {
+test('supported languages and overnight screen schedules survive validation, storage and snapshots', () => {
   for (const language of languages) {
     const config = defaultConfig()
     config.display = { ...config.display, language, sleep_enabled: true, sleep_start_minute: 1425, sleep_end_minute: 375 }
@@ -26,7 +26,7 @@ test('five languages and overnight screen schedules survive validation, storage 
 })
 test('invalid locales, schedule types, equal endpoints and out-of-day values are rejected', () => {
   for (const display of [
-    { language: 'fr' }, { language: '' }, { language: null }, { sleep_enabled: 'true' },
+    { language: 'zz' }, { language: '' }, { language: null }, { sleep_enabled: 'true' },
     { sleep_start_minute: -1 }, { sleep_end_minute: 1440 }, { sleep_start_minute: 23.5 },
     { sleep_end_minute: null }, { sleep_start_minute: NaN },
     { sleep_enabled: true, sleep_start_minute: 600, sleep_end_minute: 600 }
@@ -41,24 +41,32 @@ test('device locale/schedule changes synchronize to the PC and legacy edits pres
   const controller = new QuotamonController(host as unknown as BleHost, {
     getSnapshot: () => ({}), refreshIfStale: async () => {}, onChanged: () => () => {}, isAvailable: () => true
   }, value => { saved = value; commits++ })
-  async function notify(display: unknown, revision: number) {
-    const body = Buffer.from(JSON.stringify({ type: 'settings', base_revision: revision, display, accounts: [] }))
+  async function notify(message: object, revision: number) {
+    const body = Buffer.from(JSON.stringify({ base_revision: revision, ...message }))
     for (const frame of fragment(2, revision + 1, body, 20)) host.emit('event', { type: 'notification', frame: Buffer.from(frame).toString('base64') })
     await new Promise(resolve => setImmediate(resolve))
   }
   try {
     const display = { ...saved.display, language: 'ja', sleep_enabled: true, sleep_start_minute: 1380, sleep_end_minute: 420 }
-    await notify(display, 0)
+    await notify({ type: 'settings', display, accounts: [] }, 0)
     assert.equal(commits, 1)
     assert.deepEqual(saved.display, display)
     const legacy = { poll_seconds: 90, brightness_percent: 70, show_reset: true, show_updated: true, show_credits: true, show_session: true }
-    await notify(legacy, 1)
+    await notify({ type: 'settings', display: legacy, accounts: [] }, 1)
     assert.equal(commits, 2)
     assert.equal(saved.display.language, 'ja')
     assert.equal(saved.display.sleep_enabled, true)
     assert.equal(saved.display.poll_seconds, 90)
-    await notify({ ...display, language: 'de' }, 0) // Stale device draft.
+    await notify({ type: 'settings', display: { ...display, language: 'de' }, accounts: [] }, 0)
     assert.equal(commits, 2)
     assert.equal(saved.display.language, 'ja')
+    controller.save({ ...saved, accounts: [{ id: 'codex-0123456789abcdef', enabled: true, alias: 'Custom', plan: '' }] })
+    const before = saved
+    await notify({ type: 'language', language: 'hi' }, before.revision)
+    assert.deepEqual(saved, { ...before, revision: before.revision + 1, display: { ...before.display, language: 'hi' } })
+    await notify({ type: 'language', language: 'ur' }, before.revision)
+    assert.equal(saved.display.language, 'hi')
+    await notify({ type: 'language' }, saved.revision)
+    assert.equal(saved.display.language, 'hi')
   } finally { controller.dispose() }
 })

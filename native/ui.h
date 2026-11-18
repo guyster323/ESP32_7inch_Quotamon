@@ -67,6 +67,8 @@ void showAccounts();
 void setSettings(const Settings& value);
 using CommitCallback = void(*)(const Settings&, const Snapshot&);
 void setCommitCallback(CommitCallback callback);
+using LanguageCallback = void(*)(const std::string&);
+void setLanguageCallback(LanguageCallback callback);
 using ActionCallback = void(*)();
 using PairingCallback = void(*)(bool accept);
 void setRefreshCallback(ActionCallback callback);
