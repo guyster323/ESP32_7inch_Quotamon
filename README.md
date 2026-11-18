@@ -13,7 +13,15 @@ A 7-inch desk display with pixel companions and quota bars.
 [![BLE](https://img.shields.io/badge/Orca-BLE-bca3ff?labelColor=111e2a)](orca-integration)
 [![License](https://img.shields.io/badge/License-MIT-91a6b8?labelColor=111e2a)](LICENSE)
 
-[한국어](README.ko.md) · [Languages](#languages) · [Quick start](#quick-start) · [What's New](#whats-new) · [Changelog](#changelog) · [Portable setup](docs/PORTABLE_BRIDGE.md) · [Firmware upload](docs/UPLOAD.md) · [Architecture](docs/ARCHITECTURE.md)
+<details>
+<summary><strong>English</strong> · 16 languages</summary>
+
+**English** · [한국어](README.ko.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [Deutsch](README.de.md) · [हिन्दी](README.hi.md) · [Español](README.es.md) · [العربية](README.ar.md)<br>
+[Français](README.fr.md) · [বাংলা](README.bn.md) · [Português](README.pt.md) · [Bahasa Indonesia](README.id.md) · [اردو](README.ur.md) · [Русский](README.ru.md) · [Naijá](README.pcm.md) · [العربية المصرية](README.ar-EG.md)
+
+</details>
+
+[Open in my browser language](https://cdn.jsdelivr.net/gh/guyster323/ESP32_7inch_Quotamon@main/assets/readme/language.html) · [Quick start](#quick-start) · [What's New](#whats-new) · [Changelog](#changelog) · [Portable setup](docs/PORTABLE_BRIDGE.md) · [Firmware upload](docs/UPLOAD.md) · [Architecture](docs/ARCHITECTURE.md)
 
 <a href="assets/readme/en/quotamon-demo.mp4">
   <img src="assets/readme/en/quotamon-demo.gif" width="1000" alt="Quotamon English demo: animated characters, touch details, language selection, direct time-entry keypad and screen-off schedule">
@@ -30,46 +38,6 @@ The UI and character motion use **the actual LVGL code shared with the board**. 
 | [MP4](assets/readme/quotamon-demo.mp4) · [GIF](assets/readme/quotamon-demo.gif) | [MP4](assets/readme/zh-CN/quotamon-demo.mp4) · [GIF](assets/readme/zh-CN/quotamon-demo.gif) | [MP4](assets/readme/ja/quotamon-demo.mp4) · [GIF](assets/readme/ja/quotamon-demo.gif) | [MP4](assets/readme/en/quotamon-demo.mp4) · [GIF](assets/readme/en/quotamon-demo.gif) | [MP4](assets/readme/de/quotamon-demo.mp4) · [GIF](assets/readme/de/quotamon-demo.gif) |
 
 Each video uses localized UI and captions: character motion → details → language selection → four-digit time entry → schedule save, screen-off and touch wake. [Generation and verification](docs/README_MEDIA.md)
-
-## Languages
-
-The home screen below is the current GUI in every supported language. The numbers are sample data.
-
-[한국어](#lang-ko) · [简体中文](#lang-zh-CN) · [日本語](#lang-ja) · [English](#lang-en) · [Deutsch](#lang-de) · [हिन्दी](#lang-hi) · [Español](#lang-es) · [العربية](#lang-ar)
-
-[Français](#lang-fr) · [বাংলা](#lang-bn) · [Português](#lang-pt) · [Bahasa Indonesia](#lang-id) · [اردو](#lang-ur) · [Русский](#lang-ru) · [Naijá](#lang-pcm) · [العربية المصرية](#lang-ar-EG)
-
-| <a id="lang-ko"></a>[한국어](#lang-ko) | <a id="lang-zh-CN"></a>[简体中文](#lang-zh-CN) |
-|:---:|:---:|
-| [![Korean home](visuals/locales/lcd-ko-home.png)](visuals/locales/lcd-ko-home.png) | [![Simplified Chinese home](visuals/locales/lcd-zh-CN-home.png)](visuals/locales/lcd-zh-CN-home.png) |
-
-| <a id="lang-ja"></a>[日本語](#lang-ja) | <a id="lang-en"></a>[English](#lang-en) |
-|:---:|:---:|
-| [![Japanese home](visuals/locales/lcd-ja-home.png)](visuals/locales/lcd-ja-home.png) | [![English home](visuals/locales/lcd-en-home.png)](visuals/locales/lcd-en-home.png) |
-
-| <a id="lang-de"></a>[Deutsch](#lang-de) | <a id="lang-hi"></a>[हिन्दी](#lang-hi) |
-|:---:|:---:|
-| [![German home](visuals/locales/lcd-de-home.png)](visuals/locales/lcd-de-home.png) | [![Hindi home](visuals/locales/lcd-hi-home.png)](visuals/locales/lcd-hi-home.png) |
-
-| <a id="lang-es"></a>[Español](#lang-es) | <a id="lang-ar"></a>[العربية](#lang-ar) |
-|:---:|:---:|
-| [![Spanish home](visuals/locales/lcd-es-home.png)](visuals/locales/lcd-es-home.png) | [![Arabic home](visuals/locales/lcd-ar-home.png)](visuals/locales/lcd-ar-home.png) |
-
-| <a id="lang-fr"></a>[Français](#lang-fr) | <a id="lang-bn"></a>[বাংলা](#lang-bn) |
-|:---:|:---:|
-| [![French home](visuals/locales/lcd-fr-home.png)](visuals/locales/lcd-fr-home.png) | [![Bengali home](visuals/locales/lcd-bn-home.png)](visuals/locales/lcd-bn-home.png) |
-
-| <a id="lang-pt"></a>[Português](#lang-pt) | <a id="lang-id"></a>[Bahasa Indonesia](#lang-id) |
-|:---:|:---:|
-| [![Portuguese home](visuals/locales/lcd-pt-home.png)](visuals/locales/lcd-pt-home.png) | [![Indonesian home](visuals/locales/lcd-id-home.png)](visuals/locales/lcd-id-home.png) |
-
-| <a id="lang-ur"></a>[اردو](#lang-ur) | <a id="lang-ru"></a>[Русский](#lang-ru) |
-|:---:|:---:|
-| [![Urdu home](visuals/locales/lcd-ur-home.png)](visuals/locales/lcd-ur-home.png) | [![Russian home](visuals/locales/lcd-ru-home.png)](visuals/locales/lcd-ru-home.png) |
-
-| <a id="lang-pcm"></a>[Naijá](#lang-pcm) | <a id="lang-ar-EG"></a>[العربية المصرية](#lang-ar-EG) |
-|:---:|:---:|
-| [![Nigerian Pidgin home](visuals/locales/lcd-pcm-home.png)](visuals/locales/lcd-pcm-home.png) | [![Egyptian Arabic home](visuals/locales/lcd-ar-EG-home.png)](visuals/locales/lcd-ar-EG-home.png) |
 
 ## Glance first. Touch for more.
 
@@ -137,7 +105,7 @@ Requires Windows 10 2004 or later / Windows 11, x64 and Bluetooth LE. Keep the p
 
 ## Languages and scheduled screen-off
 
-Choose from [16 languages](#languages) on the home screen of the portable web UI or the ESP32. You can also change the language under **Settings → Language → Save**. The connected screens share the same setting.
+Choose from 16 languages on the home screen of the portable web UI or the ESP32. This page is the English guide. Open another language from the list above, or use **Open in my browser language**. You can also change the language under **Settings → Language → Save**. The connected screens share the same setting.
 
 Under **Settings → Screen-off schedule**, set daily off/on times. The default is **disabled, 23:00–07:00**. The schedule uses the PC's local time and switches off the backlight while BLE and data reception continue. Touch the dark display to wake it for **five minutes**.
 

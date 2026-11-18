@@ -13,7 +13,15 @@ Codex · Cursor · Copilot · Claude · Grok<br>
 [![BLE](https://img.shields.io/badge/Orca-BLE-bca3ff?labelColor=111e2a)](orca-integration)
 [![License](https://img.shields.io/badge/License-MIT-91a6b8?labelColor=111e2a)](LICENSE)
 
-[English](README.md) · [언어](#languages) · [빠른 시작](#빠른-시작) · [What's New](#whats-new) · [변경 기록](#변경-기록) · [연결 가이드](docs/PORTABLE_BRIDGE.md) · [펌웨어 업로드](docs/UPLOAD.md) · [설계 문서](docs/ARCHITECTURE.md)
+<details>
+<summary><strong>한국어</strong> · 16개 언어</summary>
+
+[English](README.md) · **한국어** · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [Deutsch](README.de.md) · [हिन्दी](README.hi.md) · [Español](README.es.md) · [العربية](README.ar.md)<br>
+[Français](README.fr.md) · [বাংলা](README.bn.md) · [Português](README.pt.md) · [Bahasa Indonesia](README.id.md) · [اردو](README.ur.md) · [Русский](README.ru.md) · [Naijá](README.pcm.md) · [العربية المصرية](README.ar-EG.md)
+
+</details>
+
+[브라우저 언어로 열기](https://cdn.jsdelivr.net/gh/guyster323/ESP32_7inch_Quotamon@main/assets/readme/language.html) · [빠른 시작](#빠른-시작) · [What's New](#whats-new) · [변경 기록](#변경-기록) · [연결 가이드](docs/PORTABLE_BRIDGE.md) · [펌웨어 업로드](docs/UPLOAD.md) · [설계 문서](docs/ARCHITECTURE.md)
 
 <a href="assets/readme/quotamon-demo.mp4">
   <img src="assets/readme/quotamon-demo.gif" width="1000" alt="Quotamon 한국어 데모: 움직이는 캐릭터, 터치 상세, 언어 선택, 시간 숫자 키패드와 화면 끄기 예약">
@@ -30,46 +38,6 @@ Codex · Cursor · Copilot · Claude · Grok<br>
 | [MP4](assets/readme/quotamon-demo.mp4) · [GIF](assets/readme/quotamon-demo.gif) | [MP4](assets/readme/zh-CN/quotamon-demo.mp4) · [GIF](assets/readme/zh-CN/quotamon-demo.gif) | [MP4](assets/readme/ja/quotamon-demo.mp4) · [GIF](assets/readme/ja/quotamon-demo.gif) | [MP4](assets/readme/en/quotamon-demo.mp4) · [GIF](assets/readme/en/quotamon-demo.gif) | [MP4](assets/readme/de/quotamon-demo.mp4) · [GIF](assets/readme/de/quotamon-demo.gif) |
 
 각 영상은 해당 언어의 UI·자막으로 캐릭터 움직임 → 상세 → 언어 선택 → 숫자 4자리 시간 입력 → 예약 저장·화면 끄기·터치 점등을 보여줍니다. [생성 방법·검증](docs/README_MEDIA.md)
-
-## <a id="languages"></a>언어
-
-지원하는 16개 언어의 현재 홈 화면입니다. 수치는 예시이고, 저장소 첫 페이지의 설명은 [English](README.md)입니다.
-
-[한국어](#lang-ko) · [简体中文](#lang-zh-CN) · [日本語](#lang-ja) · [English](#lang-en) · [Deutsch](#lang-de) · [हिन्दी](#lang-hi) · [Español](#lang-es) · [العربية](#lang-ar)
-
-[Français](#lang-fr) · [বাংলা](#lang-bn) · [Português](#lang-pt) · [Bahasa Indonesia](#lang-id) · [اردو](#lang-ur) · [Русский](#lang-ru) · [Naijá](#lang-pcm) · [العربية المصرية](#lang-ar-EG)
-
-| <a id="lang-ko"></a>[한국어](#lang-ko) | <a id="lang-zh-CN"></a>[简体中文](#lang-zh-CN) |
-|:---:|:---:|
-| [![한국어 홈](visuals/locales/lcd-ko-home.png)](visuals/locales/lcd-ko-home.png) | [![중국어 간체 홈](visuals/locales/lcd-zh-CN-home.png)](visuals/locales/lcd-zh-CN-home.png) |
-
-| <a id="lang-ja"></a>[日本語](#lang-ja) | <a id="lang-en"></a>[English](#lang-en) |
-|:---:|:---:|
-| [![일본어 홈](visuals/locales/lcd-ja-home.png)](visuals/locales/lcd-ja-home.png) | [![영어 홈](visuals/locales/lcd-en-home.png)](visuals/locales/lcd-en-home.png) |
-
-| <a id="lang-de"></a>[Deutsch](#lang-de) | <a id="lang-hi"></a>[हिन्दी](#lang-hi) |
-|:---:|:---:|
-| [![독일어 홈](visuals/locales/lcd-de-home.png)](visuals/locales/lcd-de-home.png) | [![힌디어 홈](visuals/locales/lcd-hi-home.png)](visuals/locales/lcd-hi-home.png) |
-
-| <a id="lang-es"></a>[Español](#lang-es) | <a id="lang-ar"></a>[العربية](#lang-ar) |
-|:---:|:---:|
-| [![스페인어 홈](visuals/locales/lcd-es-home.png)](visuals/locales/lcd-es-home.png) | [![아랍어 홈](visuals/locales/lcd-ar-home.png)](visuals/locales/lcd-ar-home.png) |
-
-| <a id="lang-fr"></a>[Français](#lang-fr) | <a id="lang-bn"></a>[বাংলা](#lang-bn) |
-|:---:|:---:|
-| [![프랑스어 홈](visuals/locales/lcd-fr-home.png)](visuals/locales/lcd-fr-home.png) | [![벵골어 홈](visuals/locales/lcd-bn-home.png)](visuals/locales/lcd-bn-home.png) |
-
-| <a id="lang-pt"></a>[Português](#lang-pt) | <a id="lang-id"></a>[Bahasa Indonesia](#lang-id) |
-|:---:|:---:|
-| [![포르투갈어 홈](visuals/locales/lcd-pt-home.png)](visuals/locales/lcd-pt-home.png) | [![인도네시아어 홈](visuals/locales/lcd-id-home.png)](visuals/locales/lcd-id-home.png) |
-
-| <a id="lang-ur"></a>[اردو](#lang-ur) | <a id="lang-ru"></a>[Русский](#lang-ru) |
-|:---:|:---:|
-| [![우르두어 홈](visuals/locales/lcd-ur-home.png)](visuals/locales/lcd-ur-home.png) | [![러시아어 홈](visuals/locales/lcd-ru-home.png)](visuals/locales/lcd-ru-home.png) |
-
-| <a id="lang-pcm"></a>[Naijá](#lang-pcm) | <a id="lang-ar-EG"></a>[العربية المصرية](#lang-ar-EG) |
-|:---:|:---:|
-| [![나이지리아 피진어 홈](visuals/locales/lcd-pcm-home.png)](visuals/locales/lcd-pcm-home.png) | [![이집트 아랍어 홈](visuals/locales/lcd-ar-EG-home.png)](visuals/locales/lcd-ar-EG-home.png) |
 
 ## 한눈에 보고, 필요할 때 터치하세요
 
@@ -137,7 +105,7 @@ Windows 10 2004 이상/11, x64와 Bluetooth LE가 필요합니다. 폴더 전체
 
 ## 언어와 화면 끄기 예약
 
-포터블 웹과 ESP32의 **첫 화면**에서 [16개 언어](#languages) 중 하나를 선택하면 바로 적용됩니다. **설정 → 언어 → 저장**에서도 변경할 수 있으며 연결된 화면에 같은 언어가 적용됩니다.
+이 문서는 한국어 안내입니다. 다른 언어는 위 목록에서 열고, 브라우저 언어는 **브라우저 언어로 열기**를 누릅니다. 포터블 웹과 ESP32의 **첫 화면**에서 16개 언어 중 하나를 선택하면 바로 적용됩니다. **설정 → 언어 → 저장**에서도 변경할 수 있으며 연결된 화면에 같은 언어가 적용됩니다.
 
 **설정 → 화면 끄기 예약**에서 매일 화면을 끄고 켤 시간을 정할 수 있습니다. 기본값은 **예약 해제 / 23:00~07:00**입니다. PC 현지 시각을 기준으로 백라이트만 끄며 BLE 연결과 데이터 수신은 계속됩니다. 꺼진 화면을 터치하면 **5분 동안** 켜집니다.
 

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quotamon · Language</title>
+  <style>
+    :root { color-scheme: dark; font-family: "Segoe UI", "Malgun Gothic", sans-serif; background: #080e18; color: #eef7fb; }
+    body { margin: 0; }
+    main { max-width: 720px; margin: auto; padding: 48px 20px; }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+    p { color: #91a6b8; line-height: 1.6; }
+    label { display: block; margin: 28px 0 12px; color: #91a6b8; }
+    select, button { font: inherit; font-size: 16px; border-radius: 8px; }
+    select { width: 100%; background: #142b25; color: #eef7fb; border: 1px solid #31544b; padding: 12px; }
+    button { margin-top: 16px; background: #70e4bf; color: #08140f; border: 0; padding: 12px 18px; cursor: pointer; font-weight: 650; }
+    button:focus-visible, select:focus-visible { outline: 2px solid #70e4bf; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Quotamon</h1>
+  <p id="lead">Your browser language is already selected. Open that README.</p>
+  <label for="language">Language</label>
+  <select id="language"></select>
+  <button id="open" type="button">Open README</button>
+</main>
+<script>
+  const docs = [
+    { id: "en", file: "README.md", name: "English", prefixes: ["en"] },
+    { id: "ko", file: "README.ko.md", name: "한국어", prefixes: ["ko"] },
+    { id: "zh-CN", file: "README.zh-CN.md", name: "简体中文", prefixes: ["zh-cn", "zh-hans", "zh-sg", "zh"] },
+    { id: "ja", file: "README.ja.md", name: "日本語", prefixes: ["ja"] },
+    { id: "de", file: "README.de.md", name: "Deutsch", prefixes: ["de"] },
+    { id: "hi", file: "README.hi.md", name: "हिन्दी", prefixes: ["hi"] },
+    { id: "es", file: "README.es.md", name: "Español", prefixes: ["es"] },
+    { id: "ar-EG", file: "README.ar-EG.md", name: "العربية المصرية", prefixes: ["ar-eg", "arz"] },
+    { id: "ar", file: "README.ar.md", name: "العربية", prefixes: ["ar"] },
+    { id: "fr", file: "README.fr.md", name: "Français", prefixes: ["fr"] },
+    { id: "bn", file: "README.bn.md", name: "বাংলা", prefixes: ["bn"] },
+    { id: "pt", file: "README.pt.md", name: "Português", prefixes: ["pt"] },
+    { id: "id", file: "README.id.md", name: "Bahasa Indonesia", prefixes: ["id", "in"] },
+    { id: "ur", file: "README.ur.md", name: "اردو", prefixes: ["ur"] },
+    { id: "ru", file: "README.ru.md", name: "Русский", prefixes: ["ru"] },
+    { id: "pcm", file: "README.pcm.md", name: "Naijá", prefixes: ["pcm"] }
+  ];
+  const root = "https://github.com/guyster323/ESP32_7inch_Quotamon/blob/main/";
+  const select = document.getElementById("language");
+  for (const doc of docs) {
+    const option = document.createElement("option");
+    option.value = doc.file;
+    option.textContent = doc.name;
+    select.appendChild(option);
+  }
+  function match(language) {
+    const value = (language || "").toLowerCase();
+    for (const doc of docs) {
+      if (doc.prefixes.some((prefix) => value === prefix || value.startsWith(prefix + "-"))) return doc;
+    }
+    return docs[0];
+  }
+  const requested = (navigator.languages && navigator.languages[0]) || navigator.language || "en";
+  const chosen = match(requested);
+  select.value = chosen.file;
+  document.documentElement.lang = chosen.id;
+  document.getElementById("lead").textContent = chosen.name;
+  document.getElementById("open").textContent = "Open";
+  select.addEventListener("change", () => {
+    const doc = docs.find((item) => item.file === select.value);
+    document.getElementById("lead").textContent = doc.name;
+  });
+  document.getElementById("open").addEventListener("click", () => {
+    location.assign(root + select.value);
+  });
+</script>
+</body>
+</html>
