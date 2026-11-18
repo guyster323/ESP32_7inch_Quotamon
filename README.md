@@ -2,10 +2,10 @@
 
 # Quotamon
 
-**AI 구독의 여유를, 책상 위 작은 화면에.**
+**Your AI subscription quotas. A screen of their own.**
 
 Codex · Cursor · Copilot · Claude · Grok<br>
-픽셀 캐릭터와 함께 보는 7인치 구독 잔여량 모니터
+A 7-inch desk display with pixel companions and quota bars.
 
 [![Build](https://github.com/guyster323/ESP32_7inch_Quotamon/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/guyster323/ESP32_7inch_Quotamon/actions/workflows/build.yml)
 [![ESP32-S3](https://img.shields.io/badge/ESP32--S3-800%C3%97480-70e4bf?labelColor=111e2a)](firmware)
@@ -13,267 +13,307 @@ Codex · Cursor · Copilot · Claude · Grok<br>
 [![BLE](https://img.shields.io/badge/Orca-BLE-bca3ff?labelColor=111e2a)](orca-integration)
 [![License](https://img.shields.io/badge/License-MIT-91a6b8?labelColor=111e2a)](LICENSE)
 
-[English](README.en.md) · [빠른 시작](#빠른-시작) · [What's New](#whats-new) · [변경 기록](#변경-기록) · [연결 가이드](docs/PORTABLE_BRIDGE.md) · [펌웨어 업로드](docs/UPLOAD.md) · [설계 문서](docs/ARCHITECTURE.md)
+[한국어](README.ko.md) · [Languages](#languages) · [Quick start](#quick-start) · [What's New](#whats-new) · [Changelog](#changelog) · [Portable setup](docs/PORTABLE_BRIDGE.md) · [Firmware upload](docs/UPLOAD.md) · [Architecture](docs/ARCHITECTURE.md)
 
-<a href="assets/readme/quotamon-demo.mp4">
-  <img src="assets/readme/quotamon-demo.gif" width="1000" alt="Quotamon 한국어 데모: 움직이는 캐릭터, 터치 상세, 언어 선택, 시간 숫자 키패드와 화면 끄기 예약">
+<a href="assets/readme/en/quotamon-demo.mp4">
+  <img src="assets/readme/en/quotamon-demo.gif" width="1000" alt="Quotamon English demo: animated characters, touch details, language selection, direct time-entry keypad and screen-off schedule">
 </a>
 
-<sub>Codex 3개 + Cursor + Copilot · 최신 UI의 24초 반복 데모 · <a href="assets/readme/quotamon-demo.mp4">영상으로 재생</a> · <a href="assets/readme/quotamon-display.png">정지 화면</a></sub>
+<sub>Three Codex accounts + Cursor + Copilot · 24-second loop of the current UI · <a href="assets/readme/en/quotamon-demo.mp4">Play the video</a> · <a href="assets/readme/en/quotamon-display.png">Still image</a></sub>
 
 </div>
 
-화면과 캐릭터 움직임은 보드와 공유하는 **실제 LVGL 코드로 렌더링**했습니다. 수치는 공개용 예시이며, 기기 프레임·터치 표시·화면 끄기와 점등은 소개용 시뮬레이션입니다. 실제 기기 사진이나 촬영 영상은 아닙니다.
+The UI and character motion use **the actual LVGL code shared with the board**. Values are illustrative. The device bezel, touch indicators, screen-off and wake behavior are presentation simulations. This is not hardware footage.
 
 | 한국어 | 简体中文 | 日本語 | English | Deutsch |
 |:---:|:---:|:---:|:---:|:---:|
 | [MP4](assets/readme/quotamon-demo.mp4) · [GIF](assets/readme/quotamon-demo.gif) | [MP4](assets/readme/zh-CN/quotamon-demo.mp4) · [GIF](assets/readme/zh-CN/quotamon-demo.gif) | [MP4](assets/readme/ja/quotamon-demo.mp4) · [GIF](assets/readme/ja/quotamon-demo.gif) | [MP4](assets/readme/en/quotamon-demo.mp4) · [GIF](assets/readme/en/quotamon-demo.gif) | [MP4](assets/readme/de/quotamon-demo.mp4) · [GIF](assets/readme/de/quotamon-demo.gif) |
 
-각 영상은 해당 언어의 UI·자막으로 캐릭터 움직임 → 상세 → 언어 선택 → 숫자 4자리 시간 입력 → 예약 저장·화면 끄기·터치 점등을 보여줍니다. [생성 방법·검증](docs/README_MEDIA.md)
+Each video uses localized UI and captions: character motion → details → language selection → four-digit time entry → schedule save, screen-off and touch wake. [Generation and verification](docs/README_MEDIA.md)
 
-## 한눈에 보고, 필요할 때 터치하세요
+## Languages
 
-| 한 화면에 5개 계정 | 리셋까지 남은 시간 | 갱신 시각을 분명하게 |
+The home screen below is the current GUI in every supported language. The numbers are sample data.
+
+[한국어](#lang-ko) · [简体中文](#lang-zh-CN) · [日本語](#lang-ja) · [English](#lang-en) · [Deutsch](#lang-de) · [हिन्दी](#lang-hi) · [Español](#lang-es) · [العربية](#lang-ar)
+
+[Français](#lang-fr) · [বাংলা](#lang-bn) · [Português](#lang-pt) · [Bahasa Indonesia](#lang-id) · [اردو](#lang-ur) · [Русский](#lang-ru) · [Naijá](#lang-pcm) · [العربية المصرية](#lang-ar-EG)
+
+| <a id="lang-ko"></a>[한국어](#lang-ko) | <a id="lang-zh-CN"></a>[简体中文](#lang-zh-CN) |
+|:---:|:---:|
+| [![Korean home](visuals/locales/lcd-ko-home.png)](visuals/locales/lcd-ko-home.png) | [![Simplified Chinese home](visuals/locales/lcd-zh-CN-home.png)](visuals/locales/lcd-zh-CN-home.png) |
+
+| <a id="lang-ja"></a>[日本語](#lang-ja) | <a id="lang-en"></a>[English](#lang-en) |
+|:---:|:---:|
+| [![Japanese home](visuals/locales/lcd-ja-home.png)](visuals/locales/lcd-ja-home.png) | [![English home](visuals/locales/lcd-en-home.png)](visuals/locales/lcd-en-home.png) |
+
+| <a id="lang-de"></a>[Deutsch](#lang-de) | <a id="lang-hi"></a>[हिन्दी](#lang-hi) |
+|:---:|:---:|
+| [![German home](visuals/locales/lcd-de-home.png)](visuals/locales/lcd-de-home.png) | [![Hindi home](visuals/locales/lcd-hi-home.png)](visuals/locales/lcd-hi-home.png) |
+
+| <a id="lang-es"></a>[Español](#lang-es) | <a id="lang-ar"></a>[العربية](#lang-ar) |
+|:---:|:---:|
+| [![Spanish home](visuals/locales/lcd-es-home.png)](visuals/locales/lcd-es-home.png) | [![Arabic home](visuals/locales/lcd-ar-home.png)](visuals/locales/lcd-ar-home.png) |
+
+| <a id="lang-fr"></a>[Français](#lang-fr) | <a id="lang-bn"></a>[বাংলা](#lang-bn) |
+|:---:|:---:|
+| [![French home](visuals/locales/lcd-fr-home.png)](visuals/locales/lcd-fr-home.png) | [![Bengali home](visuals/locales/lcd-bn-home.png)](visuals/locales/lcd-bn-home.png) |
+
+| <a id="lang-pt"></a>[Português](#lang-pt) | <a id="lang-id"></a>[Bahasa Indonesia](#lang-id) |
+|:---:|:---:|
+| [![Portuguese home](visuals/locales/lcd-pt-home.png)](visuals/locales/lcd-pt-home.png) | [![Indonesian home](visuals/locales/lcd-id-home.png)](visuals/locales/lcd-id-home.png) |
+
+| <a id="lang-ur"></a>[اردو](#lang-ur) | <a id="lang-ru"></a>[Русский](#lang-ru) |
+|:---:|:---:|
+| [![Urdu home](visuals/locales/lcd-ur-home.png)](visuals/locales/lcd-ur-home.png) | [![Russian home](visuals/locales/lcd-ru-home.png)](visuals/locales/lcd-ru-home.png) |
+
+| <a id="lang-pcm"></a>[Naijá](#lang-pcm) | <a id="lang-ar-EG"></a>[العربية المصرية](#lang-ar-EG) |
+|:---:|:---:|
+| [![Nigerian Pidgin home](visuals/locales/lcd-pcm-home.png)](visuals/locales/lcd-pcm-home.png) | [![Egyptian Arabic home](visuals/locales/lcd-ar-EG-home.png)](visuals/locales/lcd-ar-EG-home.png) |
+
+## Glance first. Touch for more.
+
+Account count is flexible: **one full-width card, two or three columns, a 2×2 grid for four, and a 3+2 grid for five**. An empty selection shows setup guidance; six or more accounts use pages. [Layout previews and touch checks](docs/README_MEDIA.md#선택한-계정-수별-배치)
+
+| Five accounts at a glance | Know when quotas reset | Know how fresh the data is |
 |---|---|---|
-| Codex 계정 3개와 Cursor·Copilot을 함께. 최대 20계정을 페이지로 넘깁니다. | 5시간·주간 일정을 동시에 보고, Cursor는 공통 리셋 하나로 읽습니다. | 화면의 최근 갱신과 서비스 원천 수집 시각을 구분합니다. |
+| Three Codex accounts alongside Cursor and Copilot. Page through up to 20 accounts. | Five-hour and weekly schedules together, with one shared reset for Cursor. | Display refresh and provider collection time are shown separately. |
 
-| 캐릭터가 전하는 상태 | 터치로 여는 상세 | 기존 Orca를 그대로 |
+| Pixel companions with a purpose | Details one touch away | Keep your existing Orca |
 |---|---|---|
-| 정상·주의·긴급·소진·연결 대기·오래된 정보의 6개 상태. | 계정별 모든 한도와 리셋, 계정 선택·표시 설정을 확인합니다. | 설치 없는 Windows 트레이 앱이 BLE로 전달합니다. Node/.NET도 포함합니다. |
+| Six states: normal, caution, critical, exhausted, offline and stale. | Open every quota pool, choose accounts and adjust display settings. | A portable Windows tray app supplies data over BLE. Node and .NET are included. |
 
-막대의 채워진 부분은 흰 숫자, 빈 부분은 어두운 숫자입니다. 잔여 **20% 이하**는 주의, **10% 이하**는 긴급으로 표시하고, 확인 불가·무제한은 별도 상태로 다룹니다.
+Quota numbers appear white over the filled bar and dark over its empty portion. Remaining quotas at **20% or less** trigger caution; **10% or less** trigger a critical state. Unknown and unlimited values remain distinct.
 
-계정은 5개 고정이 아닙니다. **1개는 전체 폭, 2·3개는 가로 열, 4개는 2×2, 5개는 3+2**로 자동 배치합니다. 0개면 계정 선택 안내가 나오며, 6개 이상은 페이지로 이동합니다. [개수별 화면·터치 검증](docs/README_MEDIA.md#선택한-계정-수별-배치)
-
-## 지금 디스플레이에서 읽을 수 있는 것
+## On the current display
 
 ```text
-R.T.1 14h 20m                  가까운 리셋권, 더 큰 글자
-R.T.2 1d 6h 5m                 그다음 리셋권, 더 작은 글자
-Plan 5h : 2h 18m | W 3d 4h     Codex 5시간·주간 리셋
-Plan Reset M : 17d 0h          Cursor·Copilot 공통 리셋
+R.T.1 14h 20m                  Nearest reset credit, larger type
+R.T.2 1d 6h 5m                 Next reset credit, smaller type
+Plan 5h : 2h 18m | W 3d 4h     Codex five-hour and weekly resets
+Plan Reset M : 17d 0h          Shared Cursor and Copilot reset
 ```
 
-`R.T.1`과 `R.T.2`는 만료가 가까운 리셋권 두 개입니다. 세 번째는 표시하지 않고, 개수·날짜·시간대도 붙이지 않습니다. `d / h / m`은 일·시간·분입니다. Codex의 `Plan 5h`와 `W`는 각각 5시간·주간 리셋이고, Cursor·Copilot은 `Plan Reset M` 한 줄입니다. 캐릭터는 88×108, 막대와 퍼센트 글꼴 크기는 유지합니다. **Cursor Models**와 **Other Models**는 각각 잔여량을 표시하며 Monthly 합계는 제외합니다.
+`R.T.1` and `R.T.2` are the two nearest Codex reset credits. A third credit, a count prefix, and absolute dates or time zones are omitted. `d / h / m` mean days, hours and minutes. Codex uses `Plan 5h` and `W` for the five-hour and weekly windows. Cursor and Copilot use one `Plan Reset M` line. Characters stay 88×108, and meter height and percentage type stay fixed. Cursor shows **Cursor Models** and **Other Models**, excluding the Monthly aggregate.
 
-| 홈의 리셋권과 플랜 남은 시간 | 터치해서 여는 Codex 상세 |
+| Home with reset credits and plan time | Codex detail |
 |:---:|:---:|
-| [![리셋권과 플랜 남은 시간이 있는 홈](visuals/ui-consistency/home.png)](visuals/ui-consistency/home.png) | [![Codex 상세의 R.T.1과 R.T.2](visuals/ui-consistency/detail-credits.png)](visuals/ui-consistency/detail-credits.png) |
+| [![Home with reset credits and plan time remaining](visuals/ui-consistency/home.png)](visuals/ui-consistency/home.png) | [![Codex detail with R.T.1 and R.T.2](visuals/ui-consistency/detail-credits.png)](visuals/ui-consistency/detail-credits.png) |
 
 <details>
-<summary>설정·페어링·PC 관리 화면 더 보기</summary>
+<summary>More screens: settings, pairing and the PC companion</summary>
 
-| LCD 표시 설정 | PC 계정 선택 |
+| LCD preferences | Account selection on the PC |
 |:---:|:---:|
-| ![LCD 설정](visuals/native/04-settings.png) | ![포터블 계정 선택](visuals/portable/02-accounts-mock.png) |
-| BLE 연결 시작 | 양쪽 번호 비교 |
-| ![BLE 연결 시작](visuals/native/15-ble-onboarding.png) | ![번호 비교](visuals/native/16-ble-confirmation.png) |
+| ![LCD settings](visuals/native/04-settings.png) | ![Portable account settings](visuals/portable/02-accounts-mock.png) |
+| Start BLE pairing | Compare the numbers |
+| ![BLE onboarding](visuals/native/15-ble-onboarding.png) | ![Numeric comparison](visuals/native/16-ble-confirmation.png) |
 
-제품 UI를 사용한 모의 예시입니다. 실물 업로드·페어링·전송과 화면 기동은 별도로 검증했으며, 세부 범위는 [검증 기록](docs/VERIFICATION.md)에 구분했습니다.
+These are mock examples rendered by the product UI. Physical upload, pairing, data transfer and display startup were checked separately; see the [verification record](docs/VERIFICATION.md).
 
 </details>
 
-## 연결은 이렇게
+## How it connects
 
 ```mermaid
 flowchart LR
-    A[기존 Orca<br/>로그인·사용량 캐시] --> B[Quotamon 포터블<br/>Windows 트레이 앱]
-    B <-->|암호화된 BLE| C[ESP32-S3<br/>7인치 터치 화면]
-    D[등록한 휴대폰<br/>기본 Bluetooth 설정] <-->|인증된 BLE 연결| C
+    A[Existing Orca<br/>Accounts and usage cache] --> B[Quotamon portable<br/>Windows tray app]
+    B <-->|Encrypted BLE| C[ESP32-S3<br/>7-inch touch display]
+    D[Paired phone<br/>Native Bluetooth settings] <-->|Authenticated BLE link| C
 ```
 
-ESP32가 화면과 터치를 직접 처리하고, **가까운 PC에서 실행 중인 Orca와 포터블 중계**가 구독 데이터를 공급합니다. Wi-Fi나 디스플레이에서의 웹 로그인은 필요하지 않습니다. 기존 Orca를 수정하거나 재설치하지 않으며, 인증정보는 PC에 남습니다.
+ESP32 handles rendering and touch. A **nearby PC running Orca and the portable bridge** supplies subscription data. No Wi-Fi or on-device web login is required. Orca stays unmodified, and account credentials remain on the PC.
 
-기본 화면 데이터 전송은 **60초**, heartbeat는 **10초**입니다. 연결이 끊기거나 유효 통신이 **35초** 동안 없으면 표시 데이터를 지웁니다. 원천 조회는 별도로 관리하므로, 연결이 살아 있다는 이유로 오래된 사용량을 최신으로 표시하지 않습니다.
+Default snapshot interval: **60 seconds**. Heartbeat: **10 seconds**. A disconnect or **35 seconds** without valid traffic clears display data. Provider collection has its own schedule, so a healthy BLE link never makes old source data look fresh.
 
-## 빠른 시작
+## Quick start
 
-1. **보드를 준비합니다.** 대상은 **Waveshare ESP32-S3-Touch-LCD-7 Rev1.2, 800×480**입니다. [펌웨어 업로드 안내](docs/UPLOAD.md)를 따릅니다.
-2. **포터블 앱을 실행합니다.** 성공한 [Windows Actions 빌드](https://github.com/guyster323/ESP32_7inch_Quotamon/actions/workflows/build.yml)의 `Quotamon-Portable-win-x64-preview` 아티팩트를 받아, 안의 ZIP 전체를 풀고 **Quotamon.exe**를 실행합니다. 아티팩트 다운로드에는 GitHub 로그인이 필요합니다.
-3. **표시할 계정을 고릅니다.** 기존 Orca를 켜고, 설정 페이지에서 계정·별칭·요금제·순서를 정해 저장합니다.
-4. **BLE로 연결합니다.** 기기의 **BLE 연결 시작**과 PC의 **디스플레이 찾기**를 누른 뒤, 양쪽의 같은 6자리 번호를 승인합니다. 이후 저장된 기기에 자동 재연결합니다.
+1. **Prepare the board.** The target is **Waveshare ESP32-S3-Touch-LCD-7 Rev1.2, 800×480**. Follow the [firmware upload guide](docs/UPLOAD.md).
+2. **Run the portable app.** Download `Quotamon-Portable-win-x64-preview` from a successful [Windows Actions build](https://github.com/guyster323/ESP32_7inch_Quotamon/actions/workflows/build.yml), extract the entire inner ZIP, and run **Quotamon.exe**. GitHub sign-in is required to download artifacts.
+3. **Choose your accounts.** Start your existing Orca, then save the account selection, aliases, plans and order in the settings page.
+4. **Connect over BLE.** Start pairing on the display, find it from the PC, and approve matching six-digit numbers on both screens. Saved devices reconnect automatically.
 
-Windows 10 2004 이상/11, x64와 Bluetooth LE가 필요합니다. 폴더 전체를 함께 유지하세요. Windows 로그인 시 실행은 트레이 설정에서 켤 수 있습니다. 번호 화면 전에 연결이 실패하면 [Windows 기본 페어링을 사용하는 복구 절차](docs/PORTABLE_BRIDGE.md)를 확인하세요.
+Requires Windows 10 2004 or later / Windows 11, x64 and Bluetooth LE. Keep the portable folder intact. Enable Windows login startup in tray settings. If pairing fails before showing numbers, use the [Windows native pairing recovery steps](docs/PORTABLE_BRIDGE.md).
 
-## 언어와 화면 끄기 예약
+## Languages and scheduled screen-off
 
-포터블 웹과 ESP32의 **첫 화면**에서 16개 언어 중 하나를 선택하면 바로 적용됩니다. **설정 → 언어 → 저장**에서도 변경할 수 있으며 연결된 화면에 같은 언어가 적용됩니다.
+Choose from [16 languages](#languages) on the home screen of the portable web UI or the ESP32. You can also change the language under **Settings → Language → Save**. The connected screens share the same setting.
 
-**설정 → 화면 끄기 예약**에서 매일 화면을 끄고 켤 시간을 정할 수 있습니다. 기본값은 **예약 해제 / 23:00~07:00**입니다. PC 현지 시각을 기준으로 백라이트만 끄며 BLE 연결과 데이터 수신은 계속됩니다. 꺼진 화면을 터치하면 **5분 동안** 켜집니다.
+Under **Settings → Screen-off schedule**, set daily off/on times. The default is **disabled, 23:00–07:00**. The schedule uses the PC's local time and switches off the backlight while BLE and data reception continue. Touch the dark display to wake it for **five minutes**.
 
-ESP32에서는 **시각을 터치 → 숫자 4자리 → OK → 저장**으로 바로 입력합니다. 예를 들어 `0730`은 `07:30`입니다. `−`·`+` 버튼으로 15분씩 조정할 수도 있습니다.
+On the ESP32, **tap a time → enter four digits → OK → Save**. For example, `0730` enters `07:30`. The `−` and `+` buttons still adjust it in 15-minute steps.
 
-[설정 방법·시간 동기화·폰트·검증](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md) · [영어 웹 설정 예시](visuals/locales/web-en.png) · [일본어 LCD 예시](visuals/locales/lcd-ja-home.png)
+[Settings, clock sync, fonts and verification](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md) · [English web settings](visuals/locales/web-en.png) · [Japanese LCD preview](visuals/locales/lcd-ja-home.png)
 
-## 휴대폰과 직접 페어링하는 화면 제어
+## Paired-phone screen control
 
-보드에 **PC 1대와 휴대폰 1대**를 직접 페어링합니다. PC는 사용량을 보내고, 휴대폰의 인증된 연결은 재실을 판단합니다. LCD의 **BLE 연결 → 휴대폰 감지 → 휴대폰 등록**에서 등록 창을 연 뒤, 폰 기본 Bluetooth 설정에서 Quotamon을 선택하고 양쪽 번호를 승인하세요. 등록·삭제·감지 스위치는 보드에 저장하며, PC 설정 화면에서는 연결 상태를 확인합니다.
+Pair **one PC and one phone** directly with the board. The PC sends usage; the phone’s authenticated connection controls presence. On the LCD, open **BLE connection → Phone presence → Register phone**, select Quotamon in the phone’s native Bluetooth settings, and approve matching numbers on both screens. Registration, deletion and the sensing switch are saved on the board. The PC settings page shows connection status.
 
-- 등록한 폰의 연결이 해제되면 **60초 후 화면을 끄고**, 인증된 자동 재연결 시 켭니다.
-- 화면 끄기 예약이 폰 감지보다 우선합니다. 꺼진 LCD를 터치하면 저장된 밝기로 **5분간** 켭니다.
-- 폰 추가 앱·주변 광고 스캔·이름/별칭 매칭·PC 경유 폰 감지·Wi-Fi를 사용하지 않습니다. 폰과 PC의 역할을 분리하며 폰에는 계정 데이터 접근을 허용하지 않습니다.
-- Fold7 기본 설정의 자동 연결에는 시험 중 승인한 소비자 제어 HID 프로파일을 사용합니다. 키보드·마우스 컬렉션과 자동 입력 전송은 없으며, PC에는 일반명 **‘등록된 휴대폰’**으로 표시합니다.
+- After the registered phone disconnects, keep the screen on for **60 seconds**, then switch it off. An authenticated automatic reconnect wakes it.
+- The screen-off schedule takes priority over phone presence. Touching the dark LCD wakes it at the saved brightness for **five minutes**.
+- No phone app, phone-advertisement scan, name/alias matching, PC-based phone sensing or Wi-Fi is used. Phone and PC links have separate roles; the phone cannot access quota data.
+- Fold7 native auto-reconnect uses the consumer-control HID profile accepted during testing. It defines no keyboard/mouse collection and sends no automatic input. The PC currently displays the generic name **“Paired phone.”**
 
-Fold7 기본 설정 등록·입력 정상·잠금 연결 30분·실제 거리 이탈/복귀 1회를 확인했습니다. 화면 제어본에서는 BT 끄기 후 60초 꺼짐·자동 연결 후 켜짐·터치 5분 점등을 확인했습니다. 최신 마이그레이션본은 본딩 보존·사용량 ACK·5계정 표시 복구·PC 휴대폰 상태 표시를 통과했습니다. **예약 우선순위·감지 스위치 재부팅 복원·PC 완전 종료 상태 등 남은 통합 실물 항목은 미검증입니다.**
+Fold7 native pairing, normal phone input, a 30-minute locked connection and one actual departure/return were verified. The screen-control build passed Bluetooth-off → 60-second screen-off, automatic wake and five-minute touch wake. The latest migration build passed retained bonds, quota ACK, five-account display recovery and PC phone-status display. **Physical schedule priority, local-toggle persistence after reboot, PC-completely-off operation and other remaining integration checks are still unverified.**
 
-| LCD 재연결 유예 | PC 휴대폰 상태 |
+| LCD reconnect grace | PC phone status |
 |:---:|:---:|
-| ![LCD 감지 유예 모의 화면](visuals/paired-presence/lcd-ko-grace.png) | ![PC 감지 상태 모의 화면](visuals/paired-presence/web-ko.png) |
+| ![LCD presence grace, simulated](visuals/paired-presence/lcd-ko-grace.png) | ![PC paired status, simulated](visuals/paired-presence/web-en.png) |
 
-실제 제품 UI에 모의 데이터를 넣은 예시입니다. [사용법·검증 범위](docs/BLE_PRESENCE.md) · [최신 실물 근거](docs/ble-paired-migration-hardware.json) · [구현계획](docs/BLE_PAIRED_PRESENCE_PLAN.md)
+These previews use simulated data rendered by the actual product UI. [Usage and test limits](docs/BLE_PRESENCE.md) · [Latest hardware evidence](docs/ble-paired-migration-hardware.json) · [Implementation plan](docs/BLE_PAIRED_PRESENCE_PLAN.md)
 
-## 함께하는 픽셀 크루
+## Meet the pixel crew
 
 | Codex | Cursor | Copilot | Claude | Grok |
 |:---:|:---:|:---:|:---:|:---:|
-| <img src="assets/providers/codex/idle_00.png" width="88" alt="Codex 픽셀 캐릭터"> | <img src="assets/providers/cursor/idle_00.png" width="88" alt="Cursor 픽셀 캐릭터"> | <img src="assets/providers/copilot/idle_00.png" width="88" alt="Copilot 픽셀 캐릭터"> | <img src="assets/providers/claude/idle_00.png" width="88" alt="Claude 픽셀 캐릭터"> | <img src="assets/providers/grok/idle_00.png" width="88" alt="Grok 픽셀 캐릭터"> |
+| <img src="assets/providers/codex/idle_00.png" width="88" alt="Codex pixel companion"> | <img src="assets/providers/cursor/idle_00.png" width="88" alt="Cursor pixel companion"> | <img src="assets/providers/copilot/idle_00.png" width="88" alt="Copilot pixel companion"> | <img src="assets/providers/claude/idle_00.png" width="88" alt="Claude pixel companion"> | <img src="assets/providers/grok/idle_00.png" width="88" alt="Grok pixel companion"> |
 
-캐릭터는 홈 카드와 상세 화면에서 눈을 깜박이고 숨을 쉬며, 잔여량과 수집 상태에 따라 다른 동작을 합니다. 같은 서비스의 계정이 여러 개여도 각기 다른 시점에 움직입니다.
+Companions blink, breathe and make small gestures on both home cards and account details. Their movements follow quota/source state, with separate timing for each account.
 
-[![실제 공유 LVGL 렌더러의 캐릭터 애니메이션](visuals/native/character-animation.gif)](visuals/native/character-animation.gif)
+[![Character animation from the actual shared LVGL renderer](visuals/native/character-animation.gif)](visuals/native/character-animation.gif)
 
-| 상태 | 움직임 |
+| State | Movement |
 |---|---|
-| 정상 | 눈깜박임·표정 변화, 숨쉬기, 가끔 몸 기울이기와 작은 반동 |
-| 주의 / 긴급 | 좌우 살피기 / 간헐적인 짧은 떨림 |
-| 소진 / 확인 불가 | 지친 자세나 offline 표정으로 느린 호흡 |
-| 오래된 정보 | stale 표정과 간헐적인 좌우 움직임 |
+| Normal | Blinks, expression changes, breathing and occasional small leans or hops |
+| Caution / critical | Looking from side to side / occasional brief shaking |
+| Exhausted / unknown | Slow breathing in a tired or offline pose |
+| Stale | Stale expression and occasional side-to-side movement |
 
-원본 F108pro의 추가 표정 24장을 복원하고 Copilot에는 LVGL 눈꺼풀을 더했습니다. **자산은 30장→54장으로 늘었지만 무손실 팔레트 저장으로 855,360→521,289바이트, 약 39% 줄었습니다.** 한 개의 100ms 타이머가 보이는 캐릭터만 갱신하며, 설정·페어링 화면에서는 멈춥니다.
+Restored 24 additional F108pro expressions and added native LVGL eyelids for Copilot. **Lossless palette storage expands the set from 30 to 54 images while reducing asset bytes from 855,360 to 521,289—about 39%.** One 100ms timer updates visible characters; settings and pairing pages pause it.
 
-최신 paired 감지 펌웨어는 앱 파티션의 **59.2%**, 정적 RAM의 **16.9%**를 사용하며 업로드 이미지 크기는 4,929,840바이트입니다. CJK 공통 글자와 UI 전용 글꼴 부분집합으로 저장 공간을 줄이고 5개 UI 언어를 유지했습니다.
+The latest paired-presence firmware uses **59.2% of its app partition** and **16.9% of static RAM capacity**. The flashed image is 4,929,840 bytes. Shared CJK glyphs and localized UI subsets reduce font storage while retaining all five UI languages.
 
-| 최신 실물 표본 | 5계정·PC+폰 연결, 75.139초 / 6표본 |
+| Latest physical samples | Five accounts, PC + phone, 75.139s / six samples |
 |---|---:|
-| CPU 두 코어 평균의 표본 범위 | **6.55~7.96%** |
-| 실제 LVGL 갱신률의 표본 범위 | **7.199~8.798fps** |
-| 가용 PSRAM | **1,973,524바이트 (약 1.88MiB)** |
+| CPU utilization: two-core mean, sample range | **6.55–7.96%** |
+| Actual LVGL refresh rate, sample range | **7.199–8.798fps** |
+| Free PSRAM | **1,973,524 bytes (about 1.88MiB)** |
 
-이 짧은 구간의 내부 RAM 여유는 108,167~108,195바이트였습니다. 장시간 누수 시험은 아니며 FPS는 실제 내용 갱신 빈도입니다. [최신 빌드](docs/ble-paired-migration-build.json) · [실물 근거·한계](docs/ble-paired-migration-hardware.json) · [앞선 측정 기록](docs/RUNTIME_METRICS.md). GIF는 예시 사용량을 렌더한 화면이며 실물 촬영은 아닙니다.
+Free internal RAM stayed at 108,167–108,195 bytes during this short window. This is not a long-duration leak test. FPS counts actual content updates, not LCD scan frequency. [Latest build](docs/ble-paired-migration-build.json) · [Physical evidence and limits](docs/ble-paired-migration-hardware.json) · [Earlier measurements](docs/RUNTIME_METRICS.md). The GIFs use illustrative data and are renderer output, not hardware footage.
 
-[상세 화면 GIF](visuals/native/character-detail-animation.gif) · [상태별 GIF](visuals/native/character-states-animation.gif) · [구현·자원·실물 적용 기록](docs/CHARACTER_ANIMATION.md)
+[Detail GIF](visuals/native/character-detail-animation.gif) · [State GIF](visuals/native/character-states-animation.gif) · [Implementation, resources and hardware rollout](docs/CHARACTER_ANIMATION.md)
 
-| 서비스 | 가져오는 데이터 | 계정 범위 |
+| Provider | Source data | Account coverage |
 |---|---|---|
-| Codex | Orca의 5시간·주간 한도와 리셋권 만료 | 기본 계정 + 관리 계정 |
-| Claude | Orca의 주간·추가 모델 한도 | 기본 계정 + 관리 계정 |
-| Cursor | Cursor Models · Other Models | 현재 활성 계정 |
-| Grok | Orca가 제공하는 사용량 풀 | 현재 활성 계정 |
-| Copilot | Windows Copilot CLI의 quota SDK. npm 전역 설치와 GitHub Copilot CLI 설치 경로를 찾습니다 | 현재 CLI 계정 · 실험적 연결 |
+| Codex | Orca five-hour and weekly limits, plus reset-credit expiry | Default + managed accounts |
+| Claude | Orca weekly and additional model limits | Default + managed accounts |
+| Cursor | Cursor Models · Other Models | Current active account |
+| Grok | Quota pools exposed by Orca | Current active account |
+| Copilot | Quota SDK from the Windows Copilot CLI, including a global npm install and the GitHub Copilot CLI path | Current CLI account · experimental |
 
-계정 수나 요금제 이름으로 잔여량을 추정하지 않습니다. Copilot의 **Session 사용량과 월간 포함량은 별개**이며, SDK 요청 단위와 AIC 대응은 추가 검증이 필요합니다. 6,500 AIC를 모든 구독의 한도로 가정하지 않습니다. [원천 검토와 제한](docs/RESEARCH.md)을 확인하세요.
+Quota is never inferred from account count or a plan name. Copilot **session usage and monthly allowance are separate**. SDK request units still need independent AIC verification; a 6,500-credit allowance is not assumed for every plan. See [source research and limits](docs/RESEARCH.md).
 
-## 구현·검증 현황
+## Implementation and verification
 
-현재는 **개발 프리뷰**입니다. 공유 LVGL UI와 포터블 중계에 더해 실제 보드 업로드·페어링·재연결까지 확인했습니다.
+This is a **development preview**. Beyond the shared LVGL UI and portable bridge, physical firmware upload, pairing and reconnect have been checked.
 
-| 범위 | 확인한 내용 |
+| Scope | Evidence |
 |---|---|
-| 소프트웨어 | TypeScript 52개, 실제 BLE 전송 소스를 모의 호스트/저장소로 실행하는 검사를 포함한 CTest 8개, 16개 언어 LCD·웹 검사 통과 |
-| 캐릭터 애니메이션 | 5종×6상태, 40회 화면 전환, 캐릭터 영역 밖 픽셀 불변, 54개 자산 무손실 검사 통과. 압축 전후 실제 렌더 380프레임 일치 |
-| 실제 데이터 | Orca 1.4.224 무수정으로 Codex 3계정·Cursor, 기존 Copilot SDK 계정 조회 |
-| 실제 보드 | 전체 백업 후 앱 업로드·읽기 검증, 부트로더·파티션·페어링 NVS 보존 확인 |
-| 연결·화면 | PC·폰 본딩 보존, Fold7 기본 설정 등록·잠금30분·자동 복귀, 화면 제어·터치 점등 실물 확인. 최신 마이그레이션본 ACK·5계정/폰 상태 복구 확인. 남은 실물 항목은 위에 구분 |
+| Software | 52 TypeScript tests, eight CTest suites including actual BLE transport with a simulated host/store, and 16-language LCD/web checks |
+| Character animation | Five providers × six states, 40 page cycles, unchanged pixels outside sprite regions and 54 lossless assets verified. All 380 rendered frames match before/after compression |
+| Live data | Three Codex accounts and Cursor from unmodified Orca 1.4.224, plus the existing Copilot SDK account |
+| Hardware | Full backup, application upload and readback verification; bootloader, partitions and pairing NVS preserved |
+| Connection and display | Saved PC/phone bonds retained; Fold7 native pairing/locked30min/automatic return; screen-control and touch-wake hardware checks; latest migration build quota ACK and five-account/phone-status recovery. Remaining hardware scenarios are listed above |
 
-최근 갱신 시각과 축약 리셋 배치는 네이티브 렌더러로 검사했습니다. 실물 문구별 배치·장시간 동작·모든 오류 복구를 검증한 것은 아닙니다. 상세 근거는 [검증 기록](docs/VERIFICATION.md)에 있습니다.
+Refresh timestamps and compact reset layouts were checked in the native renderer. Individual on-device text layouts, extended operation and every recovery scenario have not all been verified. The [verification record](docs/VERIFICATION.md) separates these boundaries.
 
 ## What's New
 
-### 2026-11-18 — 홈 버튼과 16개 언어
+### 2026-11-18 — Home controls and 16 languages
 
-홈 상단의 **새로고침**과 **설정**은 높이 36px로 줄였고, 첫 카드와 **16px 이상** 떨어뜨렸습니다. 같은 줄에 언어 선택이 들어갑니다. PC 대시보드의 언어 선택과 새로고침도 높이 36px, 글자 13px로 맞췄습니다.
+The home **Refresh** and **Settings** buttons are 36px tall and sit at least **16px** above the first card. A language selector shares that row. On the PC dashboard, the language selector and refresh button use the same 36px height and 13px type.
 
-포터블 웹과 ESP32 **첫 화면**에서 언어를 고르면 바로 저장됩니다. 한국어에 더해 영어, 중국어 간체, 일본어, 힌디어, 스페인어, 아랍어, 프랑스어, 벵골어, 포르투갈어, 인도네시아어, 우르두어, 러시아어, 독일어, 나이지리아 피진어, 이집트 아랍어를 지원합니다. 아랍어·우르두어는 오른쪽에서 왼쪽으로 읽고, 힌디어·벵골어·아랍 문자는 LCD에서 글자를 결합해 그립니다. [언어·글꼴](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md)
+Choosing a language on the portable web or ESP32 **home screen** saves it immediately. Alongside Korean, the display supports English, Simplified Chinese, Japanese, Hindi, Spanish, Arabic, French, Bengali, Portuguese, Indonesian, Urdu, Russian, German, Nigerian Pidgin and Egyptian Arabic. Arabic and Urdu read right to left. Hindi, Bengali and Arabic script are shaped for the LCD. [Languages and fonts](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md)
 
-| 한국어 홈 | 아랍어 홈 |
+| Korean home | Arabic home |
 |:---:|:---:|
-| [![언어 선택과 줄어든 새로고침·설정 버튼이 있는 한국어 홈](visuals/locales/lcd-ko-home.png)](visuals/locales/lcd-ko-home.png) | [![오른쪽에서 왼쪽으로 읽는 아랍어 홈](visuals/locales/lcd-ar-home.png)](visuals/locales/lcd-ar-home.png) |
+| [![Korean home with the language selector and compact refresh and settings buttons](visuals/locales/lcd-ko-home.png)](visuals/locales/lcd-ko-home.png) | [![Arabic home reading right to left](visuals/locales/lcd-ar-home.png)](visuals/locales/lcd-ar-home.png) |
 
-| 힌디어 홈 |
+| Hindi home |
 |:---:|
-| [![결합 글자로 그린 힌디어 홈](visuals/locales/lcd-hi-home.png)](visuals/locales/lcd-hi-home.png) |
+| [![Hindi home with shaped text](visuals/locales/lcd-hi-home.png)](visuals/locales/lcd-hi-home.png) |
 
-예시 데이터로 실제 LVGL을 렌더한 화면입니다.
+These frames use illustrative data in the real LVGL renderer.
 
-### 2026-11-17 — Codex 리셋권과 플랜 남은 시간
+### 2026-11-17 — Codex reset credits and plan time remaining
 
-Codex 카드는 만료가 가까운 리셋권 **두 개만** 보여 줍니다. 첫 줄 `R.T.1`이 더 크고, 둘째 줄 `R.T.2`는 작게 둡니다. 세 번째는 표시하지 않으며, `1개` 같은 개수와 날짜·시간대는 넣지 않습니다. 시간은 `14h 20m`, `1d 6h 5m`처럼 **d / h / m**입니다.
+Each Codex card shows only the **two nearest** reset credits. `R.T.1` is larger and `R.T.2` is smaller. A third credit is omitted, as are count prefixes, dates and time zones. Remaining time uses **d / h / m**, as in `14h 20m` and `1d 6h 5m`.
 
-남은 시간에 따라 글자색이 바뀝니다. 리셋권은 0분에 적색, 14일에 초록색이고 그 이상은 초록을 유지합니다. Codex 플랜은 `Plan 5h : 2h 18m | W 3d 4h`로, 5시간과 7일을 각 구간의 적색 끝으로 둡니다. Cursor와 Copilot은 `Plan Reset M : 17d 0h`이며 30일이 적색 끝입니다. 시각을 모르면 중립색입니다.
+Color follows the time left. Reset credits go from red at zero minutes to green at 14 days and stay green after that. Codex plan text uses `Plan 5h : 2h 18m | W 3d 4h`, with the five-hour and seven-day windows colored independently. Cursor and Copilot use `Plan Reset M : 17d 0h`, red at 30 days. Unknown times stay neutral.
 
-PC 대시보드도 LCD와 같은 두 줄·같은 색입니다. 리셋권을 넣어도 캐릭터는 88×108, 막대 높이와 퍼센트 글꼴은 그대로입니다. 홈 제목 옆의 `리셋권` 배지는 빼었습니다.
+The PC dashboard uses the same two lines and the same colors as the LCD. Characters stay 88×108, and meter height and percentage type stay fixed. The extra reset-credit badge beside home titles is gone.
 
-| 5계정 홈 | Codex 상세 |
+| Five-account home | Codex detail |
 |:---:|:---:|
-| [![리셋권과 플랜 남은 시간이 있는 5계정 홈](visuals/ui-consistency/home.png)](visuals/ui-consistency/home.png) | [![Codex 상세의 R.T.1과 R.T.2](visuals/ui-consistency/detail-credits.png)](visuals/ui-consistency/detail-credits.png) |
+| [![Five-account home with reset credits and plan time](visuals/ui-consistency/home.png)](visuals/ui-consistency/home.png) | [![Codex detail with R.T.1 and R.T.2](visuals/ui-consistency/detail-credits.png)](visuals/ui-consistency/detail-credits.png) |
 
-| Codex 3계정 | PC 대시보드 |
+| Three Codex accounts | PC dashboard |
 |:---:|:---:|
-| [![Codex 세 계정의 서로 다른 리셋권](visuals/ui-consistency/home-three-accounts.png)](visuals/ui-consistency/home-three-accounts.png) | [![LCD와 같은 리셋권 줄을 보여주는 PC 대시보드](visuals/portable/01-dashboard-mock.png)](visuals/portable/01-dashboard-mock.png) |
+| [![Three Codex accounts with distinct reset credits](visuals/ui-consistency/home-three-accounts.png)](visuals/ui-consistency/home-three-accounts.png) | [![PC dashboard showing the same reset-credit lines as the LCD](visuals/portable/01-dashboard-mock.png)](visuals/portable/01-dashboard-mock.png) |
 
-예시 데이터로 실제 LVGL과 웹 UI를 렌더한 화면입니다. 앱 영역만 업로드했고 부트로더·파티션·페어링 NVS는 유지했습니다. [표시 규칙](docs/UI_CONSISTENCY.md) · [실물 업로드 기록](docs/ui-no-credit-badge-build.json)
+These frames use illustrative data in the real LVGL renderer and web UI. Only the application partition was uploaded; the bootloader, partitions and pairing NVS were left in place. [Display rules](docs/UI_CONSISTENCY.md) · [Hardware upload record](docs/ui-no-credit-badge-build.json)
 
-## 변경 기록
+## Changelog
 
-### 2026-11-18 — 홈 버튼 간격 · 16개 언어
+### 2026-11-18 — Home control spacing and 16 languages
 
-- 홈의 새로고침·설정 버튼을 36px로 줄이고 첫 카드와 16px 이상 띄웠습니다. PC 대시보드의 언어 선택과 새로고침도 같은 높이입니다. [What's New](#whats-new)
-- 첫 화면에서 16개 언어를 바로 저장합니다. 아랍어·우르두어는 오른쪽에서 왼쪽, 힌디어·벵골어·아랍 문자는 결합 글꼴로 표시합니다. [언어와 화면 끄기 예약](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md)
+- Home Refresh and Settings buttons are 36px tall, with at least 16px before the first card. The PC dashboard language selector and refresh button match that height. [What's New](#whats-new)
+- The home screen saves any of 16 languages immediately. Arabic and Urdu run right to left; Hindi, Bengali and Arabic script are shaped on the LCD. [Languages and screen schedule](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md)
 
-### 2026-11-17 — Codex 리셋권 · 플랜 남은 시간 · Copilot CLI 경로
+### 2026-11-17 — Codex reset credits, plan countdowns and Copilot CLI discovery
 
-- Codex 리셋권은 가까운 2개만 `R.T.1`/`R.T.2`와 `d/h/m`으로 표시합니다. 첫 줄이 더 크고, 개수·날짜·시간대는 표시하지 않습니다. PC 대시보드는 LCD와 같은 정보입니다. [What's New](#whats-new)
-- 리셋권은 0분 적색에서 14일 초록으로, Codex `Plan 5h`/`W`는 5시간·7일 끝까지, Cursor·Copilot `Plan Reset M`은 30일 끝까지 색이 변합니다.
-- Windows용 GitHub Copilot CLI 설치 경로도 인식합니다. npm 전역 설치만 보던 제한을 없앴습니다.
-- GT911 터치와 CH422G를 ESP-IDF 신규 I2C 버스로 옮겼습니다. 인터럽트 워치독 재부팅 완화이며, 장시간 재발 시험은 끝나지 않았습니다.
-- 앱만 업로드했고 부트로더·파티션·페어링 NVS는 유지했습니다. [표시 규칙](docs/UI_CONSISTENCY.md) · [업로드 기록](docs/ui-no-credit-badge-build.json)
+- Codex cards show the two nearest reset credits as `R.T.1` / `R.T.2` in `d/h/m`. The first line is larger. Counts, dates and time zones are omitted. The PC dashboard matches the LCD. [What's New](#whats-new)
+- Reset credits fade from red at zero minutes to green at 14 days. Codex `Plan 5h` / `W` reach red at five hours and seven days. Cursor and Copilot `Plan Reset M` reaches red at 30 days.
+- The Windows GitHub Copilot CLI install path is recognized, not only a global npm install.
+- GT911 touch and the CH422G moved to the ESP-IDF I2C master driver. This mitigates an interrupt watchdog reboot; a long-duration recurrence test is still open.
+- The application partition was uploaded while preserving the bootloader, partitions and pairing NVS. [Display rules](docs/UI_CONSISTENCY.md) · [Upload record](docs/ui-no-credit-badge-build.json)
 
-### 2026-10-20 — 직접 페어링 휴대폰 감지 · PC 0.3.0
+### 2026-10-20 — Paired-phone presence · PC 0.3.0
 
-- PC·폰의 인증된 연결을 따로 관리하고, 대상별 번호 비교·선택 삭제·60초 부재 정책·보드의 감지 스위치를 추가했습니다.
-- 휴대폰 광고 스캔·주소/별칭 설정·검색 API를 제거하고 보드 소유 설정과 schema2 읽기 전용 PC 상태로 전환했습니다. 유효한 계정·화면 설정과 본딩은 보존합니다.
-- Windows 저장 기기의 GATT 서비스·항목을 캐시 우선으로 조회하고 필요한 경우 제한된 새 조회를 수행하도록 연결 회귀를 보완했습니다.
-- 폰트 저장량과 5개 언어 UI를 정리하고 상태·역할·전송·마이그레이션 검사를 CI에 연결했습니다. [적용·실물 검증 범위](docs/BLE_PRESENCE.md)
+- Added independent authenticated PC/phone links, role-specific numeric confirmation and selective bond deletion, plus the 60-second absence policy and local sensing switch.
+- Removed phone advertising scans, address/alias settings and scan APIs; migrated to board-owned settings and read-only schema2 PC status while preserving valid account/display settings and bonds.
+- Fixed Windows saved-peer GATT discovery using cached services and characteristics first, with bounded fresh fallback.
+- Reduced font storage, refreshed five-language UI and added state/role/transport/migration checks to CI. [Build and hardware scope](docs/BLE_PRESENCE.md)
 
 
-### 2026-10-16 — 오류 복구·연결 보강
+### 2026-10-16 — Recovery and connection hardening
 
-- 손상 설정 백업·기본값 복구, 저장된 BLE 기기 재연결·스캔 초기화, 잘못된 제어 JSON 무시, 설정 버전 검사·NVS 저장 간격·Orca 경로 검사·32MiB PSRAM 처리를 보강했습니다. Python companion의 USB UART는 실험용 송신 전용이며, 수신 펌웨어가 없어 기기 반영을 확인하지 않습니다.
+- Hardened corrupt-settings backup and defaults recovery, saved BLE peer reconnects and scan reset, malformed control JSON handling, revision checks, NVS write intervals, Orca path checks and 32MiB PSRAM reporting. The Python companion's USB UART is experimental and transmission-only; receiver firmware is unimplemented and device delivery is unconfirmed.
 
-### 2026-10-16 — 다국어·화면 끄기 예약
+### 2026-10-16 — Languages and scheduled screen-off
 
-- 웹·ESP32에 한국어·중국어 간체·일본어·영어·독일어 선택과 설정 동기화를 추가했습니다.
-- 매일 반복하는 백라이트 끄기 예약, 자정 경과 구간, 터치 시 5분 점등을 지원합니다. 예약 중에도 BLE·데이터 수신을 유지합니다.
-- ESP32에 시각 직접 입력 키패드를 추가하고, 기기 설정 저장 시 재부팅되어 값이 되돌아가던 문제를 수정했습니다.
-- 5개 언어 UI 폰트·공통 번역 원본, 설정 호환성·시간 경계·렌더 회귀 검사를 추가했습니다. [사용법·검증](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md)
+- Added Korean, Simplified Chinese, Japanese, English and German selection, synchronized between the web UI and ESP32.
+- Added a daily backlight-off schedule, overnight ranges and five-minute touch wake. BLE and incoming data remain active.
+- Added a direct time-entry keypad and fixed device settings saves rebooting the ESP32 and reverting preferences.
+- Added a shared translation catalog, complete UI glyph subsets and settings, time-boundary and rendering checks. [Usage and verification](docs/LANGUAGES_AND_SCREEN_SCHEDULE.md)
 
-### 2026-10-16 — 픽셀 캐릭터 애니메이션
+### 2026-10-16 — Pixel character animation
 
-- **주기적인 화면 밀림 개선:** CPU 계측의 전체 태스크·스택 순회를 두 idle 카운터 조회로 교체하고, 힙 조회·BLE 전송을 화면 잠금 밖으로 옮겼습니다. 애니메이션과 5초 통계는 유지하며, 실제 펌웨어 코드를 사용하는 회귀 검사를 추가했습니다. [원인 분석·검증](docs/RUNTIME_METRICS.md)
-- **실물 자원 실측:** 홈 CPU 평균 6.10%·7.43fps, 상세 6.08%·2.57fps, 가용 PSRAM 약 891KiB. 5초 주기 계측·수치 수집기와 개인정보 필드 배제·웹 갱신 불변 검사를 추가했습니다. [실측 기록](docs/RUNTIME_METRICS.md)
-- 홈과 상세 화면에 눈깜박임·표정 변화·숨쉬기·좌우 살피기·작은 반동을 추가했습니다. 잔여량과 수집 상태에 따라 동작이 달라집니다.
-- 원본 F108pro의 추가 표정 24장을 복원하고, Copilot은 LVGL 눈꺼풀을 사용합니다. 계정마다 다른 시점에 움직이며 화면에 보이는 캐릭터만 갱신합니다.
-- 무손실 팔레트 저장과 공유 복원 버퍼로 자산 저장량을 약 39% 줄였습니다. 플래시 적합성에 더해 PSRAM의 XIP·LCD 버퍼 예산 검사와 애니메이션 회귀 검사를 CI에 추가했습니다.
-- [실제 LVGL 렌더 GIF](visuals/native/character-animation.gif) · [구현·자원·검증 기록](docs/CHARACTER_ANIMATION.md). 펌웨어 업로드·플래시 검증과 기존 페어링 보존을 완료했고, 사용자가 실물 BLE 연결·정상 동작을 확인했습니다.
+- **Periodic screen-shift fix:** Replaced CPU sampling's full task/stack scan with two idle-counter reads, and moved heap queries and BLE transmission outside the UI lock. Animations and five-second diagnostics remain enabled. Added a regression test using the firmware sampler itself. [Analysis and verification](docs/RUNTIME_METRICS.md)
+- **Hardware resource measurements:** Home averages 6.10% CPU and 7.43fps; detail averages 6.08% and 2.57fps; free PSRAM is about 891KiB. Added five-second diagnostics, a numeric-only collector and tests for field filtering and unchanged dashboard cadence. [Measurement record](docs/RUNTIME_METRICS.md)
+- Home cards and account details now breathe, blink, change expression and make occasional small gestures according to quota/source state, with separate timing for each account.
+- Restored 24 original F108pro expression frames; Copilot uses native LVGL eyelids. One reusable timer updates visible characters only.
+- Lossless palette storage and one shared decode buffer reduce asset storage by about 39%. CI now checks animation regressions and the PSRAM XIP/framebuffer budget alongside flash capacity.
+- [Actual LVGL-rendered GIF](visuals/native/character-animation.gif) · [Implementation, resources and verification](docs/CHARACTER_ANIMATION.md). Flashed and verified the application while preserving the bootloader, partitions and pairing NVS. The user confirmed the physical display reconnected over BLE and operates normally.
 
-### 2026-10-15 — 계정별 할당량 고정 · 웹 갱신 주기 개선
+### 2026-10-15 — Stable account quotas and scheduled web updates
 
-- **계정 전환 시 할당량 혼선 수정:** Codex·Claude의 사용량을 실제 활성 계정에 연결합니다. 기본·관리 계정의 저장 ID·순서·별칭을 유지하고, 같은 조직의 다른 구성원도 구분합니다.
-- **마지막 확인값과 요금제 처리:** 같은 계정의 마지막 확인값만 메모리에 유지합니다. 비활성 기본 계정은 앱 재시작 직후 값이 없으면 확인 불가로 표시합니다. 저장된 `요금제 미확인` 문구는 빈 값으로 정리하고, 사용자가 지정한 요금제는 보존합니다.
-- **웹의 2초 주기 갱신 제거:** 다음 정기 전송 **2초 전 한 번** 갱신합니다. 60초 설정이면 이전 전송 ACK 후 58초이며, 전송 간격 변경 시 다시 예약합니다. 원천 캐시 변경은 정기 전송에 반영하고, 페어링·연결 상태와 사용자 조작은 즉시 표시합니다.
-- **검증·적용:** 테스트 35개와 모의 원천·BLE를 사용한 웹 UI 검사 통과. 기존 실행 폴더에 적용했으며, 계정 설정·자동 실행·런타임을 보존했습니다. 이번 수정의 실제 계정 전환에 따른 실물 LCD 표시는 직접 검증하지 않았습니다. [상세 검증 기록](docs/VERIFICATION.md) · [구현 커밋](https://github.com/guyster323/ESP32_7inch_Quotamon/commit/4c0c839e85358287c8bb7f744e5df3814eeab969)
+- **Fixed quota ownership during account switches:** Codex and Claude usage follows the actual active account. Saved account IDs, order and aliases stay in place, and different members of the same organization remain separate.
+- **Last confirmed readings and plans:** Only readings belonging to the same account are retained in memory. An inactive default account starts as unknown after an app restart if no reading is available. The saved “plan unknown” placeholder is cleared while user-defined plans are preserved.
+- **Removed two-second web polling:** The dashboard refreshes once **two seconds before the next scheduled transfer**—58 seconds after the previous ACK with a 60-second interval. Interval changes reschedule the update. Source cache changes wait for the regular transfer; pairing, connection status and user actions remain immediate.
+- **Verification and rollout:** All 35 tests and browser checks with simulated source/BLE passed. Applied to the existing installation while preserving account settings, startup registration and runtime binaries. Physical LCD behavior during actual account switches was not directly verified for this change. [Verification record](docs/VERIFICATION.md) · [Implementation commit](https://github.com/guyster323/ESP32_7inch_Quotamon/commit/4c0c839e85358287c8bb7f744e5df3814eeab969)
 
-## 개발과 문서
+## Build and documentation
 
-| 시작하기 | 구조와 동작 | 검증과 출처 |
+| Get started | Understand the system | Inspect the evidence |
 |---|---|---|
-| [포터블 실행·복구](docs/PORTABLE_BRIDGE.md) | [아키텍처](docs/ARCHITECTURE.md) | [검증 기록](docs/VERIFICATION.md) |
-| [펌웨어·BOOT/RESET](docs/UPLOAD.md) | [BLE 프로토콜](docs/BLE_PROTOCOL.md) | [원천 조사](docs/RESEARCH.md) |
+| [Portable setup and recovery](docs/PORTABLE_BRIDGE.md) | [Architecture](docs/ARCHITECTURE.md) | [Verification](docs/VERIFICATION.md) |
+| [Firmware and BOOT/RESET](docs/UPLOAD.md) | [BLE protocol](docs/BLE_PROTOCOL.md) | [Source research](docs/RESEARCH.md) |
 
 <details>
-<summary>로컬 빌드와 모션 그래픽 재생성</summary>
+<summary>Local builds and motion asset generation</summary>
 
-네이티브 미리보기는 Windows의 Visual Studio C++/CMake 도구를 사용합니다. 생성된 스프라이트와 한글 폰트는 저장소에 포함되어 있습니다.
+The native preview uses Visual Studio C++/CMake on Windows. Generated sprites and Korean fonts are committed.
 
 ```powershell
 python tools/bootstrap_dependencies.py
@@ -287,34 +327,34 @@ python tools/verify_character_animation.py
 build\native\espmonitor_sim.exe
 ```
 
-README의 GIF·정지 이미지는 **Pillow와 네이티브 시뮬레이터**로 생성합니다. 로컬의 Noto Sans KR 폰트 또는 Windows Segoe UI 폰트를 사용합니다.
+The README GIF and still image use **Pillow and the native simulator**, with the local Noto Sans KR font or Windows Segoe UI.
 
 ```powershell
 python -m pip install Pillow
 python tools/generate_readme_media.py
 ```
 
-MP4 영상도 만들려면 `imageio-ffmpeg`를 설치한 뒤 `python tools/generate_readme_media.py --video-only`를 실행합니다. 로컬에서는 `assets/readme/index.html`을 브라우저로 열어 재생·정지·반복을 제어할 수 있습니다.
+For an MP4 export, install `imageio-ffmpeg` and run `python tools/generate_readme_media.py --video-only`. Open `assets/readme/index.html` locally in a browser for playback controls and looping.
 
-생성기는 실행 중인 Orca나 계정 데이터를 읽지 않습니다. 출력은 `assets/readme/`, 생성 정보는 `assets/readme/media.json`에 기록됩니다.
+The generator never reads running Orca or account data. Assets are written to `assets/readme/`, with generation metadata in `assets/readme/media.json`.
 
-| 경로 | 역할 |
+| Path | Purpose |
 |---|---|
-| `firmware/` | Waveshare RGB/GT911 포트 + ESP-IDF NimBLE 수신기 |
-| `native/` | 보드와 공유하는 LVGL UI, 폰트·스프라이트, Windows 시뮬레이터 |
-| `portable/` | Windows 트레이 실행기와 로컬 설정 UI |
-| `orca-integration/` | 무수정 Orca 조회·공유 중계 core·BLE 제어 |
-| `protocol/` | BLE 프레임 디코더 |
-| `assets/` · `visuals/` | 픽셀 캐릭터·모션 그래픽·네이티브 화면 예시 |
+| `firmware/` | Waveshare RGB/GT911 port + ESP-IDF NimBLE receiver |
+| `native/` | Shared LVGL UI, fonts, sprites and Windows simulator |
+| `portable/` | Windows tray launcher and local settings UI |
+| `orca-integration/` | Unmodified Orca access, shared bridge core and BLE control |
+| `protocol/` | BLE frame decoder |
+| `assets/` · `visuals/` | Pixel companions, motion graphics and native screen examples |
 
-기존 [Orca 내부 통합 패치](docs/ORCA_INTEGRATION.md)는 선택적인 개발 참고 자료입니다. 현재 포터블 실행 경로에는 필요하지 않습니다.
+The older [internal Orca integration patch](docs/ORCA_INTEGRATION.md) remains optional developer reference material. The portable flow does not require it.
 
 </details>
 
-## 크레딧
+## Credits
 
-[F108pro Usage Monitor](https://github.com/guyster323/F108pro_Usage_monitor)의 픽셀 자산·퍼센트 표현에서 출발했습니다. Codex/Cursor/Claude/Grok은 해당 MIT 자산을 사용하며, 보라색 Copilot 파일럿 로봇은 이 프로젝트의 새 비공식 일러스트입니다.
+Inspired by the pixel artwork and split percentage bars of [F108pro Usage Monitor](https://github.com/guyster323/F108pro_Usage_monitor). Codex/Cursor/Claude/Grok use its MIT assets. The lavender Copilot pilot robot is original, unofficial artwork created for this project.
 
 [Orca](https://github.com/stablyai/orca) · [Waveshare LCD-7](https://docs.waveshare.com/ESP32-S3-Touch-LCD-7/Instructions-For-Use) · [LVGL](https://github.com/lvgl/lvgl) · [ESP-IDF](https://github.com/espressif/esp-idf) · [Noto Sans KR](https://github.com/google/fonts/tree/main/ofl/notosanskr)
 
-프로젝트 코드: [MIT](LICENSE). 참조 자산·폰트·포트·런타임의 라이선스는 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에 기록합니다.
+Project code: [MIT](LICENSE). Artwork, fonts, ports and runtime dependencies retain their respective [third-party notices](THIRD_PARTY_NOTICES.md).
