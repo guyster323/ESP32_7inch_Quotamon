@@ -3,12 +3,52 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { findCopilotInstall } from '../src/copilot-quota-source.js'
+import { createQuotaClient, findCopilotInstall } from '../src/copilot-quota-source.js'
 
 async function touch(path: string): Promise<void> {
   await mkdir(join(path, '..'), { recursive: true })
   await writeFile(path, '')
 }
+
+test('createQuotaClient uses the installed SDK transport without opening a session', () => {
+  const seen: unknown[] = []
+  class Client {
+    constructor(options: unknown) {
+      seen.push(options)
+    }
+  }
+  const current = {
+    CopilotClient: Client,
+    RuntimeConnection: {
+      forSpawnedStdio(options: { path: string }) {
+        return { kind: 'spawned-stdio', ...options }
+      }
+    }
+  }
+  createQuotaClient(current, 'C:\\copilot.exe')
+  assert.deepEqual(seen[0], {
+    mode: 'coding-agent',
+    runtime: { kind: 'spawned-stdio', path: 'C:\\copilot.exe' },
+    observability: { logLevel: 'error' }
+  })
+  const legacy = {
+    CopilotClient: Client,
+    RuntimeConnection: {
+      forStdio(options: { path: string }) {
+        return { kind: 'stdio', ...options }
+      }
+    }
+  }
+  createQuotaClient(legacy, 'C:\\legacy.exe')
+  assert.deepEqual(seen[1], {
+    connection: { kind: 'stdio', path: 'C:\\legacy.exe' },
+    logLevel: 'error'
+  })
+  assert.throws(
+    () => createQuotaClient({ CopilotClient: Client, RuntimeConnection: {} }, 'C:\\missing.exe'),
+    /Unsupported Copilot SDK/
+  )
+})
 
 test('findCopilotInstall prefers the npm package and otherwise uses the Windows installer', async () => {
   const root = await mkdtemp(join(tmpdir(), 'copilot-install-'))
