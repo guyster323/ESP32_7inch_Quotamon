@@ -6,29 +6,39 @@ import { copilotQuota, DisplayAccount, record } from './quota-snapshot.js'
 interface QuotaClient {
   start(): Promise<void>
   stop(): Promise<void>
-  forceStop(): void
+  forceStop(): void | Promise<void>
   rpc: {
     account: { getQuota(params: Record<string, never>): Promise<unknown> }
   }
 }
-interface QuotaSdk {
-  CopilotClient: new (options: {
-    connection: unknown
-    logLevel: string
-  }) => QuotaClient
-  RuntimeConnection: { forStdio(options: { path: string }): unknown }
-}
+type QuotaConstructor = new (options: Record<string, unknown>) => QuotaClient
 export interface CopilotInstall {
   cli: string
   sdk: string
 }
-function isQuotaSdk(value: unknown): value is QuotaSdk {
-  return (
-    record(value) &&
-    typeof value.CopilotClient === 'function' &&
-    record(value.RuntimeConnection) &&
-    typeof value.RuntimeConnection.forStdio === 'function'
+// CLI 1.0.112 exposes RuntimeConnection.forStdio and a top-level logLevel.
+// CLI 1.0.114 requires mode and renamed that transport to forSpawnedStdio.
+export function createQuotaClient(sdk: unknown, cli: string): QuotaClient {
+  if (
+    !record(sdk) ||
+    typeof sdk.CopilotClient !== 'function' ||
+    !record(sdk.RuntimeConnection)
   )
+    throw Error('Unsupported Copilot SDK')
+  const Client = sdk.CopilotClient as QuotaConstructor
+  const runtime = sdk.RuntimeConnection
+  if (typeof runtime.forSpawnedStdio === 'function')
+    return new Client({
+      mode: 'coding-agent',
+      runtime: runtime.forSpawnedStdio({ path: cli }),
+      observability: { logLevel: 'error' }
+    })
+  if (typeof runtime.forStdio === 'function')
+    return new Client({
+      connection: runtime.forStdio({ path: cli }),
+      logLevel: 'error'
+    })
+  throw Error('Unsupported Copilot SDK')
 }
 function paired(root: string): CopilotInstall | undefined {
   const cli = join(root, 'copilot.exe'),
@@ -109,11 +119,7 @@ export async function readCopilotQuota(
     const sdk: unknown = await import(
       /* @vite-ignore */ pathToFileURL(install.sdk).href
     )
-    if (!isQuotaSdk(sdk)) throw Error('Unsupported Copilot SDK')
-    client = new sdk.CopilotClient({
-      connection: sdk.RuntimeConnection.forStdio({ path: install.cli }),
-      logLevel: 'error'
-    })
+    client = createQuotaClient(sdk, install.cli)
     const deadline = new Promise<never>((_, reject) => {
       timer = setTimeout(() => reject(Error('Quota RPC timeout')), 25000)
     })
@@ -127,11 +133,14 @@ export async function readCopilotQuota(
     if (timer) clearTimeout(timer)
     if (client) {
       const existing = client
-      const stopper = setTimeout(() => existing.forceStop(), 3000)
+      const halt = (): void => {
+        void Promise.resolve(existing.forceStop()).catch(() => {})
+      }
+      const stopper = setTimeout(halt, 3000)
       try {
         await existing.stop()
       } catch {
-        existing.forceStop()
+        halt()
       } finally {
         clearTimeout(stopper)
       }
